@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="GTA_SA_PathsRedactor.View.PointTransformationUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="200">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10 2 10 2"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Margin" Value="10"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="Gray">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="0.7*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel TextBlock.FontSize="18" >
+            <TextBlock Text="Select resolution" Margin="5"/>
+            <ComboBox x:Name="SettingsForResolutionCB" Margin="5" SelectedIndex="{Binding Path=CurrentPointTransformDataIndex}">
+                <ComboBoxItem Content="For resolution 800x600" IsSelected="True"/>
+                <ComboBoxItem Content="For resolution 1080x850"/>
+                <ComboBoxItem Content="For resolution 1280x1024"/>
+                <ComboBoxItem Content="For resolution 1680x1050"/>
+                <ComboBoxItem Content="For resolution 1920x1080"/>
+            </ComboBox>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="1" TextBlock.FontSize="18">
+            <StackPanel Margin="10">
+                <TextBlock Text="OffsetX"/>
+                <TextBox x:Name="OffsetXTBox" Text="{Binding Path=CurrentPointTransformData.OffsetX, ValidatesOnDataErrors=True}"/>
+            </StackPanel>
+            <StackPanel Margin="10">
+                <TextBlock Text="OffsetY"/>
+                <TextBox x:Name="OffsetYTBox" Text="{Binding Path=CurrentPointTransformData.OffsetY, ValidatesOnDataErrors=True}"/>
+            </StackPanel>
+            <StackPanel Margin="10">
+                <TextBlock Text="ScaleX"/>
+                <TextBox x:Name="ScaleXTBox" Text="{Binding Path=CurrentPointTransformData.PointScaleX, ValidatesOnDataErrors=True}"/>
+            </StackPanel>
+            <StackPanel Margin="10">
+                <TextBlock Text="ScaleY"/>
+                <TextBox x:Name="ScaleYTBox" Text="{Binding Path=CurrentPointTransformData.PointScaleY, ValidatesOnDataErrors=True}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2">
+            <Button Content="Load settings" Background="LightGray" />
+            <Button Content="Save settings"  Background="LightGray" Command="{Binding Path=SaveSettings}"/>
+        </StackPanel>
+        <!--<Button Content="Accept"  Background="LightGray" />-->
+
+        <Button Grid.Row="3" Content="Go to main menu"/>
+    </Grid>
+</UserControl>

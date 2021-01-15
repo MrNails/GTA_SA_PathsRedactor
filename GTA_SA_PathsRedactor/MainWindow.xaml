@@ -1,0 +1,52 @@
+﻿<Window x:Class="GTA_SA_PathsRedactor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GTA_SA_PathsRedactor"
+        xmlns:view="clr-namespace:GTA_SA_PathsRedactor.View"
+        mc:Ignorable="d"
+        Title="Main window" Height="1024" Width="1280" ResizeMode="CanMinimize"
+        MouseWheel="Window_MouseWheel">
+    <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top" Panel.ZIndex="1" FontSize="15">
+            <MenuItem Header="File">
+                <MenuItem Header="Save"/>
+                <MenuItem Header="Load"/>
+            </MenuItem>
+            <MenuItem Header="Settings">
+                <MenuItem Header="Program resolutions">
+                    <MenuItem Header="800x600" Click="ResolutionChange_Click"/>
+                    <MenuItem Header="1080x850" Click="ResolutionChange_Click"/>
+                    <MenuItem Header="1280x1024" Click="ResolutionChange_Click"/>
+                    <MenuItem Header="1680x1050" Click="ResolutionChange_Click"/>
+                    <MenuItem Header="1920x1080" Click="ResolutionChange_Click"/>
+                </MenuItem>
+                <MenuItem Header="Path transform settings" Click="PathTransorm_Click"/>
+            </MenuItem>
+        </Menu>
+        <Border x:Name="UserContentContainer" DockPanel.Dock="Left" Panel.ZIndex="1"
+                BorderBrush="Black" BorderThickness="2" Width="200" Background="Gray">
+            <view:PointControllerUC VerticalAlignment="Top"/>
+        </Border>
+        <Canvas x:Name="MapContainer" Panel.ZIndex="0">
+            <Canvas x:Name="MainField"
+                    Width="{Binding ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                    Height="{Binding ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                    Mouse.MouseUp="MainField_MouseUp" 
+                    Mouse.MouseDown="MainField_MouseDown" 
+                    Mouse.MouseMove="MainField_MouseMove"
+                    Mouse.MouseLeave="MainField_MouseLeave"
+                    Mouse.MouseEnter="MainField_MouseEnter">
+                <Image x:Name="MapIcon" Stretch="Fill"
+                Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                Source="./Resource/MapImage.jpg">
+                    <Image.LayoutTransform>
+                        <ScaleTransform ScaleY="-1"/>
+                    </Image.LayoutTransform>
+                </Image>
+            </Canvas>
+        </Canvas>
+    </DockPanel>
+</Window>

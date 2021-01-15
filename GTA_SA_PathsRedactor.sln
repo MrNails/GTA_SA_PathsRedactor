@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTA_SA_PathsRedactor", "GTA_SA_PathsRedactor\GTA_SA_PathsRedactor.csproj", "{DAD023C6-42E7-41E4-B0E2-2CBBB14FABAF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DAD023C6-42E7-41E4-B0E2-2CBBB14FABAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAD023C6-42E7-41E4-B0E2-2CBBB14FABAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAD023C6-42E7-41E4-B0E2-2CBBB14FABAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAD023C6-42E7-41E4-B0E2-2CBBB14FABAF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CE488119-8781-4BAA-8A09-589E6C64F846}
+	EndGlobalSection
+EndGlobal
