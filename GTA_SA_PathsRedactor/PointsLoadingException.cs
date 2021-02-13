@@ -25,7 +25,7 @@ namespace GTA_SA_PathsRedactor
             m_pointsFile = pointsFile;
             m_fileErrorLine = fileErrorLine;
         }
-        protected PointsLoadingException(
+        private PointsLoadingException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) 
         {

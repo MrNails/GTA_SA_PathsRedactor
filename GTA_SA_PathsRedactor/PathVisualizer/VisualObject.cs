@@ -27,7 +27,7 @@ namespace GTA_SA_PathsRedactor.PathVisualizer
         public GTA_SA_Point OriginPoint
         {
             get => m_originPoint;
-            set
+            init
             {
                 if (value == null)
                 {

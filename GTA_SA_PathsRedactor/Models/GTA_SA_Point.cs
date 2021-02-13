@@ -20,7 +20,7 @@ namespace GTA_SA_PathsRedactor.Models
         { }
         public GTA_SA_Point(System.Windows.Point point, double z, bool isStopPoint) : this(point.X, point.Y, z, isStopPoint)
         { }
-        public GTA_SA_Point(System.Windows.Media.Media3D.Point3D point, bool isStopPoint) : this(point.X, point.Y, point.Z, isStopPoint)
+        public GTA_SA_Point(System.Windows.Media.Media3D.Point3D point3D, bool isStopPoint) : this(point3D.X, point3D.Y, point3D.Z, isStopPoint)
         { }
         public GTA_SA_Point(double x, double y, double z, bool isStopPoint)
         {
