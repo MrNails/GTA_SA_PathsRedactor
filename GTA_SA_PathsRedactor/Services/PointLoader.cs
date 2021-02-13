@@ -55,9 +55,9 @@ namespace GTA_SA_PathsRedactor.Services
             string filePath = m_gameFolderPath + @"\data\Paths\tracks2.dat";
             char[] splitCharacters = new char[] { ' ' }; 
             int lineNumber = 0;
-            var pointTranformData = PointTransformationData.TransformatorForResolution1280x1024;
 
-            using (StreamReader streamReader = new StreamReader(filePath))
+            using (var fStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.None, 4096, true))
+            using (var streamReader = new StreamReader(fStream))
             {
                 int pointsCount;
                 lineNumber++;
@@ -84,10 +84,7 @@ namespace GTA_SA_PathsRedactor.Services
                                 double.TryParse(currentLine[2], NumberStyles.Float | NumberStyles.AllowTrailingSign, CultureInfo.InvariantCulture, out z) &&
                                 int.TryParse(currentLine[3], out isStop))
                             {
-                                //points[lineNumber - 2] = new Models.GTA_SA_Point(x / pointTranformData.PointScaleX + pointTranformData.OffsetX,
-                                //                                                 y / pointTranformData.PointScaleY + pointTranformData.OffsetY, z, isStop == 1);
-                                points[lineNumber - 2] = new Models.GTA_SA_Point(x,
-                                                                                 y, z, isStop == 1);
+                                points[lineNumber - 2] = new Models.GTA_SA_Point(x, y, z, isStop == 1);
                             }
                             else
                             {
@@ -95,10 +92,7 @@ namespace GTA_SA_PathsRedactor.Services
                             }
                         }
 
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                        }
+                        cancellationToken.ThrowIfCancellationRequested();
                     }
                 }
                 else

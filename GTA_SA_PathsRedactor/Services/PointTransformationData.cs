@@ -8,15 +8,10 @@ using System.Threading.Tasks;
 namespace GTA_SA_PathsRedactor.Services
 {
     [Serializable]
-    internal sealed class PointTransformationData : INotifyPropertyChanged
+    public sealed class PointTransformationData : INotifyPropertyChanged
     {
-        public static readonly PointTransformationData TransformatorForResolution800x600;
-        public static readonly PointTransformationData TransformatorForResolution1080x850;
-        public static readonly PointTransformationData TransformatorForResolution1280x1024;
-        public static readonly PointTransformationData TransformatorForResolution1680x1050;
-        public static readonly PointTransformationData TransformatorForResolution1920x1080;
-        public static PointTransformationData CurrentTransformator;
-
+        private bool m_invertHorizontally;
+        private bool m_invertVertically;
         private double m_offsetX;
         private double m_offsetY;
         private double m_pointScaleX;
@@ -24,12 +19,6 @@ namespace GTA_SA_PathsRedactor.Services
         private double m_originalMapWidth;
         private double m_originalMapHeight;
         private string m_transformName;
-
-        //TransformatorForResolution800x600 = new PointTransformationData(455, 395, 6.6, 7.6, 630, 540);
-        //TransformatorForResolution1080x850 = new PointTransformationData(455, 395, 6.6, 7.6, 910, 810);
-        //TransformatorForResolution1280x1024 = new PointTransformationData(355, 320, 5.4, 6.2, 1110, 963);
-        //TransformatorForResolution1680x1050 = new PointTransformationData(455, 395, 6.6, 7.6, 1510, 990);
-        //TransformatorForResolution1920x1080 = new PointTransformationData(455, 395, 6.6, 7.6, 1766, 1035);
 
         public PointTransformationData() 
             : this (0, 0, 0, 0, 0, 0, "empty")
@@ -47,6 +36,24 @@ namespace GTA_SA_PathsRedactor.Services
             TransformName = transformName;
         }
 
+        public bool InvertHorizontally
+        {
+            get { return m_invertHorizontally; }
+            set
+            {
+                m_invertHorizontally = value;
+                OnPropertyChanged("InvertHorizontally");
+            }
+        }
+        public bool InvertVertically
+        {
+            get { return m_invertVertically; }
+            set
+            {
+                m_invertVertically = value;
+                OnPropertyChanged("InvertVertically");
+            }
+        }
         public double OffsetX
         {
             get { return m_offsetX; }
