@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using GTA_SA_PathsRedactor.Services;
 using System.ComponentModel;
+using System.Windows;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    internal class PointTransformVM : INotifyPropertyChanged
+    public class PointTransformVM : INotifyPropertyChanged
     {
         private int m_currentPointTransformDataIndex;
 
@@ -18,6 +16,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private RelayCommand m_loadSettings;
         private RelayCommand m_goToMainMenu;
 
+        private TransformSettingLoader transformSettingLoader;
         private List<PointTransformationData> m_pointsTransformationData;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -28,6 +27,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             m_saveSettings = new RelayCommand(SaveSettingCommandHandler);
             m_loadSettings = new RelayCommand(LoadSettingCommandHandler);
+
+            transformSettingLoader = new TransformSettingLoader( @$"{Environment.CurrentDirectory}\PointsSetting.json");
         }
 
         public RelayCommand SaveSettings => m_saveSettings;
@@ -44,19 +45,25 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 return m_pointsTransformationData[m_currentPointTransformDataIndex];
             }
         }
+        public System.Collections.ObjectModel.ReadOnlyCollection<PointTransformationData> PointTranformationDatas
+        {
+            get
+            {
+                return m_pointsTransformationData.AsReadOnly();
+            }
+        }
 
         public int CurrentPointTransformDataIndex
         {
             get { return m_currentPointTransformDataIndex; }
             set 
             { 
-                if (m_currentPointTransformDataIndex < -1 || 
-                    m_currentPointTransformDataIndex >= m_pointsTransformationData.Count)
+                if (value < -1 || value >= m_pointsTransformationData.Count)
                 {
                     throw new ArgumentOutOfRangeException("value");
                 }
 
-                if (m_currentPointTransformDataIndex == -1)
+                if (value == -1)
                 {
                     m_pointsTransformationData.Clear();
                 }
@@ -70,7 +77,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public RelayCommand GoToMainMenu
         {
-            get { return m_goToMainMenu ?? new RelayCommand(obj => { }); }
+            get { return m_goToMainMenu ?? (m_goToMainMenu = new RelayCommand(obj => { })); }
             set 
             {
                 if (value == null)
@@ -117,53 +124,72 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             m_pointsTransformationData.AddRange(pointsTransformationData);
-        }
 
-        public void SaveSettingsToFile()
-        {
-            JsonSerializer jsonSerializer = new JsonSerializer();
-            string filePath = @$"{Environment.CurrentDirectory}\PointsSetting.json";
-
-            if (!File.Exists(filePath))
+            if (m_pointsTransformationData.Any())
             {
-                File.Create(filePath).Close();
-            }
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Truncate, FileAccess.Write))
-            {
-                using (StreamWriter streamWriter = new StreamWriter(fileStream))
-                {
-                    jsonSerializer.Serialize(streamWriter, m_pointsTransformationData);
-                }
-            }
-        }
-        public void LoadSettingsToFile()
-        {
-            JsonSerializer jsonSerializer = new JsonSerializer();
-            string filePath = @$"{Environment.CurrentDirectory}\PointsSetting.json";
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException();
-            }
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-            {
-                using (StreamReader streamReader = new StreamReader(fileStream))
-                {
-                    Clear();
-                    AddNewPointTransformationData((List<PointTransformationData>)jsonSerializer.Deserialize(streamReader, typeof(List<PointTransformationData>)));
-                }
+                CurrentPointTransformDataIndex = 0;
             }
         }
 
-        private void SaveSettingCommandHandler(object obj)
+        private void SaveSettingCommandHandler(object  obj)
         {
-            SaveSettingsToFile();
+            try
+            {
+                transformSettingLoader.SaveSettings(m_pointsTransformationData);
+
+                MessageBox.Show("Settings saved succesfully", "Information",
+                                MessageBoxButton.OK, MessageBoxImage.Asterisk);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show("An error ocured while settings saving.", "Information",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+#endif
+
+            }
         }
         private void LoadSettingCommandHandler(object obj)
         {
+            try
+            {
+                var settings = transformSettingLoader.LoadSettings();
 
+                foreach (var setting in settings)
+                {
+                    setting.PropertyChanged += Setting_PropertyChanged;
+                }
+
+                Clear();
+                AddNewPointTransformationData(settings);
+
+                MessageBox.Show("Settings loaded succesfully", "Information",
+                                MessageBoxButton.OK, MessageBoxImage.Asterisk);
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show("Specified file not found.", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show("An error ocured while settings loading.", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+
+            }
+        }
+
+        private void Setting_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            PropertyChanged?.Invoke(sender, e);
         }
 
         private void OnPropertyChanged(string propName)
@@ -171,6 +197,4 @@ namespace GTA_SA_PathsRedactor.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
     }
-
-    
 }
