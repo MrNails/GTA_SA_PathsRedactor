@@ -5,8 +5,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
              mc:Ignorable="d" 
-             d:DesignHeight="500" d:DesignWidth="200">
+             d:DesignHeight
+             ="600" d:DesignWidth="200">
     <UserControl.Resources>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource ResourceKey=TextBoxValidationTemplate}">
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style TargetType="{x:Type CheckBox}">
+            <Setter Property="Margin" Value="10 5 10 5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
         <Style TargetType="{x:Type Button}">
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -14,13 +22,14 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="Margin" Value="10"/>
+            <Setter Property="Background" Value="LightGray"/>
         </Style>
     </UserControl.Resources>
     <Grid Background="Gray">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="0.7*"/>
+            <RowDefinition Height="0.6*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -34,7 +43,7 @@
                 <ComboBoxItem Content="For resolution 1920x1080"/>
             </ComboBox>
         </StackPanel>
-        
+
         <StackPanel Grid.Row="1" TextBlock.FontSize="18">
             <StackPanel Margin="10">
                 <TextBlock Text="OffsetX"/>
@@ -52,14 +61,16 @@
                 <TextBlock Text="ScaleY"/>
                 <TextBox x:Name="ScaleYTBox" Text="{Binding Path=CurrentPointTransformData.PointScaleY, ValidatesOnDataErrors=True}"/>
             </StackPanel>
+            <CheckBox Content="Invert horizontally" IsChecked="{Binding Path=CurrentPointTransformData.InvertHorizontally}"/>
+            <CheckBox Content="Invert vertically" IsChecked="{Binding Path=CurrentPointTransformData.InvertVertically}"/>
         </StackPanel>
 
         <StackPanel Grid.Row="2">
-            <Button Content="Load settings" Background="LightGray" />
-            <Button Content="Save settings"  Background="LightGray" Command="{Binding Path=SaveSettings}"/>
+            <Button Content="Load settings" Command="{Binding Path=LoadSettings}"/>
+            <Button Content="Save settings" Command="{Binding Path=SaveSettings}"/>
         </StackPanel>
         <!--<Button Content="Accept"  Background="LightGray" />-->
 
-        <Button Grid.Row="3" Content="Go to main menu"/>
+        <Button Grid.Row="3" Content="Go to main menu" Command="{Binding Path=GoToMainMenu}"/>
     </Grid>
 </UserControl>

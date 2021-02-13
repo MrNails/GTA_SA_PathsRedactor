@@ -20,35 +20,71 @@ namespace GTA_SA_PathsRedactor.View
     /// </summary>
     public partial class PointTransformationUC : UserControl
     {
-        private ViewModel.PointTransformVM pointTransform;
+        private ViewModel.PointTransformVM m_pointTransform;
+        private ViewModel.PathEditor m_path;
 
         public PointTransformationUC()
         {
             InitializeComponent();
 
-            pointTransform = new ViewModel.PointTransformVM();
+            m_pointTransform = new ViewModel.PointTransformVM();
 
             var pointsTransfromData = new Services.PointTransformationData[SettingsForResolutionCB.Items.Count];
 
             for (int i = 0; i < SettingsForResolutionCB.Items.Count; i++)
             {
                 var comboBoxItem = SettingsForResolutionCB.Items[i] as ComboBoxItem;
+                pointsTransfromData[i] = new Services.PointTransformationData();
+                pointsTransfromData[i].PropertyChanged += TransformPropertyChanged;
 
                 if (comboBoxItem != null)
                 {
-                    pointsTransfromData[i] = new Services.PointTransformationData(0, 0, 0, 0, 0, 0,
-                                                                                  comboBoxItem.Content.ToString());
+                    pointsTransfromData[i].TransformName = comboBoxItem.Content.ToString();
                 }
-                else
-                {
-                    pointsTransfromData[i] = new Services.PointTransformationData();
-                }
-                
             }
 
-            pointTransform.AddNewPointTransformationData(pointsTransfromData);
+            m_pointTransform.AddNewPointTransformationData(pointsTransfromData);
+            m_pointTransform.PropertyChanged += TransformPropertyChanged;
 
-            this.DataContext = pointTransform;
+            this.DataContext = m_pointTransform;
+        }
+
+        private void TransformPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            m_path?.DrawScale(m_pointTransform.CurrentPointTransformData);
+        }
+
+        public System.Collections.ObjectModel.ReadOnlyCollection<Services.PointTransformationData> PointTransformationDatas
+        {
+            get
+            {
+                return m_pointTransform.PointTranformationDatas;
+            }
+        }
+
+        public ViewModel.PathEditor EditablePath
+        {
+            get { return m_path; }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
+                m_path = value;
+                m_path.DrawScale(m_pointTransform.CurrentPointTransformData);
+            }
+        }
+
+        public void AddGoToHomeCommand(Services.RelayCommand goToMainMenu)
+        {
+            if (goToMainMenu == null)
+            {
+                throw new ArgumentNullException("goToMainMenu");
+            }
+
+            m_pointTransform.GoToMainMenu = goToMainMenu;
         }
     }
 }

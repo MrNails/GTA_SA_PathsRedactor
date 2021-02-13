@@ -20,9 +20,37 @@ namespace GTA_SA_PathsRedactor.View
     /// </summary>
     public partial class PointControllerUC : UserControl
     {
-        public PointControllerUC()
+        ViewModel.PathEditor m_pathEditor;
+
+        public PointControllerUC() : this(new ViewModel.PathEditor("New path"))
+        {}
+        public PointControllerUC(ViewModel.PathEditor pathEditor)
         {
             InitializeComponent();
+
+            PathEditor = pathEditor;
+
+            DataContext = PathEditor;
+        }
+
+        public ViewModel.PathEditor PathEditor
+        {
+            get { return m_pathEditor; }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("value");
+                }
+
+                m_pathEditor = value;
+                DataContext = value;
+            }
+        }
+
+        private void PathColor_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+
         }
     }
 }
