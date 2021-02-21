@@ -8,11 +8,16 @@
         mc:Ignorable="d"
         Title="Main window" Height="1024" Width="1280" ResizeMode="CanMinimize"
         MouseWheel="Window_MouseWheel" KeyDown="Window_KeyDown" KeyUp="Window_KeyUp">
+    <Window.InputBindings>
+        <KeyBinding Key="Delete" Command="{Binding RemoveSelectedPointsCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding LoadPath}"/>
+    </Window.InputBindings>
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top" Panel.ZIndex="1" FontSize="15">
             <MenuItem Header="File">
-                <MenuItem Header="Save"/>
-                <MenuItem Header="Load" Click="MenuItem_Click"/>
+                <MenuItem Header="Load" Command="{Binding LoadPath}" InputGestureText="Ctrl + L"/>
+                <MenuItem Header="Save" InputGestureText="Ctrl + S"/>
+                <MenuItem Header="Save as" InputGestureText="Ctrl + Shift + S"/>
             </MenuItem>
             <MenuItem Header="Settings">
                 <MenuItem Header="Program resolutions">
@@ -23,6 +28,9 @@
                     <MenuItem Header="1920x1080" Click="ResolutionChange_Click"/>
                 </MenuItem>
                 <MenuItem Header="Path transform settings" Click="PathTransorm_Click"/>
+            </MenuItem>
+            <MenuItem Header="Commands">
+                <MenuItem Header="Delete selected points" Command="{Binding RemoveSelectedPointsCommand}" InputGestureText="Del"/>
             </MenuItem>
         </Menu>
         <Border x:Name="UserContentContainer" DockPanel.Dock="Left" Panel.ZIndex="1"
@@ -38,9 +46,9 @@
                     Mouse.MouseLeave="MainField_MouseLeave"
                     Mouse.MouseEnter="MainField_MouseEnter">
                 <Image x:Name="MapIcon" Stretch="Fill"
-                Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
-                Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
-                Source="./Resource/MapImage.jpg">
+                       Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                       Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                       Source="./Resource/MapImage.jpg">
                     <Image.LayoutTransform>
                         <ScaleTransform ScaleY="1"/>
                     </Image.LayoutTransform>
@@ -48,8 +56,9 @@
             </Canvas>
             <TextBlock x:Name="DebugTextBlock" FontSize="18" Foreground="White"/>
             <Canvas.ContextMenu>
-                <ContextMenu>
+                <ContextMenu Name="CanvasContextMenu">
                     <MenuItem Header="Add point" Click="AddPoint_Click"/>
+                    <MenuItem Header="Clear selected" Command="{Binding RemoveSelectedPointsCommand}"/>
                 </ContextMenu>
             </Canvas.ContextMenu>
         </Canvas>
