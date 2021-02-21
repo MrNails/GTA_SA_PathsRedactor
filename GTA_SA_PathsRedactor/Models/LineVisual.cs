@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using GTA_SA_PathsRedactor.Models;
 
-namespace GTA_SA_PathsRedactor.PathVisualizer
+namespace GTA_SA_PathsRedactor.Models
 {
     public record DividedLine(LineVisual LeftLine, LineVisual RightLine);
 
@@ -153,7 +148,7 @@ namespace GTA_SA_PathsRedactor.PathVisualizer
         public static DividedLine DivideLine(LineVisual oldLine, GTA_SA_Point newPoint)
         {
             LineVisual left = new LineVisual(oldLine.m_startPoint, newPoint);
-            LineVisual right = new LineVisual(oldLine.m_endPoint, newPoint);
+            LineVisual right = new LineVisual(newPoint, oldLine.m_endPoint);
 
             return new DividedLine(left, right);
         }

@@ -2,9 +2,8 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
-using GTA_SA_PathsRedactor.Models;
 
-namespace GTA_SA_PathsRedactor.PathVisualizer
+namespace GTA_SA_PathsRedactor.Models
 {
     public abstract class VisualObject : FrameworkElement, INotifyPropertyChanged
     {
