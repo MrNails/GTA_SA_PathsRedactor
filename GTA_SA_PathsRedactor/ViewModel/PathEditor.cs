@@ -8,15 +8,16 @@ using System.Windows.Media;
 using System.ComponentModel;
 using GTA_SA_PathsRedactor.Models;
 using System.Collections.ObjectModel;
-using GTA_SA_PathsRedactor.PathVisualizer;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
     public class PathEditor : INotifyPropertyChanged
     {
-        private static readonly Brush s_defaultLinesColor;
+        private static readonly SolidColorBrush s_defaultLinesColor;
 
         private string m_pathName;
+
+        private bool m_multipleSelectionMode;
 
         private ObservableCollection<VisualObject> m_dots;
         private List<LineVisual> m_lines;
@@ -24,11 +25,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private VisualObject m_currentObject;
         private Pen m_linesColor;
 
-        private bool m_isChangingTransform;
-        private bool m_multipleSelectionMode;
-
         private MouseButtonEventHandler m_dotHanler;
-        private MouseButtonEventHandler m_lineHanler;
+        private MouseButtonEventHandler m_lineHandler;
+
+        private Services.PointTransformationData m_pointTransformation;
 
         protected Canvas m_workField;
 
@@ -42,7 +42,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         public PathEditor(string pathName)
             : this(pathName, s_defaultLinesColor)
         { }
-        public PathEditor(string pathName, Brush linesColor)
+        public PathEditor(string pathName, SolidColorBrush linesColor)
         {
             m_workField = new Canvas();
 
@@ -50,14 +50,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
                                              new GTA_SA_Point(0, 0, 0, false));
             m_workField.Children.Add(defaultLine);
 
-            m_isChangingTransform = false;
-
             m_dots = new ObservableCollection<VisualObject>();
             m_lines = new List<LineVisual> { defaultLine };
             m_selectedDots = new VisualObjectsCollection();
             m_linesColor = new Pen();
 
-            LinesColor = linesColor;
+            Color = linesColor;
             LinesThickness = 2;
             PathName = pathName;
         }
@@ -114,9 +112,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 OnPropertyChanged("LinesThickness");
             }
         }
-        public Brush LinesColor
+        public SolidColorBrush Color
         {
-            get { return m_linesColor.Brush; }
+            get { return (SolidColorBrush)m_linesColor.Brush; }
             set
             {
                 if (value == null)
@@ -137,8 +135,24 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 OnPropertyChanged("CurrentObject");
             }
         }
+        public Services.PointTransformationData PointTransformation
+        {
+            get => m_pointTransformation;
+            set
+            {
+                m_pointTransformation = value;
 
-        public event MouseButtonEventHandler DotsMouseUp
+                if (value != null)
+                {
+                    m_pointTransformation.PropertyChanged -= TransformationDataPropertyChanged;
+                    m_pointTransformation.PropertyChanged += TransformationDataPropertyChanged;
+                }
+
+                DrawScale();
+            }
+        }
+
+        public event MouseButtonEventHandler DotsMouseDown
         {
             add
             {
@@ -159,26 +173,47 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
             }
         }
-        public event MouseButtonEventHandler LinesMouseUp
+        public event MouseButtonEventHandler LinesMouseDown
         {
             add
             {
-                m_lineHanler += value;
+                m_lineHandler += value;
 
                 foreach (var line in m_lines)
                 {
-                    line.MouseUp += value;
+                    line.MouseDown += value;
                 }
             }
             remove
             {
-                m_lineHanler += value;
+                m_lineHandler += value;
 
                 foreach (var line in m_lines)
                 {
-                    line.MouseUp -= value;
+                    line.MouseDown -= value;
                 }
             }
+        }
+
+        public int IndexOf(Func<VisualObject, bool> comparator)
+        {
+            int index = -1;
+
+            if (comparator == null)
+            {
+                return index;
+            }
+
+            foreach (var dot in m_dots)
+            {
+                ++index;
+                if (comparator(dot))
+                {
+                    return index;
+                }
+            }
+
+            return index;
         }
 
         public void AddPoint(GTA_SA_Point point)
@@ -212,6 +247,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 var line = new LineVisual(m_dots[m_dots.Count - 2].Point, dot.Point);
                 line.LineColor = m_linesColor.Brush;
                 line.LineThickness = m_linesColor.Thickness;
+                line.MouseDown += m_lineHandler;
 
                 m_lines.Add(line);
                 m_workField.Children.Insert(0, line);
@@ -244,6 +280,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 var line = new LineVisual(m_dots[lastIndex].Point, dots.First().Point);
                 line.LineColor = m_linesColor.Brush;
                 line.LineThickness = m_linesColor.Thickness;
+                line.MouseDown += m_lineHandler;
 
                 m_lines.Add(line);
                 m_workField.Children.Insert(0, line);
@@ -269,6 +306,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 var line = new LineVisual(previousDot.Point, currentDot.Point);
                 line.LineColor = m_linesColor.Brush;
                 line.LineThickness = m_linesColor.Thickness;
+                line.MouseDown += m_lineHandler;
 
                 previousDot.MouseDown += m_dotHanler;
                 previousDot.PropertyChanged += ObjectPropertyChanged;
@@ -293,7 +331,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public void InsertPoint(int index, GTA_SA_Point point)
         {
-            InsertPoint(index, new PathVisualizer.DotVisual(point));
+            InsertPoint(index, new Models.DotVisual(point));
         }
         public void InsertPoint(int index, GTA_SA_Point point, Brush brush)
         {
@@ -302,7 +340,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 throw new ArgumentNullException("brush");
             }
 
-            InsertPoint(index, new PathVisualizer.DotVisual(point, brush));
+            InsertPoint(index, new Models.DotVisual(point, brush));
         }
         public void InsertPoint(int index, VisualObject dot)
         {
@@ -310,7 +348,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 throw new ArgumentNullException("dot");
             }
-            if (index < 0 || index > m_dots.Count)
+            if (index < 0 || index >= m_dots.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
             }
@@ -318,41 +356,36 @@ namespace GTA_SA_PathsRedactor.ViewModel
             dot.MouseDown += m_dotHanler;
             dot.PropertyChanged += ObjectPropertyChanged;
 
-            m_dots.Insert(index, dot);
-            m_workField.Children.Insert(m_lines.Count + index, dot);
+            if (index + 1 == m_dots.Count)
+                index = 0;
+            else
+                index++;
 
             if (m_dots.Count > 1)
             {
-                if (index != m_lines.Count - 1)
-                {
-                    var oldLine = m_lines[index];
+                LineVisual oldLine = m_lines[index];
 
-                    m_lines.Remove(oldLine);
-                    m_workField.Children.Remove(oldLine);
+                m_lines.Remove(oldLine);
+                m_workField.Children.Remove(oldLine);
 
-                    var dividedLine = LineVisual.DivideLine(oldLine, dot.Point);
-                    dividedLine.LeftLine.LineColor = m_linesColor.Brush;
-                    dividedLine.RightLine.LineColor = m_linesColor.Brush;
-                    dividedLine.LeftLine.LineThickness = m_linesColor.Thickness;
-                    dividedLine.RightLine.LineThickness = m_linesColor.Thickness;
+                var dividedLine = LineVisual.DivideLine(oldLine, dot.Point);
+                dividedLine.LeftLine.LineColor = m_linesColor.Brush;
+                dividedLine.RightLine.LineColor = m_linesColor.Brush;
+                dividedLine.LeftLine.LineThickness = m_linesColor.Thickness;
+                dividedLine.RightLine.LineThickness = m_linesColor.Thickness;
 
-                    m_lines.Insert(index, dividedLine.LeftLine);
-                    m_lines.Insert(index + 1, dividedLine.RightLine);
+                dividedLine.RightLine.MouseDown += m_lineHandler;
+                dividedLine.LeftLine.MouseDown += m_lineHandler;
 
+                m_lines.Insert(index, dividedLine.LeftLine);
+                m_lines.Insert(index + 1, dividedLine.RightLine);
 
-                    m_workField.Children.Insert(m_lines.Count - index, dividedLine.LeftLine);
-                    m_workField.Children.Insert(m_lines.Count - index - 1, dividedLine.RightLine);
-                }
-                else
-                {
-                    var line = new LineVisual(m_dots[m_dots.Count - 2].Point, dot.Point);
-                    line.LineColor = m_linesColor.Brush;
-                    line.LineThickness = m_linesColor.Thickness;
-
-                    m_lines.Add(line);
-                    m_workField.Children.Insert(0, line);
-                }
+                m_workField.Children.Insert(m_lines.Count - index - 1, dividedLine.LeftLine);
+                m_workField.Children.Insert(m_lines.Count - index - 2, dividedLine.RightLine);
             }
+
+            m_dots.Insert(index, dot);
+            m_workField.Children.Insert(m_lines.Count + index + 1, dot);
 
             OnPropertyChanged("PointCount");
             Draw();
@@ -366,20 +399,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         }
         public bool RemovePoint(VisualObject dot)
         {
-            bool res = m_dots.Remove(dot);
-            int oldLineIndex = m_lines.FindIndex(line => line.Start == dot.Point || line.End == dot.Point);
-
-            m_workField.Children.Remove(dot);
-
-            if (oldLineIndex != -1)
-            {
-                m_workField.Children.RemoveAt(oldLineIndex);
-                m_workField.Children.RemoveAt(oldLineIndex);
-            }
-
-            OnPropertyChanged("PointCount");
-            Draw();
-            return res;
+            return RemovePointHelper(dot);
         }
         public bool RemovePointAt(int index)
         {
@@ -391,6 +411,16 @@ namespace GTA_SA_PathsRedactor.ViewModel
             return RemovePoint(m_dots[index]);
         }
 
+        public void RemoveSelectedPoint()
+        {
+            foreach (var dot in SelectedDots)
+            {
+                RemovePointHelper(dot, true);
+            }
+
+            SelectedDots.Clear();
+        }
+
         public void Clear()
         {
             var lastLine = m_lines[0];
@@ -399,7 +429,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_lines.Clear();
 
             lastLine.LineThickness = 0;
+            lastLine.ToolTip = 0;
             m_lines.Add(lastLine);
+
+            m_workField.Children.Clear();
 
             OnPropertyChanged("PointCount");
         }
@@ -448,6 +481,57 @@ namespace GTA_SA_PathsRedactor.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
 
+        private bool RemovePointHelper(VisualObject dot, bool isSelectionClear = false)
+        {
+            int dotIndex = m_dots.IndexOf(dot);
+            bool res = m_dots.Remove(dot);
+
+            if (!res)
+            {
+                return res;
+            }
+
+            if (m_lines.Count == 1)
+            {
+                m_workField.Children.Remove(dot);
+                return res;
+            }
+
+            var dotLines = m_lines.Where(line => line.Start == dot.Point || line.End == dot.Point);
+            var lineStart = dotLines.ElementAt(0);
+            var lineEnd = dotLines.ElementAt(1);
+
+            if (lineStart.Start != dot.Point)
+            {
+                var temp = lineStart;
+
+                lineStart = lineEnd;
+                lineEnd = temp;
+            }
+
+            m_workField.Children.Remove(dot);
+
+            if (!isSelectionClear)
+            {
+                SelectedDots.RemoveVisualObject(dot);
+            }
+
+            if (dotIndex == 0)
+                dotIndex = m_dots.Count - 1;
+            else if (dotIndex == m_dots.Count)
+                dotIndex = 0;
+
+            lineEnd.End = m_dots[dotIndex].Point;
+
+            m_workField.Children.Remove(lineStart);
+            m_lines.Remove(lineStart);
+
+            OnPropertyChanged("PointCount");
+            Draw();
+
+            return res;
+        }
+
         private void ObjectPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             var visualObj = sender as VisualObject;
@@ -462,6 +546,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 m_selectedDots.AddVisualObject(visualObj);
             }
         }
+        private void TransformationDataPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            DrawScale();
+        }
 
         private void Draw()
         {
@@ -471,35 +559,46 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             var lastLine = m_lines[0];
-            lastLine.Start = m_dots[0].Point;
-            lastLine.End = m_dots[m_dots.Count - 1].Point;
+            lastLine.Start = m_dots[m_dots.Count - 1].Point;
+            lastLine.End = m_dots[0].Point;
             lastLine.LineColor = m_linesColor.Brush;
             lastLine.LineThickness = m_linesColor.Thickness;
 
             m_workField.Children.Remove(lastLine);
             m_workField.Children.Insert(m_lines.Count - 1, lastLine);
+
+#if DEBUG
+            for (int i = 0; i < m_dots.Count; i++)
+            {
+                var line = m_lines[i];
+                var dot = m_dots[i];
+
+                line.ToolTip = $"Index: {i};\nStart = {line.Start};\nEnd = {line.End}";
+                dot.ToolTip = $"Index: {i};\nPoint = {dot.Point}";
+            }
+#endif
         }
-
-        internal void DrawScale(Services.PointTransformationData pointTransformationData)
+        private void DrawScale()
         {
-            if (pointTransformationData == null)
+            if (m_pointTransformation == null)
             {
-                return;
+                foreach (var dot in m_dots)
+                {
+                    dot.Point.X = dot.OriginPoint.X;
+                    dot.Point.Y = dot.OriginPoint.Y;
+                }
             }
-
-            m_isChangingTransform = true;
-
-            int horizontallyInvert = pointTransformationData.InvertHorizontally ? -1 : 1;
-            int verticallyInvert = pointTransformationData.InvertVertically ? -1 : 1;
-
-            foreach (var dot in m_dots)
+            else
             {
-                dot.Point.X = horizontallyInvert * dot.OriginPoint.X / pointTransformationData.PointScaleX + pointTransformationData.OffsetX;
-                dot.Point.Y = verticallyInvert * dot.OriginPoint.Y / pointTransformationData.PointScaleY + pointTransformationData.OffsetY;
+                int horizontallyInvert = m_pointTransformation.InvertHorizontally ? -1 : 1;
+                int verticallyInvert = m_pointTransformation.InvertVertically ? -1 : 1;
+
+                foreach (var dot in m_dots)
+                {
+                    dot.Point.X = horizontallyInvert * dot.OriginPoint.X / m_pointTransformation.PointScaleX + m_pointTransformation.OffsetX;
+                    dot.Point.Y = verticallyInvert * dot.OriginPoint.Y / m_pointTransformation.PointScaleY + m_pointTransformation.OffsetY;
+                }
             }
-
-            m_isChangingTransform = false;
-
         }
 
         public sealed class VisualObjectsCollection : IEnumerable<VisualObject>
