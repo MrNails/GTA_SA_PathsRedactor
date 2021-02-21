@@ -6,7 +6,7 @@
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
              mc:Ignorable="d" 
-             d:DesignHeight="750" d:DesignWidth="200" Height="700">
+             d:DesignHeight="900" d:DesignWidth="200">
     <UserControl.Resources>
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="18"/>
@@ -19,13 +19,7 @@
             <Setter Property="FontSize" Value="18"/>
         </Style>
     </UserControl.Resources>
-    <Grid Background="Gray">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="1*"/>
-        </Grid.RowDefinitions>
-
+    <StackPanel Background="Gray">
         <GroupBox Grid.Row="0" FontSize="15" Header="Path information" BorderBrush="DarkGray" BorderThickness="0.5">
             <Grid>
                 <Grid.RowDefinitions>
@@ -44,10 +38,9 @@
                     <Run x:Name="PointAmount" Text="{Binding Path=PointCount, Mode=OneWay}"/>
                 </TextBlock>
                 <DockPanel Grid.Row="2" Grid.Column="0" Margin="5 0 5 0">
-                    <TextBlock Text="Path color:" Margin="5 0 0 0" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                    <Canvas x:Name="PathColor" Background="{Binding Path=LinesColor, ValidatesOnExceptions=True}" 
-                            Height="50" Width="50" HorizontalAlignment="Right" DockPanel.Dock="Right"
-                            MouseUp="PathColor_MouseUp"/>
+                    <TextBlock Text="Path color:" Margin="5 0 0 0" DockPanel.Dock="Left"/>
+                    <xctk:ColorPicker x:Name="PathColor" HorizontalAlignment="Right" DockPanel.Dock="Right" MinWidth="70"
+                                      SelectedColorChanged="PathColor_SelectedColorChanged"/>
                 </DockPanel>
             </Grid>
         </GroupBox>
@@ -77,7 +70,9 @@
         <DockPanel Grid.Row="2" Margin="2 5 2 5">
             <TextBlock Text="Available paths" Margin="0 0 0 5" DockPanel.Dock="Top"/>
             <Button Content="Show selected paths" DockPanel.Dock="Bottom" FontSize="18" Margin="5" Padding="5" />
-            <ListBox x:Name="AvailablePaths" BorderThickness="2"/>
+            <ListBox x:Name="AvailablePaths" BorderThickness="2" MinHeight="250" MaxHeight="400"/>
         </DockPanel>
-    </Grid>
+
+        <Button Content="Clear map" Margin="10" FontSize="18" Padding="5" Click="ClearMapButton_Click"/>
+    </StackPanel>
 </UserControl>

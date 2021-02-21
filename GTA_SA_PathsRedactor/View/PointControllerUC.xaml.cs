@@ -29,6 +29,7 @@ namespace GTA_SA_PathsRedactor.View
             InitializeComponent();
 
             PathEditor = pathEditor;
+            PathColor.SelectedColor = pathEditor.Color.Color;
 
             DataContext = PathEditor;
         }
@@ -48,9 +49,17 @@ namespace GTA_SA_PathsRedactor.View
             }
         }
 
-        private void PathColor_MouseUp(object sender, MouseButtonEventArgs e)
+        private void PathColor_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
         {
+            if (e.NewValue.HasValue)
+            {
+                m_pathEditor.Color.Color = e.NewValue.Value;
+            }
+        }
 
+        private void ClearMapButton_Click(object sender, RoutedEventArgs e)
+        {
+            m_pathEditor.Clear();
         }
     }
 }

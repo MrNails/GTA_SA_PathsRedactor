@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GTA_SA_PathsRedactor.Services
 {
@@ -115,7 +111,7 @@ namespace GTA_SA_PathsRedactor.Services
             {
                 if (string.IsNullOrEmpty(value))
                 {
-                    throw new ArgumentException("Tranformation name can't be empty.");
+                    throw new ArgumentException("Transformation name can't be empty.");
                 }
 
                 m_transformName = value;

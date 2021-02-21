@@ -20,14 +20,14 @@ namespace GTA_SA_PathsRedactor.View
     /// </summary>
     public partial class PointTransformationUC : UserControl
     {
-        private ViewModel.PointTransformVM m_pointTransform;
+        private ViewModel.PointTransformVM m_pointTransformVM;
         private ViewModel.PathEditor m_path;
 
         public PointTransformationUC()
         {
             InitializeComponent();
 
-            m_pointTransform = new ViewModel.PointTransformVM();
+            m_pointTransformVM = new ViewModel.PointTransformVM();
 
             var pointsTransfromData = new Services.PointTransformationData[SettingsForResolutionCB.Items.Count];
 
@@ -35,7 +35,6 @@ namespace GTA_SA_PathsRedactor.View
             {
                 var comboBoxItem = SettingsForResolutionCB.Items[i] as ComboBoxItem;
                 pointsTransfromData[i] = new Services.PointTransformationData();
-                pointsTransfromData[i].PropertyChanged += TransformPropertyChanged;
 
                 if (comboBoxItem != null)
                 {
@@ -43,22 +42,22 @@ namespace GTA_SA_PathsRedactor.View
                 }
             }
 
-            m_pointTransform.AddNewPointTransformationData(pointsTransfromData);
-            m_pointTransform.PropertyChanged += TransformPropertyChanged;
+            m_pointTransformVM.AddNewPointTransformationData(pointsTransfromData);
+            m_pointTransformVM.PropertyChanged += PointTransformVM_PropertyChanged;
 
-            this.DataContext = m_pointTransform;
+            this.DataContext = m_pointTransformVM;
         }
 
-        private void TransformPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void PointTransformVM_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            m_path?.DrawScale(m_pointTransform.CurrentPointTransformData);
+            m_path.PointTransformation = m_pointTransformVM.CurrentPointTransformData;
         }
 
         public System.Collections.ObjectModel.ReadOnlyCollection<Services.PointTransformationData> PointTransformationDatas
         {
             get
             {
-                return m_pointTransform.PointTranformationDatas;
+                return m_pointTransformVM.PointTranformationDatas;
             }
         }
 
@@ -73,7 +72,8 @@ namespace GTA_SA_PathsRedactor.View
                 }
 
                 m_path = value;
-                m_path.DrawScale(m_pointTransform.CurrentPointTransformData);
+
+                m_path.PointTransformation = m_pointTransformVM.CurrentPointTransformData;
             }
         }
 
@@ -84,7 +84,7 @@ namespace GTA_SA_PathsRedactor.View
                 throw new ArgumentNullException("goToMainMenu");
             }
 
-            m_pointTransform.GoToMainMenu = goToMainMenu;
+            m_pointTransformVM.GoToMainMenu = goToMainMenu;
         }
     }
 }
