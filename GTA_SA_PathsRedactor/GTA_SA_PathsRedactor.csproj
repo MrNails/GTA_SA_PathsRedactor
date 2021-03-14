@@ -4,25 +4,22 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resource\MapImage.jpg" />
     <None Remove="Resource\noimage.png" />
+    <None Remove="Settings\Point transformation settings\DefaultPointSettings.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resource\MapImage.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <Resource Include="Resource\MapImage.jpg" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resource\noimage.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\Converters\" />
+    <Resource Include="Settings\Point transformation settings\DefaultPointSettings.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,4 +27,26 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GTA_SA_PathsRedactor.Utilities\GTA_SA_PathsRedactor.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="View\Windows\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="AppResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AppResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="AppResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AppResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

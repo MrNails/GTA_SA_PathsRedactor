@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.IO;
 using Newtonsoft.Json;
 
 namespace GTA_SA_PathsRedactor.Services
 {
-    public class TransformSettingLoader
+    public class TransformSettingSaverLoader
     {
         private string m_filePath;
 
-        public TransformSettingLoader(string pathName)
+        public TransformSettingSaverLoader(string pathName)
         {
             FilePath = pathName;
         }
@@ -22,46 +17,36 @@ namespace GTA_SA_PathsRedactor.Services
             get { return m_filePath; }
             set
             {
-                if (string.IsNullOrEmpty(value))
+                if (!File.Exists(value))
                 {
-                    throw new ArgumentException("File path can't be empty.");
+                    throw new FileNotFoundException("Unable to find file: " + value);
                 }
 
                 m_filePath = value;
             }
         }
 
-        public void SaveSettings(IEnumerable<PointTransformationData> pointTransformationDatas)
+        public void SaveSettings(PointTransformationData pointTransformationData)
         {
             JsonSerializer jsonSerializer = new JsonSerializer();
-
-            if (!File.Exists(m_filePath))
-            {
-                File.Create(m_filePath).Close();
-            }
 
             using (FileStream fileStream = new FileStream(m_filePath, FileMode.Truncate, FileAccess.Write))
             {
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
-                    jsonSerializer.Serialize(streamWriter, pointTransformationDatas);
+                    jsonSerializer.Serialize(streamWriter, pointTransformationData);
                 }
             }
         }
-        public List<PointTransformationData> LoadSettings()
+        public PointTransformationData LoadSettings()
         {
             JsonSerializer jsonSerializer = new JsonSerializer();
-
-            if (!File.Exists(m_filePath))
-            {
-                throw new FileNotFoundException();
-            }
 
             using (FileStream fileStream = new FileStream(m_filePath, FileMode.Open, FileAccess.Read))
             {
                 using (StreamReader streamReader = new StreamReader(fileStream))
                 {
-                    return (List<PointTransformationData>)jsonSerializer.Deserialize(streamReader, typeof(List<PointTransformationData>));
+                    return (PointTransformationData)jsonSerializer.Deserialize(streamReader, typeof(PointTransformationData));
                 }
             }
         }

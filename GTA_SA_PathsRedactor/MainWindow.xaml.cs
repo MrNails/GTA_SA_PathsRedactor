@@ -14,8 +14,8 @@ using System.Windows.Media.Media3D;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using GTA_SA_PathsRedactor.Core.Models;
 using GTA_SA_PathsRedactor.Models;
-using Microsoft.Win32;
 
 namespace GTA_SA_PathsRedactor
 {
@@ -33,7 +33,7 @@ namespace GTA_SA_PathsRedactor
         private Point m_oldConainerMousePos;
         private Point m_selectionRectangleOldMousePos;
 
-        private ViewModel.PathVM m_pathEditor;
+        private ViewModel.PathVM m_pathVM;
 
         private UserControl[] m_userControls;
 
@@ -42,7 +42,7 @@ namespace GTA_SA_PathsRedactor
 
         public MainWindow()
         {
-            m_pathEditor = new ViewModel.PathVM("TestPath");
+            m_pathVM = new ViewModel.PathVM();
 
             InitializeComponent();
             LoadImage();
@@ -51,20 +51,16 @@ namespace GTA_SA_PathsRedactor
             m_pointMoveMode = false;
             m_mouseDown = false;
 
-            MainField.Children.Add(m_pathEditor.PathEditor.WorkField);
-
-            this.DataContext = m_pathEditor;
+            this.DataContext = m_pathVM;
         }
 
         private void InitializeAdditionalComponent()
         {
-            var mainUC = new View.PointControllerUC(m_pathEditor.PathEditor);
+            var mainUC = new View.PointControllerUC(m_pathVM);
             var pathSettingUc = new View.PointTransformationUC();
-            
-            mainUC.PathEditor = m_pathEditor.PathEditor;
+
             mainUC.VerticalAlignment = VerticalAlignment.Top;
             pathSettingUc.VerticalAlignment = VerticalAlignment.Top;
-            pathSettingUc.EditablePath = m_pathEditor.PathEditor;
             pathSettingUc.AddGoToHomeCommand(new Services.RelayCommand(obj =>
             {
                 UserContentContainer.Child = m_userControls[0];
@@ -74,6 +70,14 @@ namespace GTA_SA_PathsRedactor
 
             m_userControls = new UserControl[] { mainUC, pathSettingUc };
 
+            foreach (var uc in m_userControls)
+            {
+                var gTransform = new TransformGroup();
+                gTransform.Children.Add(new ScaleTransform(1, 1));
+
+                uc.LayoutTransform = gTransform;
+            }
+
             TransformGroup tGroup = new TransformGroup();
 
             tGroup.Children.Add(new ScaleTransform());
@@ -81,8 +85,20 @@ namespace GTA_SA_PathsRedactor
 
             MainField.RenderTransform = tGroup;
 
-            m_pathEditor.PathEditor.DotsMouseDown += DotClicked_MouseDown;
-            m_pathEditor.PathEditor.LinesMouseDown += LinesMouseDown;
+            m_pathVM.PathAdded += (s, arg) =>
+            {
+                arg.DotsMouseDown += DotClicked_MouseDown;
+                arg.LinesMouseDown += LinesMouseDown;
+
+                MainField.Children.Add(arg.WorkField);
+            };
+            m_pathVM.PathRemoved += (s, arg) =>
+            {
+                arg.DotsMouseDown -= DotClicked_MouseDown;
+                arg.LinesMouseDown -= LinesMouseDown;
+
+                MainField.Children.Remove(arg.WorkField);
+            };
 
             m_selectionRectangle = new Rectangle();
             m_selectionRectangle.Stroke = new SolidColorBrush(Colors.White);
@@ -96,28 +112,20 @@ namespace GTA_SA_PathsRedactor
             m_lineContextMenu.Placement = PlacementMode.Mouse;
             m_dotContextMenu.Placement = PlacementMode.Mouse;
 
-            var addPointMenuItem = new MenuItem {Header = "Insert point"};
+            var addPointMenuItem = new MenuItem { Header = "Insert point" };
             var removePointMenuItem = new MenuItem { Header = "Remove point" };
             addPointMenuItem.Click += InsertPoint_Click;
             removePointMenuItem.Click += RemovePoint_Click;
 
             m_lineContextMenu.Items.Add(addPointMenuItem);
             m_dotContextMenu.Items.Add(removePointMenuItem);
+
+            SetNewResolution(1280, 1024);
         }
 
         private void LoadImage()
         {
-            string imgPath = Environment.CurrentDirectory + @"\Resource\MapImage.jpg";
-
-            if (System.IO.File.Exists(imgPath))
-            {
-                MapIcon.Source = new BitmapImage(new Uri(imgPath));
-            }
-            else
-            {
-                MapIcon.Source = new BitmapImage(new Uri(@"/Resource/noimage.png", UriKind.Relative));
-                MapIcon.Stretch = Stretch.None;
-            }
+            MapIcon.Source = new BitmapImage(new Uri(@"/Resource/MapImage.jpg", UriKind.Relative));
         }
 
         private void ResetTranslate(TranslateTransform translateTransform)
@@ -165,12 +173,44 @@ namespace GTA_SA_PathsRedactor
                 }
             }
         }
-        
+
         private void ResetSelectionRectangle()
         {
             m_selectionRectangle.Width = 0;
             m_selectionRectangle.Height = 0;
             m_selectionRectangle.Visibility = Visibility.Collapsed;
+        }
+
+        private void SetNewResolution(double width, double height)
+        {
+            this.Width = width;
+            this.Height = height;
+
+            var gTransform = ((TransformGroup)m_userControls[0].LayoutTransform);
+
+            ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
+
+            var gSettings = GlobalSettings.GetInstance();
+
+            switch (width)
+            {
+                case 1080:
+                    gSettings.Resolution = Resolution._1080x850;
+
+                    ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
+                    break;
+                case 1280:
+                    gSettings.Resolution = Resolution._1280x1024;
+                    break;
+                case 1680:
+                    gSettings.Resolution = Resolution._1680x1050;
+                    break;
+                case 1920:
+                    gSettings.Resolution = Resolution._1920x1080;
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -219,7 +259,7 @@ namespace GTA_SA_PathsRedactor
             m_selectionRectangleOldMousePos = e.GetPosition(MapContainer);
             m_oldConainerMousePos = m_selectionRectangleOldMousePos;
             m_oldMousePos = e.GetPosition(MainField);
-            
+
             if (e.RightButton == MouseButtonState.Pressed)
             {
                 CanvasContextMenu.IsOpen = true;
@@ -236,7 +276,8 @@ namespace GTA_SA_PathsRedactor
                 Canvas.SetLeft(m_selectionRectangle, m_selectionRectangleOldMousePos.X);
                 m_selectionRectangle.Visibility = Visibility.Visible;
 
-                m_pathEditor.PathEditor.MultipleSelectionMode = true;
+                if (m_pathVM.CurrentPath != null)
+                    m_pathVM.CurrentPath.MultipleSelectionMode = true;
             }
             else if (m_pressedKey == Key.LeftShift && e.LeftButton == MouseButtonState.Pressed)
             {
@@ -259,10 +300,12 @@ namespace GTA_SA_PathsRedactor
             Point currentPos = e.GetPosition(MainField);
             Point currentContainerPos = e.GetPosition(MapContainer);
 
-            if (m_pointMoveMode && m_pathEditor.PathEditor.CurrentObject != null)
+            var currentPath = m_pathVM.CurrentPath;
+
+            if (m_pointMoveMode && currentPath.CurrentObject != null)
             {
-                m_pathEditor.PathEditor.CurrentObject.Point.X = currentPos.X;
-                m_pathEditor.PathEditor.CurrentObject.Point.Y = currentPos.Y;
+                currentPath.CurrentObject.Point.X = currentPos.X;
+                currentPath.CurrentObject.Point.Y = currentPos.Y;
             }
             else if (!m_pointMoveMode && m_pressedKey != Key.LeftShift && e.LeftButton == MouseButtonState.Pressed)
             {
@@ -330,8 +373,9 @@ namespace GTA_SA_PathsRedactor
         private void MapContainer_MouseUp(object sender, MouseButtonEventArgs e)
         {
             var mainFieldSTransform = (ScaleTransform)((TransformGroup)MainField.RenderTransform).Children[0];
+            var currentPath = m_pathVM.CurrentPath;
 
-            if (m_pressedKey == Key.LeftShift && m_pathEditor.PathEditor.SelectedDots.Count != 0 &&
+            if (m_pressedKey == Key.LeftShift && currentPath.SelectedDots.Count != 0 &&
                 m_selectionRectangle.Width != 0 && m_selectionRectangle.Height != 0)
             {
                 double offsetX = m_selectionRectangleOldMousePos.X - m_oldConainerMousePos.X;
@@ -339,18 +383,19 @@ namespace GTA_SA_PathsRedactor
 
                 if (offsetX > 0.01 || offsetX < -0.01 && offsetY > 0.01 || offsetY < 0.01)
                 {
-                    m_pathEditor.PathEditor.MoveSelectedPoints(offsetX / mainFieldSTransform.ScaleX, offsetY / mainFieldSTransform.ScaleY);
+                    currentPath.MoveSelectedPoints(offsetX / mainFieldSTransform.ScaleX, offsetY / mainFieldSTransform.ScaleY);
                 }
             }
             else if (m_selectionRectangle.Width != 0 && m_selectionRectangle.Height != 0)
             {
-                m_pathEditor.PathEditor.MultipleSelectionMode = true;
+                if (currentPath != null)
+                    currentPath.MultipleSelectionMode = true;
 
                 var currentMainFieldPos = e.GetPosition(MainField);
 
                 var sTransorm = m_selectionRectangle.RenderTransform as ScaleTransform;
 
-                double rectX = sTransorm.ScaleX < 0 ? 
+                double rectX = sTransorm.ScaleX < 0 ?
                     currentMainFieldPos.X :
                     m_oldMousePos.X;
                 double rectY = sTransorm.ScaleY < 0 ?
@@ -358,10 +403,10 @@ namespace GTA_SA_PathsRedactor
                     m_oldMousePos.Y;
 
                 var location = new Point(rectX, rectY);
-                var lenght = new Size(m_selectionRectangle.Width / mainFieldSTransform.ScaleX, 
+                var lenght = new Size(m_selectionRectangle.Width / mainFieldSTransform.ScaleX,
                                       m_selectionRectangle.Height / mainFieldSTransform.ScaleY);
 
-                m_pathEditor.PathEditor.SelectPoints(new Rect(location, lenght));
+                currentPath?.SelectPoints(new Rect(location, lenght));
             }
 
             if (m_pressedKey != Key.LeftShift)
@@ -369,7 +414,7 @@ namespace GTA_SA_PathsRedactor
                 m_selectionRectangle.Visibility = Visibility.Collapsed;
             }
 
-            if (m_pathEditor.PathEditor.SelectedDots.Count == 0)
+            if (currentPath?.SelectedDots.Count == 0)
             {
                 ResetSelectionRectangle();
             }
@@ -379,12 +424,14 @@ namespace GTA_SA_PathsRedactor
         {
             if (sender is VisualObject vOject)
             {
-                m_pathEditor.PathEditor.CurrentObject = vOject;
+                var currentPath = m_pathVM.CurrentPath;
+
+                currentPath.CurrentObject = vOject;
                 vOject.IsSelected = !vOject.IsSelected;
 
                 if (!vOject.IsSelected)
                 {
-                    m_pathEditor.PathEditor.CurrentObject = null;
+                    currentPath.CurrentObject = null;
                 }
 
                 if (e.RightButton == MouseButtonState.Pressed)
@@ -412,7 +459,7 @@ namespace GTA_SA_PathsRedactor
 
         private void ResolutionChange_Click(object sender, RoutedEventArgs e)
         {
-            MenuItem menuItem = sender as MenuItem;
+            MenuItem? menuItem = sender as MenuItem;
 
             if (menuItem != null)
             {
@@ -421,36 +468,7 @@ namespace GTA_SA_PathsRedactor
 
                 if (int.TryParse(resolution[0], out width) && int.TryParse(resolution[1], out height))
                 {
-                    this.Width = width;
-                    this.Height = height;
-
-                    var pointTranformation = (View.PointTransformationUC)m_userControls[1];
-
-                    var transormDatas = pointTranformation.PointTransformationDatas;
-
-                    if (transormDatas.Count != 0)
-                    {
-                        switch (width)
-                        {
-                            case 800:
-                                m_pathEditor.PathEditor.PointTransformation = pointTranformation.PointTransformationDatas[0];
-                                break;
-                            case 1080:
-                                m_pathEditor.PathEditor.PointTransformation = pointTranformation.PointTransformationDatas[1];
-                                break;
-                            case 1280:
-                                m_pathEditor.PathEditor.PointTransformation = pointTranformation.PointTransformationDatas[2];
-                                break;
-                            case 1680:
-                                m_pathEditor.PathEditor.PointTransformation = pointTranformation.PointTransformationDatas[3];
-                                break;
-                            case 1920:
-                                m_pathEditor.PathEditor.PointTransformation = pointTranformation.PointTransformationDatas[4];
-                                break;
-                            default:
-                                break;
-                        }
-                    }
+                    SetNewResolution(width, height);
                 }
             }
         }
@@ -462,29 +480,59 @@ namespace GTA_SA_PathsRedactor
 
         private void AddPoint_Click(object sender, RoutedEventArgs e)
         {
-            var point = new Models.GTA_SA_Point(m_oldMousePos, 0, false);
+            var point = new GTA_SA_Point(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
 
-            m_pathEditor.PathEditor.AddPoint(point);
+            m_pathVM.CurrentPath.AddPoint(point);
         }
         private void InsertPoint_Click(object sender, RoutedEventArgs e)
         {
-            var point = new Models.GTA_SA_Point(m_oldMousePos, 0, false);
+            var point = new GTA_SA_Point(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
             var line = m_lineContextMenu.PlacementTarget as LineVisual;
+            var currentPath = m_pathVM.CurrentPath;
 
-            var insertIndex = m_pathEditor.PathEditor.IndexOf(dot => dot.Point == line?.Start);
+            var insertIndex = currentPath.IndexOf(dot => dot.Point == line?.Start);
 
             if (insertIndex != -1)
             {
                 DebugTextBlock.Text = insertIndex.ToString();
 
-                m_pathEditor.PathEditor.InsertPoint(insertIndex, point);
+                currentPath.InsertPoint(insertIndex, point);
             }
         }
         private void RemovePoint_Click(object sender, RoutedEventArgs e)
         {
             var dot = m_dotContextMenu.PlacementTarget as VisualObject;
 
-            m_pathEditor.PathEditor.RemovePoint(dot);
+            m_pathVM.CurrentPath.RemovePoint(dot);
+        }
+
+        private void MapContainer_Drop(object sender, DragEventArgs e)
+        {
+            var data = e.Data.GetData(DataFormats.FileDrop);
+
+            try
+            {
+                if (data != null)
+                {
+                    var files = (string[])data;
+
+                    foreach (var file in files)
+                    {
+                        m_pathVM.LoadPath.Execute(file);
+                    }
+
+                    e.Handled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void MapIcon_GiveFeedback(object sender, GiveFeedbackEventArgs e)
+        {
+            DebugTextBlock.Text = "+";
         }
     }
 }

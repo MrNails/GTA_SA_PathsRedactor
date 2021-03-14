@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GTA_SA_PathsRedactor"
         xmlns:view="clr-namespace:GTA_SA_PathsRedactor.View"
+        xmlns:services="clr-namespace:GTA_SA_PathsRedactor.Services"
+        xmlns:converters="clr-namespace:GTA_SA_PathsRedactor.Services.Converters"
         mc:Ignorable="d"
         Title="Main window" Height="1024" Width="1280" ResizeMode="CanMinimize"
         MouseWheel="Window_MouseWheel" KeyDown="Window_KeyDown" KeyUp="Window_KeyUp">
@@ -12,6 +14,11 @@
         <KeyBinding Key="Delete" Command="{Binding RemoveSelectedPointsCommand}"/>
         <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding LoadPath}"/>
     </Window.InputBindings>
+    <Window.Resources>
+        <converters:MousePositionConverter x:Key="MousePosConverter"/>
+        <services:BindingProxy x:Key="WindowDataSourceProxy" Data="{Binding}"/>
+        <services:BindingProxy x:Key="MainFieldProxy" Data="{Binding ElementName=MainField}"/>
+    </Window.Resources>
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top" Panel.ZIndex="1" FontSize="15">
             <MenuItem Header="File">
@@ -21,7 +28,6 @@
             </MenuItem>
             <MenuItem Header="Settings">
                 <MenuItem Header="Program resolutions">
-                    <MenuItem Header="800x600" Click="ResolutionChange_Click"/>
                     <MenuItem Header="1080x850" Click="ResolutionChange_Click"/>
                     <MenuItem Header="1280x1024" Click="ResolutionChange_Click"/>
                     <MenuItem Header="1680x1050" Click="ResolutionChange_Click"/>
@@ -36,16 +42,17 @@
         <Border x:Name="UserContentContainer" DockPanel.Dock="Left" Panel.ZIndex="1"
                 BorderBrush="Black" BorderThickness="2" Width="200" Background="Gray"/>
         <Canvas x:Name="MapContainer" Panel.ZIndex="0"
-                MouseUp="MapContainer_MouseUp">
+                MouseUp="MapContainer_MouseUp" AllowDrop="true" 
+                Drop="MapContainer_Drop">
             <Canvas x:Name="MainField"
                     Width="{Binding ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
                     Height="{Binding ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
                     Mouse.MouseUp="MainField_MouseUp" 
-                    Mouse.MouseDown="MainField_MouseDown" 
+                    Mouse.PreviewMouseDown="MainField_MouseDown" 
                     Mouse.MouseMove="MainField_MouseMove"
                     Mouse.MouseLeave="MainField_MouseLeave"
                     Mouse.MouseEnter="MainField_MouseEnter">
-                <Image x:Name="MapIcon" Stretch="Fill"
+                <Image x:Name="MapIcon" Stretch="Fill" GiveFeedback="MapIcon_GiveFeedback"
                        Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
                        Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
                        Source="./Resource/MapImage.jpg">
@@ -53,11 +60,12 @@
                         <ScaleTransform ScaleY="1"/>
                     </Image.LayoutTransform>
                 </Image>
-            </Canvas>
+            </Canvas> 
             <TextBlock x:Name="DebugTextBlock" FontSize="18" Foreground="White"/>
             <Canvas.ContextMenu>
                 <ContextMenu Name="CanvasContextMenu">
-                    <MenuItem Header="Add point" Click="AddPoint_Click"/>
+                    <MenuItem Header="Add point" Command="{Binding Path=Data.AddPointCommand, Source={StaticResource WindowDataSourceProxy}}" 
+                              CommandParameter="{Binding Source={StaticResource MainFieldProxy}, Converter={StaticResource MousePosConverter}}"/>
                     <MenuItem Header="Clear selected" Command="{Binding RemoveSelectedPointsCommand}"/>
                 </ContextMenu>
             </Canvas.ContextMenu>

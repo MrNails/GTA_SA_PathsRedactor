@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.IO;
 using GTA_SA_PathsRedactor.Services;
 using System.ComponentModel;
 using System.Windows;
+using Microsoft.Win32;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
@@ -16,24 +18,24 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private RelayCommand m_loadSettings;
         private RelayCommand m_goToMainMenu;
 
-        private TransformSettingLoader transformSettingLoader;
-        private List<PointTransformationData> m_pointsTransformationData;
+        private ObservableCollection<PointTransformationData> m_pointsTransformationDatas;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public PointTransformVM()
         {
-            m_pointsTransformationData = new List<PointTransformationData>();
+            m_pointsTransformationDatas = new ObservableCollection<PointTransformationData>();
+            m_pointsTransformationDatas.CollectionChanged += PointsTransformationData_CollectionChanged;
 
             m_saveSettings = new RelayCommand(SaveSettingCommandHandler);
             m_loadSettings = new RelayCommand(LoadSettingCommandHandler);
 
-            transformSettingLoader = new TransformSettingLoader( @$"{Environment.CurrentDirectory}\PointsSetting.json");
+            m_currentPointTransformDataIndex = -1;
         }
-
-        public RelayCommand SaveSettings => m_saveSettings;
-        public RelayCommand LoadSettings => m_loadSettings;
-        public PointTransformationData CurrentPointTransformData 
+      
+        public RelayCommand SaveSettingsCommand => m_saveSettings;
+        public RelayCommand LoadSettingsCommand => m_loadSettings;
+        public PointTransformationData? CurrentPointTransformData 
         {
             get
             {
@@ -42,14 +44,14 @@ namespace GTA_SA_PathsRedactor.ViewModel
                     return null;
                 }
 
-                return m_pointsTransformationData[m_currentPointTransformDataIndex];
+                return m_pointsTransformationDatas[m_currentPointTransformDataIndex];
             }
         }
-        public System.Collections.ObjectModel.ReadOnlyCollection<PointTransformationData> PointTranformationDatas
+        public ObservableCollection<PointTransformationData> PointTranformationDatas
         {
             get
             {
-                return m_pointsTransformationData.AsReadOnly();
+                return m_pointsTransformationDatas;
             }
         }
 
@@ -57,21 +59,18 @@ namespace GTA_SA_PathsRedactor.ViewModel
         {
             get { return m_currentPointTransformDataIndex; }
             set 
-            { 
-                if (value < -1 || value >= m_pointsTransformationData.Count)
+            {
+                if (value < -1 || value >= m_pointsTransformationDatas.Count)
                 {
                     throw new ArgumentOutOfRangeException("value");
-                }
-
-                if (value == -1)
-                {
-                    m_pointsTransformationData.Clear();
                 }
 
                 m_currentPointTransformDataIndex = value;
 
                 OnPropertyChanged("CurrentPointTransformDataIndex");
                 OnPropertyChanged("CurrentPointTransformData");
+
+                GlobalSettings.GetInstance().OriginalPTD = CurrentPointTransformData;
             }
         }
 
@@ -92,7 +91,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public void Clear()
         {
-            m_pointsTransformationData.Clear();
+            m_pointsTransformationDatas.Clear();
             CurrentPointTransformDataIndex = -1;
         }
 
@@ -104,41 +103,43 @@ namespace GTA_SA_PathsRedactor.ViewModel
         {
             for (int i = 0; i < count; i++)
             {
-                m_pointsTransformationData.Add(new PointTransformationData());
+                m_pointsTransformationDatas.Add(new PointTransformationData());
             }
         }
         public void AddNewPointTransformationData(PointTransformationData pointTransformationData)
         {
-            if (pointTransformationData == null)
-            {
-                throw new ArgumentNullException("pointTransformationData");
-            }
-
-            m_pointsTransformationData.Add(pointTransformationData);
+            m_pointsTransformationDatas.Add(pointTransformationData);
         }
-        public void AddNewPointTransformationData(IEnumerable<PointTransformationData> pointsTransformationData)
+
+        public void AddNewPointTransformationDataRange(IEnumerable<PointTransformationData> pointsTransformationData)
         {
-            if (pointsTransformationData == null)
+            foreach (var item in pointsTransformationData)
             {
-                throw new ArgumentNullException("pointsTransformationData");
+                m_pointsTransformationDatas.Add(item);
             }
 
-            m_pointsTransformationData.AddRange(pointsTransformationData);
-
-            if (m_pointsTransformationData.Any())
+            if (m_pointsTransformationDatas.Any())
             {
-                CurrentPointTransformDataIndex = 0;
+                CurrentPointTransformDataIndex = m_pointsTransformationDatas.Count - 1;
             }
         }
 
-        private void SaveSettingCommandHandler(object  obj)
+        private void SaveSettingCommandHandler(object? obj)
         {
             try
             {
-                transformSettingLoader.SaveSettings(m_pointsTransformationData);
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "JSON files (*.json) |*.json";
 
-                MessageBox.Show("Settings saved succesfully", "Information",
-                                MessageBoxButton.OK, MessageBoxImage.Asterisk);
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var transformSettingLoader = new TransformSettingSaverLoader(saveFileDialog.FileName);
+
+                    transformSettingLoader.SaveSettings(CurrentPointTransformData);
+
+                    MessageBox.Show("Settings saved succesfully", "Information",
+                                    MessageBoxButton.OK, MessageBoxImage.Asterisk);
+                }
             }
             catch (Exception ex)
             {
@@ -152,22 +153,24 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             }
         }
-        private void LoadSettingCommandHandler(object obj)
+        private void LoadSettingCommandHandler(object? obj)
         {
             try
             {
-                var settings = transformSettingLoader.LoadSettings();
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "JSON files (*.json) |*.json";
 
-                foreach (var setting in settings)
+                if (openFileDialog.ShowDialog() == true)
                 {
-                    setting.PropertyChanged += Setting_PropertyChanged;
+                    var transformSettingLoader = new TransformSettingSaverLoader(openFileDialog.FileName);
+
+                    var setting = transformSettingLoader.LoadSettings();
+
+                    AddNewPointTransformationData(setting);
+
+                    MessageBox.Show("Settings loaded succesfully", "Information",
+                                    MessageBoxButton.OK, MessageBoxImage.Asterisk);
                 }
-
-                Clear();
-                AddNewPointTransformationData(settings);
-
-                MessageBox.Show("Settings loaded succesfully", "Information",
-                                MessageBoxButton.OK, MessageBoxImage.Asterisk);
             }
             catch (FileNotFoundException)
             {
@@ -187,9 +190,22 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
-        private void Setting_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void PointsTransformationData_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            PropertyChanged?.Invoke(sender, e);
+            switch (e.Action)
+            {
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
+                    CurrentPointTransformDataIndex = m_pointsTransformationDatas.Count - 1;
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
+                    if (CurrentPointTransformDataIndex >= m_pointsTransformationDatas.Count)
+                    {
+                        CurrentPointTransformDataIndex = m_pointsTransformationDatas.Count - 1;
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OnPropertyChanged(string propName)

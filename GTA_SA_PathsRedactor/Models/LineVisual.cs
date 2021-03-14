@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
+using GTA_SA_PathsRedactor.Core.Models;
+using GTA_SA_PathsRedactor.Services;
 
 namespace GTA_SA_PathsRedactor.Models
 {
@@ -17,7 +19,7 @@ namespace GTA_SA_PathsRedactor.Models
         private Pen m_color;
         private VisualCollection children;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         static LineVisual()
         {
@@ -139,7 +141,7 @@ namespace GTA_SA_PathsRedactor.Models
 
             using (var context = body.RenderOpen())
             {
-                context.DrawLine(m_color, (Point)m_startPoint, (Point)m_endPoint);
+                context.DrawLine(m_color, m_startPoint.As2DPoint(), m_endPoint.As2DPoint());
             }
 
             children.Add(body);

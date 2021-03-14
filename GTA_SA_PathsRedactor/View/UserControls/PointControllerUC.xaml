@@ -20,7 +20,7 @@
         </Style>
     </UserControl.Resources>
     <StackPanel Background="Gray">
-        <GroupBox Grid.Row="0" FontSize="15" Header="Path information" BorderBrush="DarkGray" BorderThickness="0.5">
+        <GroupBox Grid.Row="0" FontSize="15" Header="Path information" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentPath}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1.2*"/>
@@ -31,7 +31,8 @@
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="5">
                     <TextBlock Text="Path name" Margin="5 0 0 0"/>
                     <TextBox x:Name="PathNameTextBox" Margin="5" MinWidth="70" MaxLength="25"
-                             Text="{Binding Path=PathName, ValidatesOnExceptions=True}"/>
+                             Text="{Binding Path=PathName, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ResourceKey=TextBoxValidationTemplate}"/>
                 </StackPanel>
                 <TextBlock Grid.Row="1" Grid.Column="0" Margin="10 5 5 5" TextWrapping="Wrap">
                     <Run Text="Point amount:"/>
@@ -39,14 +40,14 @@
                 </TextBlock>
                 <DockPanel Grid.Row="2" Grid.Column="0" Margin="5 0 5 0">
                     <TextBlock Text="Path color:" Margin="5 0 0 0" DockPanel.Dock="Left"/>
-                    <xctk:ColorPicker x:Name="PathColor" HorizontalAlignment="Right" DockPanel.Dock="Right" MinWidth="70"
+                    <xctk:ColorPicker x:Name="PathColorCP" HorizontalAlignment="Right" DockPanel.Dock="Right" MinWidth="70"
                                       SelectedColorChanged="PathColor_SelectedColorChanged"/>
                 </DockPanel>
             </Grid>
         </GroupBox>
 
-        <GroupBox Grid.Row="1" FontSize="15" Header="Selected point" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentObject}">
-            <StackPanel DataContext="{Binding Path=Point}">
+        <GroupBox Grid.Row="1" FontSize="15" Header="Selected point" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentPath.CurrentObject}">
+            <StackPanel DataContext="{Binding Path=OriginPoint}">
                 <StackPanel Margin="5">
                     <TextBlock Text="X" Margin="10 0 0 0 "/>
                     <TextBox x:Name="PointXTextBox" Style="{StaticResource ResourceKey=InternalTextBox}" 
@@ -67,12 +68,38 @@
             </StackPanel>
         </GroupBox>
 
-        <DockPanel Grid.Row="2" Margin="2 5 2 5">
+        <DockPanel Grid.Row="2" Margin="2 5 2 5" >
             <TextBlock Text="Available paths" Margin="0 0 0 5" DockPanel.Dock="Top"/>
-            <Button Content="Show selected paths" DockPanel.Dock="Bottom" FontSize="18" Margin="5" Padding="5" />
-            <ListBox x:Name="AvailablePaths" BorderThickness="2" MinHeight="250" MaxHeight="400"/>
+
+            <StackPanel TextBlock.FontSize="18" DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0 5 0 5">
+                <Button Content="+" x:Name="AddPathButton" Margin="5 2 5 2" Padding="4 2 4 2" Width="30"
+                        Command="{Binding CreateNewPathCommand}"/>
+                <Button Content="Select" x:Name="SelectPathButton" Margin="5 2 5 2" Padding="4 2 4 2" Width="100"
+                        Command="{Binding SelectPathCommand}" CommandParameter="{Binding ElementName=AvailablePathsListBox, Path=SelectedIndex}"/>
+                <Button Content="-" x:Name="RemovePathButton" Margin="5 2 5 2" Padding="4 2 4 2" Width="30"
+                        Command="{Binding RemovePathCommand}" CommandParameter="{Binding ElementName=AvailablePathsListBox, Path=SelectedItem}"/>
+            </StackPanel>
+
+            <ListBox x:Name="AvailablePathsListBox" BorderThickness="2" MinHeight="250" MaxHeight="400"
+                     ItemsSource="{Binding Path=Paths, Mode=OneWay}" HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ContentPresenter Grid.Column="0" x:Name="ListBoxContentContainer" Content="{Binding Path=PathName}" 
+                                              TextBlock.FontSize="18" HorizontalAlignment="Stretch"/>
+                            <TextBlock Grid.Column="1" x:Name="SelectionStarTextBlock" DockPanel.Dock="Right" Text="*" Height="30"
+                                       FontSize="30" FontWeight="ExtraBlack" Margin="5 -5 0 0" Padding="0" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </DockPanel>
 
-        <Button Content="Clear map" Margin="10" FontSize="18" Padding="5" Click="ClearMapButton_Click"/>
+        <Button Content="Clear map" Margin="10" FontSize="18" Padding="5" Command="{Binding Path=ClearPointsCommand}"/>
     </StackPanel>
 </UserControl>

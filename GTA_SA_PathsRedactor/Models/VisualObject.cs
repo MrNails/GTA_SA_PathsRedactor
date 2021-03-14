@@ -2,18 +2,18 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
+using GTA_SA_PathsRedactor.Core.Models;
 
 namespace GTA_SA_PathsRedactor.Models
 {
     public abstract class VisualObject : FrameworkElement, INotifyPropertyChanged
     {
-        private GTA_SA_Point m_originPoint;
         private GTA_SA_Point m_point;
         private bool m_isSelected;
 
         protected VisualCollection children;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected VisualObject(GTA_SA_Point point)
         {
@@ -23,29 +23,12 @@ namespace GTA_SA_PathsRedactor.Models
             OriginPoint = (GTA_SA_Point)point.Clone();
         }
 
-        public GTA_SA_Point OriginPoint
-        {
-            get => m_originPoint;
-            init
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-
-                m_originPoint = value;
-            }
-        }
+        public GTA_SA_Point OriginPoint { get; init; }
         public GTA_SA_Point Point
         {
             get => m_point;
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-
                 m_point = value;
                 m_point.PropertyChanged -= ObjectPropertyChanged;
                 m_point.PropertyChanged += ObjectPropertyChanged;
@@ -81,7 +64,7 @@ namespace GTA_SA_PathsRedactor.Models
             return children[index];
         }
 
-        protected void ObjectPropertyChanged(object sender, PropertyChangedEventArgs e)
+        protected void ObjectPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             Draw();
         }

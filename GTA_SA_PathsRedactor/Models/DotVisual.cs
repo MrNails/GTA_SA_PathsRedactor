@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Windows;
 using System.Windows.Media;
+using GTA_SA_PathsRedactor.Core.Models;
+using GTA_SA_PathsRedactor.Services;
 
 namespace GTA_SA_PathsRedactor.Models
 {
@@ -50,7 +51,7 @@ namespace GTA_SA_PathsRedactor.Models
 
             DrawingVisual body = new DrawingVisual();
 
-            Pen pen = null;
+            Pen? pen = null;
 
             if (IsSelected)
             {
@@ -63,7 +64,7 @@ namespace GTA_SA_PathsRedactor.Models
 
             using (var context = body.RenderOpen())
             {
-                context.DrawEllipse(m_color, pen, (Point)Point, 2, 2);
+                context.DrawEllipse(m_color, pen, Point.As2DPoint(), 2, 2);
             }
 
             children.Add(body);

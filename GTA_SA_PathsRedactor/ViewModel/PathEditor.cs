@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,40 +8,38 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.ComponentModel;
 using GTA_SA_PathsRedactor.Models;
-using System.Collections.ObjectModel;
+using GTA_SA_PathsRedactor.Core.Models;
+using GTA_SA_PathsRedactor.Services;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    public class PathEditor : INotifyPropertyChanged
+    public class PathEditor : Core.Entity
     {
-        private static readonly SolidColorBrush s_defaultLinesColor;
+        private static readonly Color s_defaultLinesColor;
 
         private string m_pathName;
+        private string m_pathFileName;
 
         private bool m_multipleSelectionMode;
 
         private ObservableCollection<VisualObject> m_dots;
         private List<LineVisual> m_lines;
         private VisualObjectsCollection m_selectedDots;
-        private VisualObject m_currentObject;
+        private VisualObject? m_currentObject;
         private Pen m_linesColor;
 
-        private MouseButtonEventHandler m_dotHanler;
-        private MouseButtonEventHandler m_lineHandler;
-
-        private Services.PointTransformationData m_pointTransformation;
+        private MouseButtonEventHandler? m_dotHanler;
+        private MouseButtonEventHandler? m_lineHandler;
 
         protected Canvas m_workField;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         static PathEditor()
         {
-            s_defaultLinesColor = new SolidColorBrush(Colors.Red);
+            s_defaultLinesColor = Colors.Red;
         }
 
         public PathEditor(string pathName)
-            : this(pathName, s_defaultLinesColor)
+            : this(pathName, new SolidColorBrush(s_defaultLinesColor))
         { }
         public PathEditor(string pathName, SolidColorBrush linesColor)
         {
@@ -58,6 +57,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
             Color = linesColor;
             LinesThickness = 2;
             PathName = pathName;
+            PathFileName = PathName;
+
+            var gSettings = GlobalSettings.GetInstance();
+
+            gSettings.PropertyChanged += GlobalSettings_PropertyChanged;
+            gSettings.OriginalPTD.PropertyChanged += TransformationDataPropertyChanged;
         }
 
         public int PointCount
@@ -79,8 +84,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
             set
             {
                 m_multipleSelectionMode = value;
-                m_selectedDots.Clear();
-                SelectionClear();
+
+                    m_selectedDots.Clear();
+                    SelectionClear();
                 OnPropertyChanged("MultipleSelectionMode");
             }
         }
@@ -89,15 +95,38 @@ namespace GTA_SA_PathsRedactor.ViewModel
             get { return m_pathName; }
             set
             {
-                if (value == null)
+                if (value.Length == 0)
                 {
-                    throw new ArgumentNullException("value");
+                    m_errors["PathName"] = "Path name can't be empty.";
+                }
+                else
+                {
+                    m_errors["PathName"] = "";
                 }
 
                 m_pathName = value;
                 OnPropertyChanged("PathName");
             }
         }
+        public string PathFileName
+        {
+            get { return m_pathFileName; }
+            set
+            {
+                if (value.Length == 0)
+                {
+                    m_errors["PathFileName"] = "File path can't be empty.";
+                }
+                else
+                {
+                    m_errors["PathFileName"] = "";
+                }
+
+                m_pathFileName = value;
+                OnPropertyChanged("PathName");
+            }
+        }
+
         public double LinesThickness
         {
             get { return m_linesColor.Thickness; }
@@ -105,9 +134,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 if (value < 0)
                 {
+                    m_errors["LinesThickness"] = "Path's lines thickness can't be less than zero.";
                     throw new ArgumentOutOfRangeException("value", "Path's lines thickness can't be less than zero.");
                 }
 
+                m_errors["LinesThickness"] = "";
                 m_linesColor.Thickness = value;
                 OnPropertyChanged("LinesThickness");
             }
@@ -117,16 +148,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             get { return (SolidColorBrush)m_linesColor.Brush; }
             set
             {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-
                 m_linesColor.Brush = value;
                 OnPropertyChanged("LinesColor");
             }
         }
-        public VisualObject CurrentObject
+        public VisualObject? CurrentObject
         {
             get { return m_currentObject; }
             set
@@ -135,24 +161,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 OnPropertyChanged("CurrentObject");
             }
         }
-        public Services.PointTransformationData PointTransformation
+        public PointTransformationData? PointTransformation
         {
-            get => m_pointTransformation;
-            set
-            {
-                m_pointTransformation = value;
-
-                if (value != null)
-                {
-                    m_pointTransformation.PropertyChanged -= TransformationDataPropertyChanged;
-                    m_pointTransformation.PropertyChanged += TransformationDataPropertyChanged;
-                }
-
-                DrawScale();
-            }
+            get => GlobalSettings.GetInstance().GetCurrentTranfromationData();
         }
 
-        public event MouseButtonEventHandler DotsMouseDown
+        public event MouseButtonEventHandler? DotsMouseDown
         {
             add
             {
@@ -173,7 +187,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
             }
         }
-        public event MouseButtonEventHandler LinesMouseDown
+        public event MouseButtonEventHandler? LinesMouseDown
         {
             add
             {
@@ -218,24 +232,14 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public void AddPoint(GTA_SA_Point point)
         {
-            AddPoint(new DotVisual(point));
+            AddPoint(new DotVisual(point, m_linesColor.Brush));
         }
         public void AddPoint(GTA_SA_Point point, Brush brush)
         {
-            if (brush == null)
-            {
-                throw new ArgumentNullException("brush");
-            }
-
             AddPoint(new DotVisual(point, brush));
         }
         public void AddPoint(VisualObject dot)
         {
-            if (dot == null)
-            {
-                throw new ArgumentNullException("dot");
-            }
-
             dot.MouseDown += m_dotHanler;
             dot.PropertyChanged += ObjectPropertyChanged;
 
@@ -253,26 +257,18 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 m_workField.Children.Insert(0, line);
             }
 
+            TransormPoint(dot);
+
             OnPropertyChanged("PointCount");
             Draw();
         }
 
         public void AddRangePoint(IEnumerable<GTA_SA_Point> points)
         {
-            if (points == null)
-            {
-                throw new ArgumentNullException("points");
-            }
-
-            AddRangePoint(points.Select(p => new DotVisual(p)));
+            AddRangePoint(points.Select(p => new DotVisual(p, m_linesColor.Brush)));
         }
         public void AddRangePoint(IEnumerable<VisualObject> dots)
         {
-            if (dots == null)
-            {
-                throw new ArgumentNullException("dots");
-            }
-
             int lastIndex = m_dots.Count - 1;
 
             if (m_dots.Count > 0 && lastIndex != -1)
@@ -300,6 +296,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 currentDot = dotEnumerator.Current;
 
+                TransormPoint(previousDot);
+
                 m_dots.Add(previousDot);
                 m_workField.Children.Add(previousDot);
 
@@ -323,6 +321,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_dots.Add(currentDot);
             m_workField.Children.Add(currentDot);
 
+            TransormPoint(currentDot);
+
             dotEnumerator.Dispose();
 
             OnPropertyChanged("PointCount");
@@ -331,23 +331,14 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public void InsertPoint(int index, GTA_SA_Point point)
         {
-            InsertPoint(index, new Models.DotVisual(point));
+            InsertPoint(index, new DotVisual(point));
         }
         public void InsertPoint(int index, GTA_SA_Point point, Brush brush)
         {
-            if (brush == null)
-            {
-                throw new ArgumentNullException("brush");
-            }
-
             InsertPoint(index, new Models.DotVisual(point, brush));
         }
         public void InsertPoint(int index, VisualObject dot)
         {
-            if (dot == null)
-            {
-                throw new ArgumentNullException("dot");
-            }
             if (index < 0 || index >= m_dots.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
@@ -387,17 +378,21 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_dots.Insert(index, dot);
             m_workField.Children.Insert(m_lines.Count + index + 1, dot);
 
+            TransormPoint(dot);
+
             OnPropertyChanged("PointCount");
             Draw();
         }
 
-        public bool RemovePoint(GTA_SA_Point point)
+
+#pragma warning disable CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
+        public bool RemovePoint(GTA_SA_Point? point)
         {
-            var foundDot = m_dots.Where(dot => dot.InputHitTest(point.GetAsPoint2D()) != null).FirstOrDefault();
+            var foundDot = m_dots.Where(dot => dot.InputHitTest(point.As2DPoint()) != null).FirstOrDefault();
 
             return RemovePoint(foundDot);
         }
-        public bool RemovePoint(VisualObject dot)
+        public bool RemovePoint(VisualObject? dot)
         {
             return RemovePointHelper(dot);
         }
@@ -410,6 +405,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             return RemovePoint(m_dots[index]);
         }
+#pragma warning restore CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
 
         public void RemoveSelectedPoint()
         {
@@ -476,11 +472,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
-        protected void OnPropertyChanged(string propName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-        }
-
         private bool RemovePointHelper(VisualObject dot, bool isSelectionClear = false)
         {
             int dotIndex = m_dots.IndexOf(dot);
@@ -532,7 +523,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             return res;
         }
 
-        private void ObjectPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void ObjectPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             var visualObj = sender as VisualObject;
 
@@ -546,9 +537,45 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 m_selectedDots.AddVisualObject(visualObj);
             }
         }
-        private void TransformationDataPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void TransformationDataPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             DrawScale();
+        }
+        private void GlobalSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Resolution" ||
+                e.PropertyName == "OriginalPTD")
+            {
+                if (e.PropertyName == "OriginalPTD")
+                {
+                    var gSettings = GlobalSettings.GetInstance();
+
+                    if (gSettings.OriginalPTD != null)
+                    {
+                        gSettings.OriginalPTD.PropertyChanged -= TransformationDataPropertyChanged;
+                        gSettings.OriginalPTD.PropertyChanged += TransformationDataPropertyChanged;
+                    }
+                }
+                DrawScale();
+            }
+        }
+
+        private void TransormPoint(VisualObject dot)
+        {
+            var currentPTD = PointTransformation;
+
+            if (currentPTD == null || 
+                currentPTD.PointScaleX == 0 ||
+                currentPTD.PointScaleY == 0)
+            {
+                return;
+            }
+
+            int horizontallyInvert = currentPTD.InvertHorizontally ? -1 : 1;
+            int verticallyInvert = currentPTD.InvertVertically ? -1 : 1;
+
+            dot.Point.X = horizontallyInvert * dot.OriginPoint.X / currentPTD.PointScaleX + currentPTD.OffsetX;
+            dot.Point.Y = verticallyInvert * dot.OriginPoint.Y / currentPTD.PointScaleY + currentPTD.OffsetY;
         }
 
         private void Draw()
@@ -580,7 +607,14 @@ namespace GTA_SA_PathsRedactor.ViewModel
         }
         private void DrawScale()
         {
-            if (m_pointTransformation == null)
+            if (WorkField.Visibility != Visibility.Visible)
+            {
+                return;
+            }
+
+            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+
+            if (currentPTD == null)
             {
                 foreach (var dot in m_dots)
                 {
@@ -590,16 +624,17 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
             else
             {
-                int horizontallyInvert = m_pointTransformation.InvertHorizontally ? -1 : 1;
-                int verticallyInvert = m_pointTransformation.InvertVertically ? -1 : 1;
+                int horizontallyInvert = currentPTD.InvertHorizontally ? -1 : 1;
+                int verticallyInvert = currentPTD.InvertVertically ? -1 : 1;
 
                 foreach (var dot in m_dots)
                 {
-                    dot.Point.X = horizontallyInvert * dot.OriginPoint.X / m_pointTransformation.PointScaleX + m_pointTransformation.OffsetX;
-                    dot.Point.Y = verticallyInvert * dot.OriginPoint.Y / m_pointTransformation.PointScaleY + m_pointTransformation.OffsetY;
+                    dot.Point.X = horizontallyInvert * dot.OriginPoint.X / currentPTD.PointScaleX + currentPTD.OffsetX;
+                    dot.Point.Y = verticallyInvert * dot.OriginPoint.Y / currentPTD.PointScaleY + currentPTD.OffsetY;
                 }
             }
         }
+
 
         public sealed class VisualObjectsCollection : IEnumerable<VisualObject>
         {
@@ -665,7 +700,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 m_visualObjects.Clear();
             }
 
-            private void DotPropertyChanged(object sender, PropertyChangedEventArgs e)
+            private void DotPropertyChanged(object? sender, PropertyChangedEventArgs e)
             {
                 if (m_isDeleting)
                 {
@@ -674,7 +709,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 var dot = sender as VisualObject;
 
-                if (e.PropertyName == "IsSelected" && !dot.IsSelected)
+                if (e.PropertyName == "IsSelected" && dot?.IsSelected == false)
                 {
                     RemoveVisualObject(dot);
                 }

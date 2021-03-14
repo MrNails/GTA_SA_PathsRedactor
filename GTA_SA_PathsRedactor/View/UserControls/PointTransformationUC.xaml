@@ -5,8 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
              mc:Ignorable="d" 
-             d:DesignHeight
-             ="600" d:DesignWidth="200">
+             d:DesignHeight="600" d:DesignWidth="200">
     <UserControl.Resources>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource ResourceKey=TextBoxValidationTemplate}">
             <Setter Property="FontSize" Value="18"/>
@@ -28,20 +27,17 @@
     <Grid Background="Gray">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="0.6*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition />
+            <RowDefinition Height="0.4*"/>
         </Grid.RowDefinitions>
 
         <StackPanel TextBlock.FontSize="18" >
             <TextBlock Text="Select resolution" Margin="5"/>
-            <ComboBox x:Name="SettingsForResolutionCB" Margin="5" SelectedIndex="{Binding Path=CurrentPointTransformDataIndex}">
-                <ComboBoxItem Content="For resolution 800x600" IsSelected="True"/>
-                <ComboBoxItem Content="For resolution 1080x850"/>
-                <ComboBoxItem Content="For resolution 1280x1024"/>
-                <ComboBoxItem Content="For resolution 1680x1050"/>
-                <ComboBoxItem Content="For resolution 1920x1080"/>
-            </ComboBox>
+            <ComboBox x:Name="SettingsForResolutionCB" Margin="5" 
+                      SelectedIndex="{Binding Path=CurrentPointTransformDataIndex}"
+                      ItemsSource="{Binding Path=PointTranformationDatas}" 
+                      DisplayMemberPath="TransformName"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1" TextBlock.FontSize="18">
@@ -66,8 +62,8 @@
         </StackPanel>
 
         <StackPanel Grid.Row="2">
-            <Button Content="Load settings" Command="{Binding Path=LoadSettings}"/>
-            <Button Content="Save settings" Command="{Binding Path=SaveSettings}"/>
+            <Button Content="Load settings" Command="{Binding Path=LoadSettingsCommand}"/>
+            <Button Content="Save settings" Command="{Binding Path=SaveSettingsCommand}"/>
         </StackPanel>
         <!--<Button Content="Accept"  Background="LightGray" />-->
 
