@@ -47,6 +47,11 @@ namespace GTA_SA_PathsRedactor.View
         private childItem? FindVisualChild<childItem>(DependencyObject? obj)
                 where childItem : DependencyObject
         {
+            if (obj == null)
+            {
+                return null;
+            }
+
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(obj, i);
@@ -100,23 +105,35 @@ namespace GTA_SA_PathsRedactor.View
 
             if (e.OldIndex != -1 && e.OldIndex < sender.Paths.Count)
             {
+                sender.Paths[e.OldIndex].WorkField.Visibility = Visibility.Hidden;
+
                 var oldItem = (ListBoxItem)AvailablePathsListBox.ItemContainerGenerator.ContainerFromIndex(e.OldIndex);
                 var oldItemContentPresenter = FindVisualChild<ContentPresenter>(oldItem);
+
+                if (oldItemContentPresenter == null)
+                {
+                    return;
+                }
+
                 var oldTextBlock = (TextBlock)oldItemContentPresenter.ContentTemplate.FindName("SelectionStarTextBlock", oldItemContentPresenter);
 
                 oldTextBlock.Text = "";
-
-                sender.Paths[e.OldIndex].WorkField.Visibility = Visibility.Hidden;
             }
             if (e.NewIndex != -1 && e.NewIndex < sender.Paths.Count)
             {
+                sender.Paths[e.NewIndex].WorkField.Visibility = Visibility.Visible;
+
                 var newItem = (ListBoxItem)AvailablePathsListBox.ItemContainerGenerator.ContainerFromIndex(e.NewIndex);
                 var newItemContentPresenter = FindVisualChild<ContentPresenter>(newItem);
+
+                if (newItemContentPresenter == null)
+                {
+                    return;
+                }
+
                 var newTextBlock = (TextBlock)newItemContentPresenter.ContentTemplate.FindName("SelectionStarTextBlock", newItemContentPresenter);
 
                 newTextBlock.Text = "*";
-
-                sender.Paths[e.NewIndex].WorkField.Visibility = Visibility.Visible;
             }
         }
 

@@ -23,7 +23,7 @@ namespace GTA_SA_PathsRedactor.Core.Models
         {
             get { return m_x; }
             set 
-            { 
+            {
                 m_x = value;
                 OnPropertyChanged("X");
             }

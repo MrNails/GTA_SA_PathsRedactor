@@ -38,6 +38,7 @@ namespace GTA_SA_PathsRedactor.Models
                 OnPropertyChanged("Point");
             }
         }
+
         public bool IsSelected
         {
             get => m_isSelected;

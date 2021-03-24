@@ -23,8 +23,11 @@ namespace GTA_SA_PathsRedactor
         private static readonly PointTransformationData deltaFor1920x1080;
         private static readonly GlobalSettings m_globalSettings;
 
-        private Type n_currentSaverLoaderType;
-        private PointTransformationData? m_originalPTD;
+        private readonly PointTransformationData m_defaultPTD;
+
+        private Type n_currentSaverType;
+        private Type n_currentLoaderType;
+        private PointTransformationData? m_PTD;
         private Resolution resolution;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -53,65 +56,84 @@ namespace GTA_SA_PathsRedactor
         private GlobalSettings()
         {
             var fileSource = new string(System.Text.Encoding.UTF8.GetChars(AppResources.DefaultPointSettings));
-            OriginalPTD = JsonConvert.DeserializeObject<PointTransformationData>(fileSource);
+            PTD = JsonConvert.DeserializeObject<PointTransformationData>(fileSource);
+
+            m_defaultPTD = PTD;
+
+            CurrentSaverType = typeof(DefaultPointSaver);
+            CurrentLoaderType = typeof(DefaultPointLoader);
         }
         #endregion
 
-        public Type CurrentSaverLoaderType
+        public PointTransformationData DefaultPTD
         {
-            get => n_currentSaverLoaderType;
+            get => m_defaultPTD;
+        }
+
+        public Type CurrentSaverType
+        {
+            get => n_currentSaverType;
             set
             {
-                n_currentSaverLoaderType = value;
+                n_currentSaverType = value;
                 OnPropertyChanged();
             }
         }
-        public PointTransformationData? OriginalPTD
+        public Type CurrentLoaderType
         {
-            get => m_originalPTD;
+            get => n_currentLoaderType;
             set
             {
-                m_originalPTD = value;
+                n_currentLoaderType = value;
+                OnPropertyChanged();
+            }
+        }
+        public PointTransformationData? PTD
+        {
+            get => m_PTD;
+            set
+            {
+                if (value == null)
+                    m_PTD = DefaultPTD;
+                else
+                    m_PTD = value;
+
                 OnPropertyChanged();
             }
         }
 
-        public Resolution Resolution 
-        { 
+        public Resolution Resolution
+        {
             get => resolution;
             set
             {
                 resolution = value;
                 OnPropertyChanged();
-            } 
+            }
         }
 
-        public Core.IPointSaverLoader GetPointSaverLoaderInstance()
+        public Core.PointSaver GetPointSaverLoaderInstance()
         {
-            return (Core.IPointSaverLoader)Activator.CreateInstance(CurrentSaverLoaderType)!;
+            return (Core.PointSaver)Activator.CreateInstance(CurrentSaverType)!;
         }
 
         public PointTransformationData? GetCurrentTranfromationData()
         {
-            if (OriginalPTD == null)
-            {
-                return null;
-            }
-
             var currentResolutionPTD = GetCurrentResolutionPTD(Resolution);
 
             var newPTD = new PointTransformationData
             {
-                OffsetX = OriginalPTD.OffsetX / currentResolutionPTD.OffsetX,
-                OffsetY = OriginalPTD.OffsetY / currentResolutionPTD.OffsetY,
-                PointScaleX = OriginalPTD.PointScaleX / currentResolutionPTD.PointScaleX,
-                PointScaleY = OriginalPTD.PointScaleY / currentResolutionPTD.PointScaleY,
-                OriginalMapHeight = OriginalPTD.OriginalMapHeight / currentResolutionPTD.OriginalMapHeight,
-                OriginalMapWidth = OriginalPTD.OriginalMapWidth / currentResolutionPTD.OriginalMapWidth,
-                InvertVertically = OriginalPTD.InvertVertically,
-                InvertHorizontally = OriginalPTD.InvertHorizontally,
-                TransformName = OriginalPTD.TransformName,
+                OffsetX = PTD.OffsetX / currentResolutionPTD.OffsetX,
+                OffsetY = PTD.OffsetY / currentResolutionPTD.OffsetY,
+                PointScaleX = PTD.PointScaleX / currentResolutionPTD.PointScaleX,
+                PointScaleY = PTD.PointScaleY / currentResolutionPTD.PointScaleY,
+                OriginalMapHeight = PTD.OriginalMapHeight / currentResolutionPTD.OriginalMapHeight,
+                OriginalMapWidth = PTD.OriginalMapWidth / currentResolutionPTD.OriginalMapWidth,
+                InvertVertically = PTD.InvertVertically,
+                InvertHorizontally = PTD.InvertHorizontally,
+                TransformName = PTD.TransformName,
             };
+
             return newPTD;
         }
 

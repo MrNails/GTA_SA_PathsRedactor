@@ -28,7 +28,7 @@ namespace GTA_SA_PathsRedactor.View
 
             m_pointTransformVM = new ViewModel.PointTransformVM();
 
-            m_pointTransformVM.AddNewPointTransformationData(GlobalSettings.GetInstance().OriginalPTD);
+            m_pointTransformVM.AddNewPointTransformationData(GlobalSettings.GetInstance().PTD);
 
             this.DataContext = m_pointTransformVM;
         }

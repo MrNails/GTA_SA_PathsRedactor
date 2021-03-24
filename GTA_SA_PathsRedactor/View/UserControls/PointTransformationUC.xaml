@@ -5,14 +5,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="200">
+             d:DesignHeight="700" d:DesignWidth="200">
     <UserControl.Resources>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource ResourceKey=TextBoxValidationTemplate}">
             <Setter Property="FontSize" Value="18"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=SettingsForResolutionCB, Path=SelectedIndex}" Value="0">
+                    <Setter Property="IsReadOnly" Value="True"/>
+                    <Setter Property="IsReadOnlyCaretVisible" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
         <Style TargetType="{x:Type CheckBox}">
             <Setter Property="Margin" Value="10 5 10 5"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=SettingsForResolutionCB, Path=SelectedIndex}" Value="0">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
         <Style TargetType="{x:Type Button}">
             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -37,10 +48,20 @@
             <ComboBox x:Name="SettingsForResolutionCB" Margin="5" 
                       SelectedIndex="{Binding Path=CurrentPointTransformDataIndex}"
                       ItemsSource="{Binding Path=PointTranformationDatas}" 
-                      DisplayMemberPath="TransformName"/>
+                      DisplayMemberPath="TransformName">
+            </ComboBox>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="NewSettingsButton" Content="Add" Width="90" Margin="2 2 4 2" Command="{Binding AddNewSettingCommand}"/>
+                <Button x:Name="RemoveSettingsButton" Content="Remove" Width="90" Margin="4 2 2 2" Command="{Binding RemoveCurrentSettingCommand}"
+                        CommandParameter="{Binding ElementName=SettingsForResolutionCB, Path=SelectedItem}"/>
+            </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Row="1" TextBlock.FontSize="18">
+            <StackPanel Margin="10">
+                <TextBlock Text="Setting name"/>
+                <TextBox x:Name="NameTBox" Text="{Binding Path=CurrentPointTransformData.TransformName, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
             <StackPanel Margin="10">
                 <TextBlock Text="OffsetX"/>
                 <TextBox x:Name="OffsetXTBox" Text="{Binding Path=CurrentPointTransformData.OffsetX, ValidatesOnDataErrors=True}"/>

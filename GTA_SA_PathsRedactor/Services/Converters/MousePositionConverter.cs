@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GalaSoft.MvvmLight.Command;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace GTA_SA_PathsRedactor.Services.Converters
 {
     public class MousePositionConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is BindingProxy proxy)
             {
@@ -26,7 +27,7 @@ namespace GTA_SA_PathsRedactor.Services.Converters
 
                 return new Core.Models.GTA_SA_Point(point.X, point.Y, 0, false);
             }
-            else 
+            else
             {
                 return value;
             }
@@ -37,4 +38,35 @@ namespace GTA_SA_PathsRedactor.Services.Converters
             return value;
         }
     }
+    //public class MousePositionConverter : IEventArgsConverter
+    //{
+    //    public object? Convert(object? value, object parameter)
+    //    {
+    //        var args = value as MouseEventArgs;
+
+    //        System.Diagnostics.Debug.WriteLine(value);
+
+    //        if (args == null)
+    //        {
+    //            return value;
+    //        }
+
+    //        if (parameter is BindingProxy proxy)
+    //        {
+    //            var point = args.GetPosition(proxy.Data as IInputElement);
+
+    //            return new Core.Models.GTA_SA_Point(point.X, point.Y, 0, false);
+    //        }
+    //        else if (parameter is IInputElement inputElement)
+    //        {
+    //            var point = args.GetPosition(inputElement);
+
+    //            return new Core.Models.GTA_SA_Point(point.X, point.Y, 0, false);
+    //        }
+    //        else
+    //        {
+    //            return value;
+    //        }
+    //    }
+    //}
 }

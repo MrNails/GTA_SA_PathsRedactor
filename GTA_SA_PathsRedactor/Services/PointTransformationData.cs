@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace GTA_SA_PathsRedactor.Services
 {
     [Serializable]
-    public sealed class PointTransformationData : INotifyPropertyChanged
+    public sealed class PointTransformationData : Core.Entity
     {
         private bool m_invertHorizontally;
         private bool m_invertVertically;
@@ -111,19 +111,16 @@ namespace GTA_SA_PathsRedactor.Services
             {
                 if (string.IsNullOrEmpty(value))
                 {
-                    throw new ArgumentException("Transformation name can't be empty.");
+                    m_errors["TransformName"] = "Transformation name can't be empty.";
+                }
+                else
+                {
+                    m_errors["TransformName"] = "";
                 }
 
                 m_transformName = value;
                 OnPropertyChanged("TransformName");
             }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        private void OnPropertyChanged(string propName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
     }
 }
