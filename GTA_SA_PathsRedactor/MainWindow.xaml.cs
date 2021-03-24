@@ -241,7 +241,7 @@ namespace GTA_SA_PathsRedactor
         }
         private void Window_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.LeftShift)
+            if (e.Key == Key.LeftShift || e.Key == Key.LeftCtrl)
             {
                 ResetSelectionRectangle();
             }
@@ -259,11 +259,6 @@ namespace GTA_SA_PathsRedactor
             m_selectionRectangleOldMousePos = e.GetPosition(MapContainer);
             m_oldConainerMousePos = m_selectionRectangleOldMousePos;
             m_oldMousePos = e.GetPosition(MainField);
-
-            if (e.RightButton == MouseButtonState.Pressed)
-            {
-                CanvasContextMenu.IsOpen = true;
-            }
 
             if (m_pressedKey == Key.LeftCtrl)
             {

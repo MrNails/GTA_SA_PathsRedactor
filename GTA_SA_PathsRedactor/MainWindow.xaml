@@ -13,6 +13,8 @@
     <Window.InputBindings>
         <KeyBinding Key="Delete" Command="{Binding RemoveSelectedPointsCommand}"/>
         <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding LoadPath}"/>
+        <KeyBinding Modifiers="Ctrl" Key="S" Command="{Binding SaveCurrentPath}"/>
+        <KeyBinding Gesture="Ctrl+Shift+S " Command="{Binding SaveCurrentPathAs}"/>
     </Window.InputBindings>
     <Window.Resources>
         <converters:MousePositionConverter x:Key="MousePosConverter"/>
@@ -23,8 +25,8 @@
         <Menu DockPanel.Dock="Top" Panel.ZIndex="1" FontSize="15">
             <MenuItem Header="File">
                 <MenuItem Header="Load" Command="{Binding LoadPath}" InputGestureText="Ctrl + L"/>
-                <MenuItem Header="Save" InputGestureText="Ctrl + S"/>
-                <MenuItem Header="Save as" InputGestureText="Ctrl + Shift + S"/>
+                <MenuItem Header="Save" Command="{Binding SaveCurrentPath}" InputGestureText="Ctrl + S"/>
+                <MenuItem Header="Save as" Command="{Binding SaveCurrentPathAs}" InputGestureText="Ctrl + Shift + S"/>
             </MenuItem>
             <MenuItem Header="Settings">
                 <MenuItem Header="Program resolutions">
@@ -60,13 +62,22 @@
                         <ScaleTransform ScaleY="1"/>
                     </Image.LayoutTransform>
                 </Image>
-            </Canvas> 
+            </Canvas>
             <TextBlock x:Name="DebugTextBlock" FontSize="18" Foreground="White"/>
             <Canvas.ContextMenu>
                 <ContextMenu Name="CanvasContextMenu">
-                    <MenuItem Header="Add point" Command="{Binding Path=Data.AddPointCommand, Source={StaticResource WindowDataSourceProxy}}" 
-                              CommandParameter="{Binding Source={StaticResource MainFieldProxy}, Converter={StaticResource MousePosConverter}}"/>
-                    <MenuItem Header="Clear selected" Command="{Binding RemoveSelectedPointsCommand}"/>
+                    <MenuItem Header="Add point" Click="AddPoint_Click">
+                        <MenuItem.Style>
+                            <Style>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=Data.CurrentPath, Source={StaticResource WindowDataSourceProxy}}" Value="{x:Null}">
+                                        <Setter Property="MenuItem.IsEnabled" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </MenuItem.Style>
+                    </MenuItem>
+                    <MenuItem Header="Clear selected" Command="{Binding Path=Data.RemoveSelectedPointsCommand, Source={StaticResource WindowDataSourceProxy}}"/>
                 </ContextMenu>
             </Canvas.ContextMenu>
         </Canvas>
