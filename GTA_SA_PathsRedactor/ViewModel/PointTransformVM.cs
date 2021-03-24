@@ -14,9 +14,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
     {
         private int m_currentPointTransformDataIndex;
 
-        private RelayCommand m_saveSettings;
-        private RelayCommand m_loadSettings;
+        private RelayCommand m_saveSetting;
+        private RelayCommand m_loadSetting;
         private RelayCommand m_goToMainMenu;
+
+        private RelayCommand m_addNewSetting;
+        private RelayCommand m_removeCurrentSetting;
 
         private ObservableCollection<PointTransformationData> m_pointsTransformationDatas;
 
@@ -27,14 +30,23 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_pointsTransformationDatas = new ObservableCollection<PointTransformationData>();
             m_pointsTransformationDatas.CollectionChanged += PointsTransformationData_CollectionChanged;
 
-            m_saveSettings = new RelayCommand(SaveSettingCommandHandler);
-            m_loadSettings = new RelayCommand(LoadSettingCommandHandler);
+            m_saveSetting = new RelayCommand(SaveSettingCommandHandler);
+            m_loadSetting = new RelayCommand(LoadSettingCommandHandler);
+
+            m_addNewSetting = new RelayCommand(obj => m_pointsTransformationDatas.Add(new PointTransformationData()));
+            m_removeCurrentSetting = new RelayCommand(obj => m_pointsTransformationDatas.Remove(obj as PointTransformationData),
+                                                      obj => obj != null && obj is PointTransformationData &&
+                                                             obj != GlobalSettings.GetInstance().DefaultPTD);
 
             m_currentPointTransformDataIndex = -1;
         }
       
-        public RelayCommand SaveSettingsCommand => m_saveSettings;
-        public RelayCommand LoadSettingsCommand => m_loadSettings;
+        public RelayCommand SaveSettingsCommand => m_saveSetting;
+        public RelayCommand LoadSettingsCommand => m_loadSetting;
+
+        public RelayCommand AddNewSettingCommand => m_addNewSetting;
+        public RelayCommand RemoveCurrentSettingCommand => m_removeCurrentSetting;
+
         public PointTransformationData? CurrentPointTransformData 
         {
             get
@@ -70,7 +82,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 OnPropertyChanged("CurrentPointTransformDataIndex");
                 OnPropertyChanged("CurrentPointTransformData");
 
-                GlobalSettings.GetInstance().OriginalPTD = CurrentPointTransformData;
+                GlobalSettings.GetInstance().PTD = CurrentPointTransformData;
             }
         }
 

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Linq;
-using GTA_SA_PathsRedactor.Services;
+using System.Windows;
 using Microsoft.Win32;
+using GTA_SA_PathsRedactor.Services;
+
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
@@ -22,6 +24,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private RelayCommand m_clearPointsCommand;
 
         private RelayCommand m_savePath;
+        private RelayCommand m_savePathAs;
         private RelayCommand m_loadPath;
 
         private RelayCommand m_createNewPath;
@@ -37,48 +40,25 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             m_addPointCommand = new RelayCommand(obj =>
             {
+                System.Diagnostics.Debug.WriteLine(obj);
+
                 var dot = obj as Models.VisualObject ??
                           new Models.DotVisual(obj as Core.Models.GTA_SA_Point);
 
                 CurrentPath.AddPoint(dot);
-            }, obj => obj != null && m_paths.Count != 0 && 
-                                                                   (obj is Models.VisualObject || 
-                                                                    obj is Core.Models.GTA_SA_Point));
-            m_removePointCommand = new RelayCommand(obj => CurrentPath.RemovePoint(obj as Models.VisualObject), 
+            }, obj => obj != null && m_paths.Count != 0 &&
+                      (obj is Models.VisualObject ||
+                       obj is Core.Models.GTA_SA_Point));
+            m_removePointCommand = new RelayCommand(obj => CurrentPath.RemovePoint(obj as Models.VisualObject),
                                                     obj => obj is Models.VisualObject);
-            m_removeSelectedPointsCommand = new RelayCommand(obj => CurrentPath.RemoveSelectedPoint(), 
+            m_removeSelectedPointsCommand = new RelayCommand(obj => CurrentPath.RemoveSelectedPoint(),
                                                              obj => CurrentPath != null && CurrentPath.SelectedDots.Count != 0);
 
             m_clearPointsCommand = new RelayCommand(obj => CurrentPath.Clear(), obj => CurrentPath != null && CurrentPath.PointCount != 0);
 
-            m_loadPath = new RelayCommand(async obj =>
-            {
-                PointSaverLoader? pointLoader = null;
-                string? path = obj as string;
-
-                if (path == null)
-                {
-                    OpenFileDialog openFileDialog = new OpenFileDialog();
-                    openFileDialog.Filter = "exe files (*.exe) |*.exe";
-
-                    if (openFileDialog.ShowDialog() == true)
-                    {
-                        path = openFileDialog.FileName;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-
-                pointLoader = new PointSaverLoader(path);
-
-                var newPath = new PathEditor(path.Remove(0, path.LastIndexOf('\\') + 1));
-
-                AddNewPathHelper(newPath);
-
-                newPath.AddRangePoint(await pointLoader.LoadAsync());
-            });
+            m_loadPath = new RelayCommand(async obj => await LoadPathHelper(obj as string));
+            m_savePath = new RelayCommand(async obj => await SavePathHelper(false), obj => m_currentPathIndex != -1);
+            m_savePathAs = new RelayCommand(async obj => await SavePathHelper(true), obj => m_currentPathIndex != -1);
 
             m_createNewPath = new RelayCommand(obj =>
             {
@@ -143,6 +123,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         public RelayCommand ClearPointsCommand => m_clearPointsCommand;
 
         public RelayCommand SaveCurrentPath => m_savePath;
+        public RelayCommand SaveCurrentPathAs => m_savePathAs;
         public RelayCommand LoadPath => m_loadPath;
 
         public RelayCommand AddNewPathCommand => m_addNewPath;
@@ -175,6 +156,97 @@ namespace GTA_SA_PathsRedactor.ViewModel
         public event Action<PathVM, PathEditor> PathRemoved;
         public event Action<PathVM, PathSelectionArgs> PathSelected;
 
+        private async Task LoadPathHelper(string? path)
+        {
+            Core.PointLoader? pointLoader = null;
+
+            if (path == null)
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "All files (*.*)|*.*";
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    path = openFileDialog.FileName;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            pointLoader = (Core.PointLoader)Activator.CreateInstance(GlobalSettings.GetInstance().CurrentLoaderType, path);
+
+            var newPath = new PathEditor(path.Remove(0, path.LastIndexOf('\\') + 1));
+            newPath.PathFileName = path;
+
+            try
+            {
+                var points = await pointLoader.LoadAsync();
+
+                AddNewPathHelper(newPath);
+
+                newPath.AddRangePoint(points);
+            }
+            catch (Core.PointsLoadingException ex)
+            {
+                MessageBox.Show($"Cannot parse file\n\n{ex.PointsFileName}\n\nAn error occured on line {ex.FileErrorLine}.",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occure while file opening.", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine(ex);
+#endif
+            }
+
+        }
+        private async Task SavePathHelper(bool saveAs)
+        {
+            string filePath = CurrentPath.PathFileName;
+
+            if (filePath == string.Empty || saveAs)
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "DATA files (*.dat)|*.dat|All files (*.*)|*.*";
+                saveFileDialog.FileName = CurrentPath.PathName + ".dat";
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    filePath = saveFileDialog.FileName;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            var pointLoader = (Core.PointSaver)Activator.CreateInstance(GlobalSettings.GetInstance().CurrentSaverType, filePath);
+            pointLoader.CreateBackup = true;
+
+            try
+            {
+                await pointLoader.SaveAsync(CurrentPath.Dots.Select(dot => dot.Point));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occure while points saving to file.", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine(ex);
+#endif
+            }
+            finally
+            {
+                pointLoader.Dispose();
+            }
+
+        }
+
         private void AddNewPathHelper(PathEditor pathEditor)
         {
             m_paths.Add(pathEditor);
@@ -189,3 +261,48 @@ namespace GTA_SA_PathsRedactor.ViewModel
         }
     }
 }
+
+
+//if (path.EndsWith(".exe"))
+//{
+//    var fileDirectory = path.Remove(path.LastIndexOf('\\')) + @"\data\Paths";
+
+//    if (System.IO.Directory.Exists(fileDirectory))
+//    {
+//        var directoryFiles = System.IO.Directory.GetFiles(fileDirectory);
+//        var trainPaths = directoryFiles.Where(path => path.Contains("tracks"));
+
+//        if (!trainPaths.Any())
+//        {
+//            MessageBox.Show($"Cannot find game directory \"{fileDirectory}\".", "Error",
+//                            MessageBoxButton.OK, MessageBoxImage.Error);
+//            return;
+//        }
+
+//        pointLoader = new DefaultPointSaverLoader(trainPaths.First());
+
+//        var pathsEnumerator = trainPaths.GetEnumerator();
+//        pathsEnumerator.MoveNext();
+
+//        do
+//        {
+//            var currentPath = pointLoader.FilePath;
+//            var newPath = new PathEditor(currentPath.Remove(0, currentPath.LastIndexOf('\\') + 1));
+//            var points = await pointLoader.LoadAsync();
+
+//            AddNewPathHelper(newPath);
+
+//            newPath.AddRangePoint(points);
+
+//            if (pathsEnumerator.MoveNext())
+//                pointLoader.FilePath = pathsEnumerator.Current;
+//            else
+//                break;
+//        } while (true);
+//    }
+//    else
+//    {
+//        MessageBox.Show($"Cannot find game directory\n\n**GTA SA DIRECTORY**\\data\\Paths", "Error",
+//                        MessageBoxButton.OK, MessageBoxImage.Error);
+//    }
+//}

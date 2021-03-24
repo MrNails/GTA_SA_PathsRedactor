@@ -57,12 +57,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
             Color = linesColor;
             LinesThickness = 2;
             PathName = pathName;
-            PathFileName = PathName;
+            PathFileName = "";
 
             var gSettings = GlobalSettings.GetInstance();
 
             gSettings.PropertyChanged += GlobalSettings_PropertyChanged;
-            gSettings.OriginalPTD.PropertyChanged += TransformationDataPropertyChanged;
+            gSettings.PTD.PropertyChanged += TransformationDataPropertyChanged;
         }
 
         public int PointCount
@@ -77,6 +77,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         {
             get { return m_selectedDots; }
         }
+        public ReadOnlyCollection<VisualObject> Dots => new ReadOnlyCollection<VisualObject>(m_dots);
 
         public bool MultipleSelectionMode
         {
@@ -160,10 +161,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 m_currentObject = value;
                 OnPropertyChanged("CurrentObject");
             }
-        }
-        public PointTransformationData? PointTransformation
-        {
-            get => GlobalSettings.GetInstance().GetCurrentTranfromationData();
         }
 
         public event MouseButtonEventHandler? DotsMouseDown
@@ -517,6 +514,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_workField.Children.Remove(lineStart);
             m_lines.Remove(lineStart);
 
+            
             OnPropertyChanged("PointCount");
             Draw();
 
@@ -550,10 +548,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 {
                     var gSettings = GlobalSettings.GetInstance();
 
-                    if (gSettings.OriginalPTD != null)
+                    if (gSettings.PTD != null)
                     {
-                        gSettings.OriginalPTD.PropertyChanged -= TransformationDataPropertyChanged;
-                        gSettings.OriginalPTD.PropertyChanged += TransformationDataPropertyChanged;
+                        gSettings.PTD.PropertyChanged -= TransformationDataPropertyChanged;
+                        gSettings.PTD.PropertyChanged += TransformationDataPropertyChanged;
                     }
                 }
                 DrawScale();
@@ -562,9 +560,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         private void TransormPoint(VisualObject dot)
         {
-            var currentPTD = PointTransformation;
+            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
-            if (currentPTD == null || 
+            if (currentPTD == null ||
                 currentPTD.PointScaleX == 0 ||
                 currentPTD.PointScaleY == 0)
             {
@@ -634,7 +632,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
             }
         }
-
 
         public sealed class VisualObjectsCollection : IEnumerable<VisualObject>
         {
