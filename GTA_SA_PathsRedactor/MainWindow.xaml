@@ -17,7 +17,6 @@
         <KeyBinding Gesture="Ctrl+Shift+S " Command="{Binding SaveCurrentPathAs}"/>
     </Window.InputBindings>
     <Window.Resources>
-        <converters:MousePositionConverter x:Key="MousePosConverter"/>
         <services:BindingProxy x:Key="WindowDataSourceProxy" Data="{Binding}"/>
         <services:BindingProxy x:Key="MainFieldProxy" Data="{Binding ElementName=MainField}"/>
     </Window.Resources>
