@@ -3,12 +3,14 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using GTA_SA_PathsRedactor.Core.Models;
+using GTA_SA_PathsRedactor.Services;
 
 namespace GTA_SA_PathsRedactor.Models
 {
-    public abstract class VisualObject : FrameworkElement, INotifyPropertyChanged
+    public abstract class VisualObject : FrameworkElement, INotifyPropertyChanged, ITransformable
     {
         private GTA_SA_Point m_point;
+        private GTA_SA_Point m_originPoint;
         private bool m_isSelected;
 
         protected VisualCollection children;
@@ -20,10 +22,13 @@ namespace GTA_SA_PathsRedactor.Models
             children = new VisualCollection(this);
 
             Point = point;
-            OriginPoint = (GTA_SA_Point)point.Clone();
+            m_originPoint = (GTA_SA_Point)point.Clone();
         }
 
-        public GTA_SA_Point OriginPoint { get; init; }
+        public GTA_SA_Point OriginPoint
+        {
+            get => m_originPoint;
+        }
         public GTA_SA_Point Point
         {
             get => m_point;
@@ -81,5 +86,28 @@ namespace GTA_SA_PathsRedactor.Models
         }
 
         public abstract void Draw();
+
+        public void Transform(PointTransformationData? pointTransformationData)
+        {
+            int horizontallyInvert = pointTransformationData.InvertHorizontally ? -1 : 1;
+            int verticallyInvert = pointTransformationData.InvertVertically ? -1 : 1;
+
+            Point.X = horizontallyInvert * OriginPoint.X / pointTransformationData.PointScaleX + pointTransformationData.OffsetX;
+            Point.Y = verticallyInvert * OriginPoint.Y / pointTransformationData.PointScaleY + pointTransformationData.OffsetY;
+        }
+
+        public void TransformBack(PointTransformationData? pointTransformationData)
+        {
+            int horizontallyInvert = pointTransformationData.InvertHorizontally ? -1 : 1;
+            int verticallyInvert = pointTransformationData.InvertVertically ? -1 : 1;
+
+            m_originPoint.X = horizontallyInvert * pointTransformationData.PointScaleX * (m_point.X - pointTransformationData.OffsetX);
+            m_originPoint.Y = verticallyInvert * pointTransformationData.PointScaleY * (m_point.Y - pointTransformationData.OffsetY);
+
+            m_point.X = m_originPoint.X;
+            m_point.Y = m_originPoint.Y;
+            m_point.Z = m_originPoint.Z;
+            m_point.IsStopPoint = m_originPoint.IsStopPoint;
+        }
     }
 }
