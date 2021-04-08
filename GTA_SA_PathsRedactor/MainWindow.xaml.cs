@@ -476,6 +476,12 @@ namespace GTA_SA_PathsRedactor
         private void AddPoint_Click(object sender, RoutedEventArgs e)
         {
             var point = new GTA_SA_Point(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
+            var dot = new DotVisual(point);
+
+            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+
+            dot.TransformBack(currentPTD);
+            dot.Transform(currentPTD);
 
             m_pathVM.CurrentPath.AddPoint(point);
         }
@@ -484,8 +490,13 @@ namespace GTA_SA_PathsRedactor
             var point = new GTA_SA_Point(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
             var line = m_lineContextMenu.PlacementTarget as LineVisual;
             var currentPath = m_pathVM.CurrentPath;
+            var dot = new DotVisual(point);
+            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
             var insertIndex = currentPath.IndexOf(dot => dot.Point == line?.Start);
+
+            dot.TransformBack(currentPTD);
+            dot.Transform(currentPTD);
 
             if (insertIndex != -1)
             {
