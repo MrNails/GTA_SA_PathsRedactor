@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
+             xmlns:converters="clr-namespace:GTA_SA_PathsRedactor.Services.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="900" d:DesignWidth="200">
     <UserControl.Resources>
@@ -18,6 +19,7 @@
             <Setter Property="Margin" Value="0 5 5 5"/>
             <Setter Property="FontSize" Value="18"/>
         </Style>
+        <converters:PointDataConverter x:Key="PointDataConverter"/>
     </UserControl.Resources>
     <StackPanel Background="Gray">
         <GroupBox Grid.Row="0" FontSize="15" Header="Path information" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentPath}">
@@ -47,16 +49,16 @@
         </GroupBox>
 
         <GroupBox Grid.Row="1" FontSize="15" Header="Selected point" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentPath.CurrentObject}">
-            <StackPanel DataContext="{Binding Path=OriginPoint}">
+            <StackPanel DataContext="{Binding Path=Point}">
                 <StackPanel Margin="5">
                     <TextBlock Text="X" Margin="10 0 0 0 "/>
                     <TextBox x:Name="PointXTextBox" Style="{StaticResource ResourceKey=InternalTextBox}" 
-                             Text="{Binding Path=X, Mode=OneWay, ValidatesOnExceptions=True}"/>
+                             Text="{Binding Path=X, Mode=OneWay, ValidatesOnExceptions=True, Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=x}"/>
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Y" Margin="10 0 0 0 "/>
                     <TextBox x:Name="PointYTextBox" Style="{StaticResource ResourceKey=InternalTextBox}" 
-                             Text="{Binding Path=Y, ValidatesOnExceptions=True}"/>
+                             Text="{Binding Path=Y, ValidatesOnExceptions=True, Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=y}"/>
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Z" Margin="10 0 0 0 "/>
