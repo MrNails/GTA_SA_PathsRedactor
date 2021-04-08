@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Windows;
 using Microsoft.Win32;
+using Serilog;
 using GTA_SA_PathsRedactor.Services;
-
+using GTA_SA_PathsRedactor.Models;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
@@ -182,28 +183,40 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             try
             {
-                var points = await pointLoader.LoadAsync();
+                var points = (await pointLoader.LoadAsync()).Select(point =>
+                                                                    {
+                                                                        var dot = new DotVisual(point);
+                                                                        TransormPoint(dot);
+                                                                        return dot;
+                                                                    });
 
                 AddNewPathHelper(newPath);
 
                 newPath.AddRangePoint(points);
             }
+            catch (System.IO.FileNotFoundException ex)
+            {
+                App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
+            }
             catch (Core.PointsLoadingException ex)
             {
-                MessageBox.Show($"Cannot parse file\n\n{ex.PointsFileName}\n\nAn error occured on line {ex.FileErrorLine}.",
-                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                App.LogErrorInfoAndShowMessageBox($"Cannot parse file\n\n{ex.PointsFileName}\n\n" +
+                                                  $"An error occured on line {ex.FileErrorLine}.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occure while file opening.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine(ex);
-#endif
+                App.LogErrorInfoAndShowMessageBox("An error occure while file opening.", ex);
             }
 
         }
+
+        private void TransormPoint(VisualObject dot)
+        {
+            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+
+            dot.Transform(currentPTD);
+        }
+
         private async Task SavePathHelper(bool saveAs)
         {
             string filePath = CurrentPath.PathFileName;
@@ -231,14 +244,17 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 await pointLoader.SaveAsync(CurrentPath.Dots.Select(dot => dot.Point));
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
+            }
+            catch (System.IO.FileNotFoundException ex)
+            {
+                App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occure while points saving to file.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine(ex);
-#endif
+                App.LogErrorInfoAndShowMessageBox("An error occure while file opening.", ex);
             }
             finally
             {

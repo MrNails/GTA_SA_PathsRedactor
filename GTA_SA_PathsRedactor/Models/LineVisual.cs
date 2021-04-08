@@ -124,7 +124,7 @@ namespace GTA_SA_PathsRedactor.Models
             base.OnRender(drawingContext);
         }
 
-        protected void ObjectPropertyChanged(object sender, PropertyChangedEventArgs e)
+        protected void ObjectPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             Draw();
         }

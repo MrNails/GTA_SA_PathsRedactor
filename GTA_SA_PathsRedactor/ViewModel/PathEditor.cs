@@ -21,6 +21,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private string m_pathFileName;
 
         private bool m_multipleSelectionMode;
+#if DEBUG
+        private bool m_isNumrate;
+#endif
 
         private ObservableCollection<VisualObject> m_dots;
         private List<LineVisual> m_lines;
@@ -254,8 +257,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 m_workField.Children.Insert(0, line);
             }
 
-            TransormPoint(dot);
-
             OnPropertyChanged("PointCount");
             Draw();
         }
@@ -293,8 +294,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 currentDot = dotEnumerator.Current;
 
-                TransormPoint(previousDot);
-
                 m_dots.Add(previousDot);
                 m_workField.Children.Add(previousDot);
 
@@ -317,8 +316,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
             currentDot.PropertyChanged += ObjectPropertyChanged;
             m_dots.Add(currentDot);
             m_workField.Children.Add(currentDot);
-
-            TransormPoint(currentDot);
 
             dotEnumerator.Dispose();
 
@@ -374,8 +371,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             m_dots.Insert(index, dot);
             m_workField.Children.Insert(m_lines.Count + index + 1, dot);
-
-            TransormPoint(dot);
 
             OnPropertyChanged("PointCount");
             Draw();
@@ -474,6 +469,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
             int dotIndex = m_dots.IndexOf(dot);
             bool res = m_dots.Remove(dot);
 
+            m_isNumrate = dotIndex == m_dots.Count;
+
             if (!res)
             {
                 return res;
@@ -504,19 +501,25 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 SelectedDots.RemoveVisualObject(dot);
             }
 
-            if (dotIndex == 0)
-                dotIndex = m_dots.Count - 1;
-            else if (dotIndex == m_dots.Count)
-                dotIndex = 0;
+            if (dotIndex == m_dots.Count)
+            {
+                lineStart.Start = m_dots[0].Point;
 
-            lineEnd.End = m_dots[dotIndex].Point;
+                m_workField.Children.Remove(lineEnd);
+                m_lines.Remove(lineEnd);
+            }
+            else
+            {
+                lineEnd.End = m_dots[dotIndex].Point;
 
-            m_workField.Children.Remove(lineStart);
-            m_lines.Remove(lineStart);
+                m_workField.Children.Remove(lineStart);
+                m_lines.Remove(lineStart);
+            }
 
-            
             OnPropertyChanged("PointCount");
             Draw();
+
+            m_isNumrate = false;
 
             return res;
         }
@@ -542,9 +545,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private void GlobalSettings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Resolution" ||
-                e.PropertyName == "OriginalPTD")
+                e.PropertyName == "PTD")
             {
-                if (e.PropertyName == "OriginalPTD")
+                if (e.PropertyName == "PTD")
                 {
                     var gSettings = GlobalSettings.GetInstance();
 
@@ -556,24 +559,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
                 DrawScale();
             }
-        }
-
-        private void TransormPoint(VisualObject dot)
-        {
-            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
-
-            if (currentPTD == null ||
-                currentPTD.PointScaleX == 0 ||
-                currentPTD.PointScaleY == 0)
-            {
-                return;
-            }
-
-            int horizontallyInvert = currentPTD.InvertHorizontally ? -1 : 1;
-            int verticallyInvert = currentPTD.InvertVertically ? -1 : 1;
-
-            dot.Point.X = horizontallyInvert * dot.OriginPoint.X / currentPTD.PointScaleX + currentPTD.OffsetX;
-            dot.Point.Y = verticallyInvert * dot.OriginPoint.Y / currentPTD.PointScaleY + currentPTD.OffsetY;
         }
 
         private void Draw()
@@ -599,7 +584,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 var dot = m_dots[i];
 
                 line.ToolTip = $"Index: {i};\nStart = {line.Start};\nEnd = {line.End}";
-                dot.ToolTip = $"Index: {i};\nPoint = {dot.Point}";
+                dot.ToolTip = $"Index: {i};\nPoint = {dot.Point};\nOrgin point: {dot.OriginPoint}";
             }
 #endif
         }
@@ -612,24 +597,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
-            if (currentPTD == null)
+            foreach (var dot in m_dots)
             {
-                foreach (var dot in m_dots)
-                {
-                    dot.Point.X = dot.OriginPoint.X;
-                    dot.Point.Y = dot.OriginPoint.Y;
-                }
-            }
-            else
-            {
-                int horizontallyInvert = currentPTD.InvertHorizontally ? -1 : 1;
-                int verticallyInvert = currentPTD.InvertVertically ? -1 : 1;
-
-                foreach (var dot in m_dots)
-                {
-                    dot.Point.X = horizontallyInvert * dot.OriginPoint.X / currentPTD.PointScaleX + currentPTD.OffsetX;
-                    dot.Point.Y = verticallyInvert * dot.OriginPoint.Y / currentPTD.PointScaleY + currentPTD.OffsetY;
-                }
+                dot.Transform(currentPTD);
             }
         }
 
