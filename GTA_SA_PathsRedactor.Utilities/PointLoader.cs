@@ -7,12 +7,12 @@ namespace GTA_SA_PathsRedactor.Core
 {
     public abstract class PointLoader : MarshalByRefObject, IDisposable
     {
-        public PointLoader(string filePath)
+        protected PointLoader()
         {
-            FilePath = filePath;
+            FileName = string.Empty;
         }
 
-        public virtual string FilePath { get; set; }
+        public virtual string FileName { get; set; }
 
         public abstract Task<IEnumerable<Models.GTA_SA_Point>> LoadAsync();
         public abstract Task<IEnumerable<Models.GTA_SA_Point>> LoadAsync(CancellationToken cancellationToken);

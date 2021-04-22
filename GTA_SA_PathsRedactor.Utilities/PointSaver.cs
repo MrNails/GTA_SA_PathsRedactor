@@ -7,12 +7,12 @@ namespace GTA_SA_PathsRedactor.Core
 {
     public abstract class PointSaver : MarshalByRefObject, IDisposable
     {
-        public PointSaver(string filePath) 
+        protected PointSaver()
         {
-            FilePath = filePath;
+            FileName = string.Empty;
         }
 
-        public virtual string FilePath { get; set; }
+        public virtual string FileName { get; set; }
         public virtual bool CreateBackup { get; set; }
 
         public abstract Task SaveAsync(IEnumerable<Models.GTA_SA_Point> points);
