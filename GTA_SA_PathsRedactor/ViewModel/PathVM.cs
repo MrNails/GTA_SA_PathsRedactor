@@ -176,17 +176,19 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
             }
 
-            pointLoader = (Core.PointLoader)Activator.CreateInstance(GlobalSettings.GetInstance().CurrentLoaderType, path);
+            pointLoader = GlobalSettings.GetInstance().CurrentLoader;
 
             var newPath = new PathEditor(path.Remove(0, path.LastIndexOf('\\') + 1));
             newPath.PathFileName = path;
+            pointLoader.FileName = path;
 
             try
             {
                 var points = (await pointLoader.LoadAsync()).Select(point =>
                                                                     {
                                                                         var dot = new DotVisual(point);
-                                                                        TransormPoint(dot);
+                                                                        dot.Transform(GlobalSettings.GetInstance()
+                                                                                                    .GetCurrentTranfromationData());
                                                                         return dot;
                                                                     });
 
@@ -205,16 +207,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
             catch (Exception ex)
             {
-                App.LogErrorInfoAndShowMessageBox("An error occure while file opening.", ex);
+                App.LogErrorInfoAndShowMessageBox("An error occure while point loading.", ex);
             }
 
-        }
-
-        private void TransormPoint(VisualObject dot)
-        {
-            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
-
-            dot.Transform(currentPTD);
         }
 
         private async Task SavePathHelper(bool saveAs)
@@ -237,12 +232,18 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
             }
 
-            var pointLoader = (Core.PointSaver)Activator.CreateInstance(GlobalSettings.GetInstance().CurrentSaverType, filePath);
-            pointLoader.CreateBackup = true;
+            var pointSaver = GlobalSettings.GetInstance().CurrentSaver;
+            pointSaver.CreateBackup = true;
+            pointSaver.FileName = filePath;
 
             try
             {
-                await pointLoader.SaveAsync(CurrentPath.Dots.Select(dot => dot.Point));
+                await pointSaver.SaveAsync(CurrentPath.Dots.Select(dot => 
+                                                                  { 
+                                                                      dot.TransformBack(GlobalSettings.GetInstance()
+                                                                                                      .GetCurrentTranfromationData()); 
+                                                                      return dot.Point; 
+                                                                  }));
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -258,7 +259,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
             finally
             {
-                pointLoader.Dispose();
+                pointSaver.Dispose();
             }
 
         }
