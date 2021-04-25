@@ -11,24 +11,26 @@ namespace GTA_SA_PathsRedactor.Services
 {
     public class DefaultPointLoader : PointLoader
     {
-        private string m_filePath;
+        private string m_fileName;
         private bool m_disposed;
 
-        public DefaultPointLoader(string filePath)
-            : base(filePath)
-        {  }
-
-        public override string FilePath
+        public DefaultPointLoader(string fileName)
         {
-            get { return m_filePath; }
+            FileName = fileName;
+        }
+
+        public string FileName
+        {
+            get { return m_fileName; }
             set
             {
-                if (m_disposed)
-                {
-                    throw new ObjectDisposedException("PointSaverLoader");
-                }
+                if (value == null)
+                    throw new ArgumentNullException("value");
 
-                m_filePath = value;
+                if (m_disposed)
+                    throw new ObjectDisposedException("PointSaverLoader");
+
+                m_fileName = value;
             }
         }
 
@@ -38,7 +40,7 @@ namespace GTA_SA_PathsRedactor.Services
 
             m_disposed = true;
 
-            m_filePath = string.Empty;
+            m_fileName = string.Empty;
         }
 
         public override Task<IEnumerable<GTA_SA_Point>> LoadAsync()
@@ -52,13 +54,13 @@ namespace GTA_SA_PathsRedactor.Services
                 throw new ObjectDisposedException("PointSaverLoader");
             }
 
-            if (!File.Exists(FilePath))
+            if (!File.Exists(FileName))
             {
                 throw new DirectoryNotFoundException("Wrong file path.");
             }
 
             GTA_SA_Point[]? points = null;
-            string filePath = m_filePath;
+            string filePath = m_fileName;
             char[] splitCharacters = new char[] { ' ' };
             int lineNumber = 0;
 

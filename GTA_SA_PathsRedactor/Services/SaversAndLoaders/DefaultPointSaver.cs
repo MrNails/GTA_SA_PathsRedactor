@@ -13,7 +13,7 @@ namespace GTA_SA_PathsRedactor.Services
 {
     public class DefaultPointSaver : PointSaver
     {
-        private string m_filePath;
+        private string m_fileName;
         private bool m_createBackup;
         private bool m_disposed;
 
@@ -25,21 +25,22 @@ namespace GTA_SA_PathsRedactor.Services
         //    CreatedBy = "MrNails";
         //}
 
-        public DefaultPointSaver(string filePath)
-            : base(filePath)
-        { }
-
-        public override string FilePath
+        public DefaultPointSaver(string fileName)
         {
-            get { return m_filePath; }
+            FileName = fileName;
+        }
+
+        public override string FileName
+        {
+            get { return m_fileName; }
             set
             {
+                if (value == null)
+                    throw new ArgumentNullException("value");
                 if (m_disposed)
-                {
                     throw new ObjectDisposedException("PointSaverLoader");
-                }
 
-                m_filePath = value;
+                m_fileName = value;
             }
         }
 
@@ -63,7 +64,7 @@ namespace GTA_SA_PathsRedactor.Services
 
             m_disposed = true;
 
-            m_filePath = string.Empty;
+            m_fileName = string.Empty;
             m_createBackup = false;
         }
 
@@ -85,7 +86,7 @@ namespace GTA_SA_PathsRedactor.Services
 
             StringBuilder stringBuilder = new StringBuilder();
 
-            var tempFilePath = CreateTempFilePath(FilePath);
+            var tempFilePath = CreateTempFilePath(FileName);
 
             using var fStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write,
                                                FileShare.None, 4096, true);
@@ -94,8 +95,8 @@ namespace GTA_SA_PathsRedactor.Services
             var oldFileAttributes = fileInfo.Attributes;
             fileInfo.Attributes = FileAttributes.Hidden;
 
-            if (m_createBackup && File.Exists(FilePath))
-                SetFileAsBackup(FilePath);
+            if (m_createBackup && File.Exists(FileName))
+                SetFileAsBackup(FileName);
 
             using (var streamWriter = new StreamWriter(fStream))
             {
@@ -119,8 +120,8 @@ namespace GTA_SA_PathsRedactor.Services
 
             fileInfo.Attributes = oldFileAttributes;
 
-            File.Delete(FilePath);
-            File.Move(tempFilePath, FilePath);
+            File.Delete(FileName);
+            File.Move(tempFilePath, FileName);
             File.Delete(tempFilePath);
         }
 
@@ -136,7 +137,7 @@ namespace GTA_SA_PathsRedactor.Services
 
         private void SetFileAsBackup(string filePath)
         {
-            var backupFilePath = FilePath + ".backup";
+            var backupFilePath = FileName + ".backup";
 
             if (!File.Exists(backupFilePath))
                 File.Move(filePath, backupFilePath);
