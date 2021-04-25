@@ -51,6 +51,8 @@ namespace GTA_SA_PathsRedactor
             m_pointMoveMode = false;
             m_mouseDown = false;
 
+            MapContainer.Focusable = true;
+
             this.DataContext = m_pathVM;
         }
 
@@ -251,6 +253,9 @@ namespace GTA_SA_PathsRedactor
         }
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.Key == Key.Escape)
+                MainField.Focus();
+
             m_pressedKey = e.Key;
         }
 
@@ -367,6 +372,8 @@ namespace GTA_SA_PathsRedactor
         }
         private void MapContainer_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            MapContainer.Focus();
+
             var mainFieldSTransform = (ScaleTransform)((TransformGroup)MainField.RenderTransform).Children[0];
             var currentPath = m_pathVM.CurrentPath;
 
@@ -539,6 +546,13 @@ namespace GTA_SA_PathsRedactor
         private void MapIcon_GiveFeedback(object sender, GiveFeedbackEventArgs e)
         {
             DebugTextBlock.Text = "+";
+        }
+
+        private void PointStoreSettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var saversAndLoadersSettingWindow = new View.SaversAndLoadersSettingWindow();
+            saversAndLoadersSettingWindow.ShowDialog();
+            saversAndLoadersSettingWindow = null;
         }
     }
 }

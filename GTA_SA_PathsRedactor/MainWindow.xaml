@@ -35,6 +35,7 @@
                     <MenuItem Header="1920x1080" Click="ResolutionChange_Click"/>
                 </MenuItem>
                 <MenuItem Header="Path transform settings" Click="PathTransorm_Click"/>
+                <MenuItem Header="Loaders and savers information" Click="PointStoreSettingsMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="Commands">
                 <MenuItem Header="Delete selected points" Command="{Binding RemoveSelectedPointsCommand}" InputGestureText="Del"/>
