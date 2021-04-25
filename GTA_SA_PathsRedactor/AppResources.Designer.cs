@@ -63,6 +63,16 @@ namespace GTA_SA_PathsRedactor {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Byte[].
         /// </summary>
+        internal static byte[] DefaultInfo {
+            get {
+                object obj = ResourceManager.GetObject("DefaultInfo", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Byte[].
+        /// </summary>
         internal static byte[] DefaultPointSettings {
             get {
                 object obj = ResourceManager.GetObject("DefaultPointSettings", resourceCulture);
