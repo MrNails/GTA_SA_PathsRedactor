@@ -23,10 +23,12 @@ namespace GTA_SA_PathsRedactor
         private static readonly PointTransformationData deltaFor1920x1080;
         private static readonly GlobalSettings m_globalSettings;
 
+        private readonly object m_locker;
+
         private readonly PointTransformationData m_defaultPTD;
 
-        private Type n_currentSaverType;
-        private Type n_currentLoaderType;
+        private Core.PointSaver n_currentSaver;
+        private Core.PointLoader n_currentLoader;
         private PointTransformationData? m_PTD;
         private Resolution resolution;
 
@@ -55,13 +57,15 @@ namespace GTA_SA_PathsRedactor
 
         private GlobalSettings()
         {
+            m_locker = new object();
+
             var fileSource = new string(System.Text.Encoding.UTF8.GetChars(AppResources.DefaultPointSettings));
             PTD = JsonConvert.DeserializeObject<PointTransformationData>(fileSource);
 
             m_defaultPTD = PTD;
 
-            CurrentSaverType = typeof(DefaultPointSaver);
-            CurrentLoaderType = typeof(DefaultPointLoader);
+            n_currentSaver = new DefaultPointSaver("this.");
+            //n_currentLoader = typeof(DefaultPointLoader);
         }
         #endregion
 
@@ -70,21 +74,29 @@ namespace GTA_SA_PathsRedactor
             get => m_defaultPTD;
         }
 
-        public Type CurrentSaverType
+        public Core.PointSaver CurrentSaver
         {
-            get => n_currentSaverType;
+            get => n_currentSaver;
             set
             {
-                n_currentSaverType = value;
+                lock (m_locker)
+                {
+                    n_currentSaver = value;
+                }
+
                 OnPropertyChanged();
             }
         }
-        public Type CurrentLoaderType
+        public Core.PointLoader CurrentLoader
         {
-            get => n_currentLoaderType;
+            get => n_currentLoader;
             set
             {
-                n_currentLoaderType = value;
+                lock (this)
+                {
+                    n_currentLoader = value;
+                }
+
                 OnPropertyChanged();
             }
         }
@@ -93,10 +105,13 @@ namespace GTA_SA_PathsRedactor
             get => m_PTD;
             set
             {
-                if (value == null)
-                    m_PTD = DefaultPTD;
-                else
-                    m_PTD = value;
+                lock (m_locker)
+                {
+                    if (value == null)
+                        m_PTD = DefaultPTD;
+                    else
+                        m_PTD = value;
+                }
 
                 OnPropertyChanged();
             }
@@ -110,11 +125,6 @@ namespace GTA_SA_PathsRedactor
                 resolution = value;
                 OnPropertyChanged();
             }
-        }
-
-        public Core.PointSaver GetPointSaverLoaderInstance()
-        {
-            return (Core.PointSaver)Activator.CreateInstance(CurrentSaverType)!;
         }
 
         public PointTransformationData? GetCurrentTranfromationData()
