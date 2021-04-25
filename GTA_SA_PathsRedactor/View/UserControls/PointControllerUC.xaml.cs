@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using GTA_SA_PathsRedactor.Services;
 
 namespace GTA_SA_PathsRedactor.View
 {
@@ -42,31 +43,6 @@ namespace GTA_SA_PathsRedactor.View
             DataContext = PathVM;
 
             PathVM.PropertyChanged += PathVM_PropertyChanged;
-        }
-
-        private childItem? FindVisualChild<childItem>(DependencyObject? obj)
-                where childItem : DependencyObject
-        {
-            if (obj == null)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
-            {
-                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
-                if (child != null && child is childItem)
-                {
-                    return (childItem)child;
-                }
-                else
-                {
-                    childItem? childOfChild = FindVisualChild<childItem>(child);
-                    if (childOfChild != null)
-                        return childOfChild;
-                }
-            }
-            return null;
         }
 
         private void PathVM_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -108,7 +84,7 @@ namespace GTA_SA_PathsRedactor.View
                 sender.Paths[e.OldIndex].WorkField.Visibility = Visibility.Hidden;
 
                 var oldItem = (ListBoxItem)AvailablePathsListBox.ItemContainerGenerator.ContainerFromIndex(e.OldIndex);
-                var oldItemContentPresenter = FindVisualChild<ContentPresenter>(oldItem);
+                var oldItemContentPresenter = oldItem.FindVisualChild<ContentPresenter>();
 
                 if (oldItemContentPresenter == null)
                 {
@@ -124,7 +100,7 @@ namespace GTA_SA_PathsRedactor.View
                 sender.Paths[e.NewIndex].WorkField.Visibility = Visibility.Visible;
 
                 var newItem = (ListBoxItem)AvailablePathsListBox.ItemContainerGenerator.ContainerFromIndex(e.NewIndex);
-                var newItemContentPresenter = FindVisualChild<ContentPresenter>(newItem);
+                var newItemContentPresenter = newItem.FindVisualChild<ContentPresenter>();
 
                 if (newItemContentPresenter == null)
                 {

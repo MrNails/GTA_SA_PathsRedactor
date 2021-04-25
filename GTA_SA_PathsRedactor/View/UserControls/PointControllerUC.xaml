@@ -53,17 +53,21 @@
                 <StackPanel Margin="5">
                     <TextBlock Text="X" Margin="10 0 0 0 "/>
                     <TextBox x:Name="PointXTextBox" Style="{StaticResource ResourceKey=InternalTextBox}" 
-                             Text="{Binding Path=X, Mode=OneWay, ValidatesOnExceptions=True, Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=x}"/>
+                             Text="{Binding Path=X, ValidatesOnExceptions=True, 
+                                    UpdateSourceTrigger=PropertyChanged,
+                                    Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=x}"/>
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Y" Margin="10 0 0 0 "/>
                     <TextBox x:Name="PointYTextBox" Style="{StaticResource ResourceKey=InternalTextBox}" 
-                             Text="{Binding Path=Y, ValidatesOnExceptions=True, Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=y}"/>
+                             Text="{Binding Path=Y, ValidatesOnExceptions=True, 
+                                    UpdateSourceTrigger=PropertyChanged,
+                                    Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=y}"/>
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Z" Margin="10 0 0 0 "/>
                     <TextBox x:Name="PointZTextBox" Style="{StaticResource ResourceKey=InternalTextBox}"
-                             Text="{Binding Path=Z, ValidatesOnExceptions=True}"/>
+                             Text="{Binding Path=Z, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
                 <CheckBox Grid.Row="2" Grid.ColumnSpan="2" FontSize="18" VerticalContentAlignment="Center" Content="Is stop point" Margin="10 5 5 5" 
                           IsChecked="{Binding Path=IsStopPoint}"/>
@@ -95,7 +99,7 @@
                             <ContentPresenter Grid.Column="0" x:Name="ListBoxContentContainer" Content="{Binding Path=PathName}" 
                                               TextBlock.FontSize="18" HorizontalAlignment="Stretch"/>
                             <TextBlock Grid.Column="1" x:Name="SelectionStarTextBlock" DockPanel.Dock="Right" Height="30"
-                                       FontSize="30" FontWeight="ExtraBlack" Margin="5 -5 0 0" Padding="0" />
+                                       FontSize="30" FontWeight="ExtraBlack" Margin="5 -5 0 0" Padding="0"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
