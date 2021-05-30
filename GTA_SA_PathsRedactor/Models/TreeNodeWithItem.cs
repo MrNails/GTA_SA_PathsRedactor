@@ -1,6 +1,8 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Windows;
 
 namespace GTA_SA_PathsRedactor.Models
 {
@@ -25,7 +27,7 @@ namespace GTA_SA_PathsRedactor.Models
         public string Name
         {
             get { return m_name; }
-            set 
+            set
             {
                 if (value == string.Empty)
                     m_errors["Name"] = "Node name cannot be empty.";
@@ -72,17 +74,19 @@ namespace GTA_SA_PathsRedactor.Models
         }
     }
 
-    public class TreeNodeWithItem : TreeNode
+    public class TreeNodeWithItem : TreeNode, IEquatable<TreeNodeWithItem>
     {
         private string m_displayMember;
+        private string m_valueMember;
         private object? m_element;
-        
+
         public TreeNodeWithItem(object element) : this(element, string.Empty)
-        {}
+        { }
         public TreeNodeWithItem(object element, string displayMember)
         {
             Element = element;
             DisplayMember = displayMember;
+            ValueMember = string.Empty;
         }
 
         public string DisplayMember
@@ -92,13 +96,26 @@ namespace GTA_SA_PathsRedactor.Models
             {
                 m_displayMember = value;
 
-                var name = GetPropertyValueAsText();
+                var name = GetPropertyValue(value)?.ToString();
 
-                Name = name == string.Empty ? Element?.ToString() : name;
+                Name = name ?? Element.ToString();
 
                 OnPropertyChanged();
             }
         }
+        public string ValueMember
+        {
+            get { return m_valueMember; }
+            set
+            {
+                m_valueMember = value;
+
+                OnPropertyChanged();
+                OnPropertyChanged("Value");
+            }
+        }
+
+        public object Value => string.IsNullOrEmpty(ValueMember) ? null : GetPropertyValue(ValueMember);
 
         public object? Element
         {
@@ -110,16 +127,45 @@ namespace GTA_SA_PathsRedactor.Models
             }
         }
 
-        private string GetPropertyValueAsText()
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as TreeNodeWithItem);
+        }
+
+        public bool Equals(TreeNodeWithItem? other)
+        {
+            return other != null &&
+                   other.Name == other.Name &&
+                   Element.Equals(other.Element);
+        }
+
+        private object GetPropertyValue(string property)
         {
             if (DisplayMember == string.Empty ||
                 Element == null)
-                return string.Empty;
+                return null;
 
             var type = m_element.GetType();
-            var propertyInfo = type.GetProperty(DisplayMember);
+            var propertyInfo = type.GetProperty(property);
 
-            return propertyInfo.GetValue(Element)?.ToString()!;
+            return propertyInfo.GetValue(Element);
         }
     }
+
+    public class TreeNodeComparer : IEqualityComparer<TreeNode>
+    {
+        public bool Equals(TreeNode? x, TreeNode? y)
+        {
+            if (x == null)
+                return false;
+
+            return x.Equals(y);
+        }
+
+        public int GetHashCode([DisallowNull] TreeNode obj)
+        {
+            return obj.GetHashCode();
+        }
+    }
+
 }

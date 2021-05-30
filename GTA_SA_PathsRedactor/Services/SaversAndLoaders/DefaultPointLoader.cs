@@ -14,12 +14,14 @@ namespace GTA_SA_PathsRedactor.Services
         private string m_fileName;
         private bool m_disposed;
 
+        public DefaultPointLoader() : this(string.Empty)
+        {}
         public DefaultPointLoader(string fileName)
         {
             FileName = fileName;
         }
 
-        public string FileName
+        public override string FileName
         {
             get { return m_fileName; }
             set

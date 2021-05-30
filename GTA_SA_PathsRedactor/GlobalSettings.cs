@@ -64,8 +64,8 @@ namespace GTA_SA_PathsRedactor
 
             m_defaultPTD = PTD;
 
-            n_currentSaver = new DefaultPointSaver("this.");
-            //n_currentLoader = typeof(DefaultPointLoader);
+            n_currentSaver = new DefaultPointSaver();
+            n_currentLoader = new DefaultPointLoader();
         }
         #endregion
 

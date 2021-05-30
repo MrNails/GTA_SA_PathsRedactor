@@ -17,6 +17,8 @@ namespace GTA_SA_PathsRedactor.Services
         private bool m_createBackup;
         private bool m_disposed;
 
+        //private List<string> m_tempFileNames;
+
         //static DefaultPointSaverLoader()
         //{
         //    FriendlyName = "default";
@@ -25,9 +27,12 @@ namespace GTA_SA_PathsRedactor.Services
         //    CreatedBy = "MrNails";
         //}
 
+        public DefaultPointSaver() : this(string.Empty)
+        { }
         public DefaultPointSaver(string fileName)
         {
             FileName = fileName;
+            //m_tempFileNames = new List<string>();
         }
 
         public override string FileName
@@ -61,6 +66,10 @@ namespace GTA_SA_PathsRedactor.Services
         public override void Dispose()
         {
             base.Dispose();
+
+            var tempFilePase = CreateTempFilePath(FileName);
+            if (File.Exists(tempFilePase))
+                File.Delete(tempFilePase);
 
             m_disposed = true;
 

@@ -550,8 +550,33 @@ namespace GTA_SA_PathsRedactor
 
         private void PointStoreSettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            var globalSettings = GlobalSettings.GetInstance();
             var saversAndLoadersSettingWindow = new View.SaversAndLoadersSettingWindow();
-            saversAndLoadersSettingWindow.ShowDialog();
+            saversAndLoadersSettingWindow.SetStartLoader(globalSettings.CurrentLoader);
+            saversAndLoadersSettingWindow.SetStartSaver(globalSettings.CurrentSaver);
+            
+            if (saversAndLoadersSettingWindow.ShowDialog() == true)
+            { 
+                var saver = saversAndLoadersSettingWindow.SelectedSaver;
+                var loader = saversAndLoadersSettingWindow.SelectedLoader;
+
+                var topmostSaver = saversAndLoadersSettingWindow.GetTopmostNode(saver);
+                var topmostLoader = saversAndLoadersSettingWindow.GetTopmostNode(loader);
+
+                var currentTopmostLoaderElem = topmostLoader.Element as AssemblyInfo;
+                var currentTopmostSaverElem = topmostSaver.Element as AssemblyInfo;
+
+                if (currentTopmostLoaderElem.Title == "Default")
+                    globalSettings.CurrentLoader = new Services.DefaultPointLoader();
+                else
+                    globalSettings.CurrentLoader = Services.ProxyController.CreateInsanceFromAssembly<Core.PointLoader>(topmostLoader.Value.ToString(), loader.Value.ToString());
+
+                if (currentTopmostSaverElem.Title == "Default")
+                    globalSettings.CurrentSaver = new Services.DefaultPointSaver();
+                else
+                    globalSettings.CurrentSaver = Services.ProxyController.CreateInsanceFromAssembly<Core.PointSaver>(topmostSaver.Value.ToString(), saver.Value.ToString());
+            }
+
             saversAndLoadersSettingWindow = null;
         }
     }

@@ -104,8 +104,6 @@ namespace GTA_SA_PathsRedactor.Models
             m_originPoint.X = horizontallyInvert * pointTransformationData.PointScaleX * (m_point.X - pointTransformationData.OffsetX);
             m_originPoint.Y = verticallyInvert * pointTransformationData.PointScaleY * (m_point.Y - pointTransformationData.OffsetY);
 
-            m_point.X = m_originPoint.X;
-            m_point.Y = m_originPoint.Y;
             m_point.Z = m_originPoint.Z;
             m_point.IsStopPoint = m_originPoint.IsStopPoint;
         }

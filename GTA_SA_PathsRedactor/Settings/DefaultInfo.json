@@ -1,14 +1,14 @@
 {
   "Loaders": [
     {
-      "Name": "DefaultPointLoader",
+      "Name": "GTA_SA_PathsRedactor.Services.DefaultPointLoader",
       "Purpose": "Load points by default",
       "Description": "Load points as {x y z stopPoint} from game '.dat' file."
     }
   ],
   "Savers": [
     {
-      "Name": "DefaultPointSaver",
+      "Name": "GTA_SA_PathsRedactor.Services.DefaultPointSaver",
       "Purpose": "Save points by default",
       "Description": "Save points as {x y z stopPoint} in game '.dat' file."
     }
