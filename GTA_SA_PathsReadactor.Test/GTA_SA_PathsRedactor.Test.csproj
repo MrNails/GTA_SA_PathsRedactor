@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Authors>Test</Authors>
+    <Company>Test</Company>
+    <Title>Testing loader and savers by MrNails</Title>
+    <Product>GTA_SA_PathsRedactor.Test product</Product>
+    <Description>Test description.</Description>
+    <AssemblyName>Test loaders and savers by MrNails</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GTA_SA_PathsRedactor.Utilities\GTA_SA_PathsRedactor.Core.csproj" />
+  </ItemGroup>
+
+</Project>
