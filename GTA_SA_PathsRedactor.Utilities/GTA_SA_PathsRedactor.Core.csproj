@@ -7,6 +7,7 @@
     <Authors>MrNails</Authors>
     <PackageId />
     <Description>Provides common class set that can help create custom points loader and saver. Derived classes could be used in GTA_SA_PathsRedactor as an additional savers and loaders.</Description>
+    <AssemblyVersion>1.0.*</AssemblyVersion>
+    <Deterministic>false</Deterministic>
   </PropertyGroup>
-
 </Project>

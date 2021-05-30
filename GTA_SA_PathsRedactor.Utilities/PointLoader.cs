@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace GTA_SA_PathsRedactor.Core
 {
-    public abstract class PointLoader : MarshalByRefObject, IDisposable
+    public abstract class PointLoader : IDisposable
     {
         protected PointLoader()
         {
