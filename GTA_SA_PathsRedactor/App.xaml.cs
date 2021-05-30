@@ -36,11 +36,21 @@ namespace GTA_SA_PathsRedactor
                                                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
                                                        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
                                          .CreateLogger();
+
+            this.Exit += App_Exit;
+        }
+
+        private void App_Exit(object sender, ExitEventArgs e)
+        {
+            var gSettings = GlobalSettings.GetInstance();
+
+            gSettings.CurrentLoader.Dispose();
+            gSettings.CurrentSaver.Dispose();
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            MessageBox.Show(e.Exception.Message);
+            LogErrorInfoAndShowMessageBox("Occured unexpected error.", e.Exception);
 
             e.Handled = true;
         }

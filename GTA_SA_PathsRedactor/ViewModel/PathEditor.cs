@@ -469,7 +469,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
             int dotIndex = m_dots.IndexOf(dot);
             bool res = m_dots.Remove(dot);
 
+#if DEBUF
             m_isNumrate = dotIndex == m_dots.Count;
+#endif
+
 
             if (!res)
             {
@@ -519,7 +522,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
             OnPropertyChanged("PointCount");
             Draw();
 
-            m_isNumrate = false;
+#if DEBUF
+            m_isNumrate = fasle;
+#endif
+            
 
             return res;
         }

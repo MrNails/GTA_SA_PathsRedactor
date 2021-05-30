@@ -242,7 +242,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                                                                   { 
                                                                       dot.TransformBack(GlobalSettings.GetInstance()
                                                                                                       .GetCurrentTranfromationData()); 
-                                                                      return dot.Point; 
+                                                                      return dot.OriginPoint; 
                                                                   }));
             }
             catch (UnauthorizedAccessException ex)
@@ -257,11 +257,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 App.LogErrorInfoAndShowMessageBox("An error occure while file opening.", ex);
             }
-            finally
-            {
-                pointSaver.Dispose();
-            }
-
         }
 
         private void AddNewPathHelper(PathEditor pathEditor)
