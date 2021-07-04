@@ -3,18 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
              xmlns:converters="clr-namespace:GTA_SA_PathsRedactor.Services.Converters"
+             xmlns:controls="clr-namespace:GTA_SA_PathsRedactor.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="900" d:DesignWidth="200">
+             d:DesignHeight="900" d:DesignWidth="230">
     <UserControl.Resources>
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="Margin" Value="5 0 5 0"/>
         </Style>
         <Style x:Key="InternalTextBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource ResourceKey=TextBoxValidationTemplate}">
-            <Setter Property="MaxWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="200"/>
             <Setter Property="MinWidth" Value="100"/>
             <Setter Property="Margin" Value="0 5 5 5"/>
             <Setter Property="FontSize" Value="18"/>
@@ -22,7 +22,7 @@
         <converters:PointDataConverter x:Key="PointDataConverter"/>
     </UserControl.Resources>
     <StackPanel Background="Gray">
-        <GroupBox Grid.Row="0" FontSize="15" Header="Path information" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentPath}">
+        <GroupBox Grid.Row="0" FontSize="15" Header="Path information" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentPath}" Panel.ZIndex="1">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1.2*"/>
@@ -41,17 +41,23 @@
                     <Run x:Name="PointAmount" Text="{Binding Path=PointCount, Mode=OneWay}"/>
                 </TextBlock>
                 <DockPanel Grid.Row="2" Grid.Column="0" Margin="5 0 5 0">
-                    <TextBlock Text="Path color:" Margin="5 0 0 0" DockPanel.Dock="Left"/>
-                    <xctk:ColorPicker x:Name="PathColorCP" HorizontalAlignment="Right" DockPanel.Dock="Right" MinWidth="70"
-                                      SelectedColorChanged="PathColor_SelectedColorChanged"/>
+                    <TextBlock Text="Path color:" Margin="5 0 5 0" DockPanel.Dock="Left"/>
+                    <controls:ColorPicker x:Name="PathColorCP" DockPanel.Dock="Right" 
+                                          Style="{StaticResource ColorPickerTemplate}"
+                                          Height="25" Background="White"/>
+                    <!--<xctk:ColorPicker x:Name="PathColorCP" HorizontalAlignment="Right" DockPanel.Dock="Right" MinWidth="70"
+                                      SelectedColorChanged="PathColor_SelectedColorChanged"/>-->
                 </DockPanel>
             </Grid>
         </GroupBox>
 
-        <GroupBox Grid.Row="1" FontSize="15" Header="Selected point" BorderBrush="DarkGray" BorderThickness="0.5" DataContext="{Binding Path=CurrentPath.CurrentObject}">
+        <GroupBox FontSize="15" Header="Selected point" 
+                  BorderBrush="DarkGray" BorderThickness="0.5" 
+                  DataContext="{Binding Path=CurrentPath.CurrentObject}"
+                  Panel.ZIndex="0">
             <StackPanel DataContext="{Binding Path=Point}">
                 <StackPanel Margin="5">
-                    <TextBlock Text="X" Margin="10 0 0 0 "/>
+                    <TextBlock Text="X" Margin="10 0 0 0 " />
                     <TextBox x:Name="PointXTextBox" Style="{StaticResource ResourceKey=InternalTextBox}" 
                              Text="{Binding Path=X, ValidatesOnExceptions=True, 
                                     UpdateSourceTrigger=PropertyChanged,
@@ -74,7 +80,7 @@
             </StackPanel>
         </GroupBox>
 
-        <DockPanel Grid.Row="2" Margin="2 5 2 5" >
+        <DockPanel Margin="2 5 2 5" >
             <TextBlock Text="Available paths" Margin="0 0 0 5" DockPanel.Dock="Top"/>
 
             <StackPanel TextBlock.FontSize="18" DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0 5 0 5">
@@ -106,6 +112,6 @@
             </ListBox>
         </DockPanel>
 
-        <Button Content="Clear map" Margin="10" FontSize="18" Padding="5" Command="{Binding Path=ClearPointsCommand}"/>
+        <Button Content="Clear selected map" Margin="10" FontSize="18" Padding="5" Command="{Binding Path=ClearPointsCommand}"/>
     </StackPanel>
 </UserControl>

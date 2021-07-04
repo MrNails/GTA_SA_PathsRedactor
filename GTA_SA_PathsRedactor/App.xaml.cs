@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using Serilog;
 
 namespace GTA_SA_PathsRedactor
@@ -50,7 +51,12 @@ namespace GTA_SA_PathsRedactor
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
+#if DEBUG
+            LogErrorInfoAndShowMessageBox(e.Exception.Message);
+#else
             LogErrorInfoAndShowMessageBox("Occured unexpected error.", e.Exception);
+#endif
+
 
             e.Handled = true;
         }

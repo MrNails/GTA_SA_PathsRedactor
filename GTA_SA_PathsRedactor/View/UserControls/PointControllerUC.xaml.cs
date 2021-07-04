@@ -24,33 +24,23 @@ namespace GTA_SA_PathsRedactor.View
         private ViewModel.PathVM m_pathVM;
 
         public PointControllerUC() : this(new ViewModel.PathVM())
-        {}
+        { }
         public PointControllerUC(ViewModel.PathVM pathVM)
         {
             InitializeComponent();
 
             PathVM = pathVM;
 
-            if (pathVM.CurrentPath != null) 
+            if (pathVM.CurrentPath != null)
             {
-                PathColorCP.SelectedColor = pathVM.CurrentPath.Color.Color;
-            }
-            else
-            {
-                PathColorCP.SelectedColor = Colors.Transparent;
+                PathColorCP.SelectedColor = pathVM.CurrentPath.Color;
             }
 
             DataContext = PathVM;
 
             PathVM.PropertyChanged += PathVM_PropertyChanged;
-        }
 
-        private void PathVM_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "CurrentPathIndex" && m_pathVM.CurrentPathIndex != -1)
-            {
-                PathColorCP.SelectedColor = m_pathVM.CurrentPath.Color.Color;
-            }
+            PathColorCP.SelectedColorChagned += PathColorCP_SelectedColorChagned;
         }
 
         public ViewModel.PathVM PathVM
@@ -70,11 +60,19 @@ namespace GTA_SA_PathsRedactor.View
             }
         }
 
+        private void PathVM_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "CurrentPathIndex" && m_pathVM.CurrentPathIndex != -1)
+            {
+                PathColorCP.SelectedColor = m_pathVM.CurrentPath.Color;
+            }
+        }
+
         private void ChangeSelection_PathSelected(ViewModel.PathVM sender, Services.PathSelectionArgs e)
         {
             AvailablePathsListBox.UpdateLayout();
 
-            if (sender.Paths.Count == 0 )
+            if (sender.Paths.Count == 0)
             {
                 return;
             }
@@ -113,17 +111,10 @@ namespace GTA_SA_PathsRedactor.View
             }
         }
 
-        private void PathColor_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        private void PathColorCP_SelectedColorChagned(object sender, RoutedPropertyChangedEventArgs<SolidColorBrush> e)
         {
-            if (e.NewValue.HasValue && m_pathVM.CurrentPathIndex != -1)
-            {
-                m_pathVM.CurrentPath.Color.Color = e.NewValue.Value;
-            }
-        }
-
-        private void ClearMapButton_Click(object sender, RoutedEventArgs e)
-        {
-            m_pathVM.CurrentPath.Clear();
+            if (m_pathVM.CurrentPath != null)
+                m_pathVM.CurrentPath.Color.Color = PathColorCP.SelectedColor.Color;
         }
     }
 }
