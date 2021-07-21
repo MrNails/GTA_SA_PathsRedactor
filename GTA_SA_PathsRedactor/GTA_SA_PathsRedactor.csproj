@@ -9,7 +9,7 @@
     <Company>MrNails</Company>
     <Description>GTA_SA_PathsRedactor it's program which using for editing train (or tram) paths. It capabilities by default. 
 This program can edit other paths, but for this capability you need create your custom loader and saver.
-See details in GitHub (https://github.com/MrNails/GTA_SA_PathsRedactor).</Description>
+See details on GitHub (https://github.com/MrNails/GTA_SA_PathsRedactor).</Description>
     <MSBuildCommunityTasksPath>$(SolutionDir)\.build</MSBuildCommunityTasksPath>
     <AssemblyVersion>1.0.*</AssemblyVersion>
     <Deterministic>false</Deterministic>

@@ -236,7 +236,7 @@ namespace GTA_SA_PathsRedactor.Controls
 
             int value = 0;
             var textBox = sender as TextBox;
-            var tag = textBox.Tag?.ToString().ToUpper() ?? string.Empty;
+            var tag = textBox!.Tag?.ToString().ToUpper() ?? string.Empty;
 
             if (Int32.TryParse(textBox.Text, out value))
             {

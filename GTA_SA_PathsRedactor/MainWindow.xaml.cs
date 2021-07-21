@@ -1,21 +1,16 @@
-﻿using System;
+﻿using GTA_SA_PathsRedactor.Core.Models;
+using GTA_SA_PathsRedactor.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Media3D;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using GTA_SA_PathsRedactor.Core.Models;
-using GTA_SA_PathsRedactor.Models;
 
 namespace GTA_SA_PathsRedactor
 {
@@ -26,6 +21,7 @@ namespace GTA_SA_PathsRedactor
     {
         private bool m_pointMoveMode;
         private bool m_mouseDown;
+        private bool m_gSettingPropChanged;
 
         private Rectangle m_selectionRectangle;
         private Key m_pressedKey;
@@ -34,6 +30,9 @@ namespace GTA_SA_PathsRedactor
         private Point m_selectionRectangleOldMousePos;
 
         private ViewModel.PathVM m_pathVM;
+        private GTA_SA_Point? m_oldPoint;
+
+        private Dictionary<ViewModel.PathEditor, Services.HistoryController> m_pathHistory;
 
         private UserControl[] m_userControls;
 
@@ -43,6 +42,7 @@ namespace GTA_SA_PathsRedactor
         public MainWindow()
         {
             m_pathVM = new ViewModel.PathVM();
+            m_pathHistory = new Dictionary<ViewModel.PathEditor, Services.HistoryController>();
 
             InitializeComponent();
             LoadImage();
@@ -92,6 +92,8 @@ namespace GTA_SA_PathsRedactor
                 arg.DotsMouseDown += DotClicked_MouseDown;
                 arg.LinesMouseDown += LinesMouseDown;
 
+                m_pathHistory[arg] = new Services.HistoryController();
+
                 MainField.Children.Add(arg.WorkField);
             };
             m_pathVM.PathRemoved += (s, arg) =>
@@ -99,7 +101,14 @@ namespace GTA_SA_PathsRedactor
                 arg.DotsMouseDown -= DotClicked_MouseDown;
                 arg.LinesMouseDown -= LinesMouseDown;
 
+                m_pathHistory.Remove(arg);
+
                 MainField.Children.Remove(arg.WorkField);
+            };
+            m_pathVM.PathSelected += PathSelected;
+            m_pathVM.MapCleared += (s, arg) =>
+            {
+
             };
 
             m_selectionRectangle = new Rectangle();
@@ -122,7 +131,11 @@ namespace GTA_SA_PathsRedactor
             m_lineContextMenu.Items.Add(addPointMenuItem);
             m_dotContextMenu.Items.Add(removePointMenuItem);
 
-            SetNewResolution(1280, 1024);
+            GlobalSettings.GetInstance().PropertyChanged += MainWindow_PropertyChanged;
+
+            m_gSettingPropChanged = true;
+            SetNewResolution(GlobalSettings.GetInstance().Resolution);
+            m_gSettingPropChanged = false;
         }
 
         private void LoadImage()
@@ -176,11 +189,67 @@ namespace GTA_SA_PathsRedactor
             }
         }
 
+        private void PathSelected(ViewModel.PathVM pathVM, Services.PathSelectionArgs e)
+        {
+            if (e.Path == null)
+                return;
+
+            var currentHistory = m_pathHistory[e.Path];
+            var newHistoryBinding = new Binding
+            {
+                Source = currentHistory,
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+                Mode = BindingMode.OneWay,
+                Path = new PropertyPath("HasChagned"),
+                Converter = new Services.Converters.HistoryHasChangedConverter()
+            };
+
+            //CurrentPathInfo.Content = currentHistory.HasChagned ? "Current path have changes" : string.Empty;
+            CurrentPathInfo.SetBinding(StatusBarItem.ContentProperty, newHistoryBinding);
+        }
+
         private void ResetSelectionRectangle()
         {
             m_selectionRectangle.Width = 0;
             m_selectionRectangle.Height = 0;
             m_selectionRectangle.Visibility = Visibility.Collapsed;
+        }
+
+        private void RemoveSelectedPoints()
+        {
+            var currentPath = m_pathVM.CurrentPath;
+
+            if (currentPath != null && currentPath.SelectedDots.Count != 0)
+            {
+                var voStates = currentPath.SelectedDots.Select(dot => new VOState(dot, null, currentPath.IndexOf(dot), Services.State.Deleted))
+                                                       .OrderBy(voState => voState.VOIndex)
+                                                       .ToList();
+
+                currentPath.RemoveSelectedPoints();
+
+                m_pathHistory[currentPath].AddNew(new VOGroupState(voStates, Services.State.Deleted));
+            }
+        }
+
+        private void SetNewResolution(Resolution resolution)
+        {
+            switch (resolution)
+            {
+                case Resolution._1080x850:
+                    SetNewResolution(1080, 850);
+                    break;
+                case Resolution._1280x1024:
+                    SetNewResolution(1280, 1024);
+                    break;
+                case Resolution._1680x1050:
+                    SetNewResolution(1680, 1050);
+                    break;
+                case Resolution._1920x1080:
+                    SetNewResolution(1920, 1080);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void SetNewResolution(double width, double height)
@@ -189,10 +258,19 @@ namespace GTA_SA_PathsRedactor
             this.Height = height;
 
             var gTransform = ((TransformGroup)m_userControls[0].LayoutTransform);
+            var gSettings = GlobalSettings.GetInstance();
+
+            if (m_gSettingPropChanged)
+            {
+                ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
+
+                if (gSettings.Resolution == Resolution._1080x850)
+                    ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
+
+                return;
+            }
 
             ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
-
-            var gSettings = GlobalSettings.GetInstance();
 
             switch (width)
             {
@@ -213,6 +291,20 @@ namespace GTA_SA_PathsRedactor
                 default:
                     break;
             }
+        }
+
+        private void MainWindow_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            var gSettings = (GlobalSettings)sender;
+
+            m_gSettingPropChanged = true;
+
+            if (e.PropertyName == "Resolution")
+            {
+                SetNewResolution(gSettings.Resolution);
+            }
+
+            m_gSettingPropChanged = false;
         }
 
         private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -246,6 +338,12 @@ namespace GTA_SA_PathsRedactor
             if (e.Key == Key.LeftShift || e.Key == Key.LeftCtrl)
             {
                 ResetSelectionRectangle();
+            }
+
+            if (m_pointMoveMode && m_oldPoint != null && m_pathVM.CurrentPath.CurrentObject != null)
+            {
+                m_pathHistory[m_pathVM.CurrentPath].AddNew(new VOState(m_pathVM.CurrentPath.CurrentObject, m_oldPoint));
+                m_oldPoint = null;
             }
 
             m_pressedKey = Key.None;
@@ -304,6 +402,9 @@ namespace GTA_SA_PathsRedactor
 
             if (m_pointMoveMode && currentPath.CurrentObject != null)
             {
+                if (m_oldPoint == null)
+                    m_oldPoint = (GTA_SA_Point)m_pathVM.CurrentPath.CurrentObject?.Point.Clone();
+
                 currentPath.CurrentObject.Point.X = currentPos.X;
                 currentPath.CurrentObject.Point.Y = currentPos.Y;
             }
@@ -372,10 +473,22 @@ namespace GTA_SA_PathsRedactor
         }
         private void MapContainer_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            m_mouseDown = false;
+
             MapContainer.Focus();
 
             var mainFieldSTransform = (ScaleTransform)((TransformGroup)MainField.RenderTransform).Children[0];
             var currentPath = m_pathVM.CurrentPath;
+
+            if (m_pointMoveMode && m_oldPoint != null && m_pathVM.CurrentPath.CurrentObject != null)
+            {
+                m_pathHistory[m_pathVM.CurrentPath].AddNew(new VOState(m_pathVM.CurrentPath.CurrentObject, m_oldPoint));
+                m_oldPoint = null;
+            }
+
+            if (currentPath != null && e.ChangedButton == MouseButton.Left &&
+                (m_selectionRectangle.Width == 0 || m_selectionRectangle.Height == 0))
+                currentPath.MultipleSelectionMode = false;
 
             if (m_pressedKey == Key.LeftShift && currentPath.SelectedDots.Count != 0 &&
                 m_selectionRectangle.Width != 0 && m_selectionRectangle.Height != 0)
@@ -385,7 +498,20 @@ namespace GTA_SA_PathsRedactor
 
                 if (offsetX > 0.01 || offsetX < -0.01 && offsetY > 0.01 || offsetY < 0.01)
                 {
+                    var oldPoints = currentPath.SelectedDots.Select(dot => (GTA_SA_Point)dot.Point.Clone()).ToList();
+
                     currentPath.MoveSelectedPoints(offsetX / mainFieldSTransform.ScaleX, offsetY / mainFieldSTransform.ScaleY);
+
+                    var oldPointsEnumerator = oldPoints.GetEnumerator();
+                    var newPointsEnumerator = currentPath.SelectedDots.GetEnumerator();
+                    var voStates = new List<VOState>();
+
+                    while (oldPointsEnumerator.MoveNext() && newPointsEnumerator.MoveNext())
+                    {
+                        voStates.Add(new VOState(newPointsEnumerator.Current, oldPointsEnumerator.Current));
+                    }
+
+                    m_pathHistory[currentPath].AddNew(new VOGroupState(voStates, Services.State.Moved));
                 }
             }
             else if (m_selectionRectangle.Width != 0 && m_selectionRectangle.Height != 0)
@@ -412,14 +538,10 @@ namespace GTA_SA_PathsRedactor
             }
 
             if (m_pressedKey != Key.LeftShift)
-            {
                 m_selectionRectangle.Visibility = Visibility.Collapsed;
-            }
 
             if (currentPath?.SelectedDots.Count == 0)
-            {
                 ResetSelectionRectangle();
-            }
         }
 
         private void DotClicked_MouseDown(object sender, MouseButtonEventArgs e)
@@ -484,13 +606,16 @@ namespace GTA_SA_PathsRedactor
         {
             var point = new GTA_SA_Point(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
             var dot = new DotVisual(point);
+            var currentPath = m_pathVM.CurrentPath;
 
             var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
             dot.TransformBack(currentPTD);
             dot.Transform(currentPTD);
 
-            m_pathVM.CurrentPath.AddPoint(point);
+            m_pathHistory[currentPath].AddNew(new VOState(dot, null, currentPath.Dots.Count, Services.State.Added));
+
+            currentPath.AddPoint(dot);
         }
         private void InsertPoint_Click(object sender, RoutedEventArgs e)
         {
@@ -505,18 +630,32 @@ namespace GTA_SA_PathsRedactor
             dot.TransformBack(currentPTD);
             dot.Transform(currentPTD);
 
+            if (insertIndex == currentPath.Dots.Count - 1)
+                insertIndex = 0;
+            else
+                insertIndex++;
+
             if (insertIndex != -1)
             {
+                m_pathHistory[m_pathVM.CurrentPath].AddNew(new VOState(dot, null, insertIndex, Services.State.Added));
+
                 DebugTextBlock.Text = insertIndex.ToString();
 
-                currentPath.InsertPoint(insertIndex, point);
+                currentPath.InsertPoint(insertIndex, dot);
             }
         }
         private void RemovePoint_Click(object sender, RoutedEventArgs e)
         {
             var dot = m_dotContextMenu.PlacementTarget as VisualObject;
+            var currentPath = m_pathVM.CurrentPath;
 
-            m_pathVM.CurrentPath.RemovePoint(dot);
+            m_pathHistory[currentPath].AddNew(new VOState(dot, null, currentPath.IndexOf(dot), Services.State.Deleted));
+
+            currentPath.RemovePoint(dot);
+        }
+        private void RemoveSelectedPoint_Click(object sender, RoutedEventArgs e)
+        {
+            RemoveSelectedPoints();
         }
 
         private void MapContainer_Drop(object sender, DragEventArgs e)
@@ -554,9 +693,9 @@ namespace GTA_SA_PathsRedactor
             var saversAndLoadersSettingWindow = new View.SaversAndLoadersSettingWindow();
             saversAndLoadersSettingWindow.SetStartLoader(globalSettings.CurrentLoader);
             saversAndLoadersSettingWindow.SetStartSaver(globalSettings.CurrentSaver);
-            
+
             if (saversAndLoadersSettingWindow.ShowDialog() == true)
-            { 
+            {
                 var saver = saversAndLoadersSettingWindow.SelectedSaver;
                 var loader = saversAndLoadersSettingWindow.SelectedLoader;
 
@@ -578,6 +717,151 @@ namespace GTA_SA_PathsRedactor
             }
 
             saversAndLoadersSettingWindow = null;
+        }
+
+        private void Undo(object sender, ExecutedRoutedEventArgs e)
+        {
+            var currentPath = m_pathVM.CurrentPath;
+
+            if (currentPath != null)
+            {
+                var currentPH = m_pathHistory[currentPath];
+
+                if (currentPH.IsPositionOnStart)
+                    return;
+
+                var storable = currentPH.CurrentElement;
+
+                if (storable is VOState voState)
+                {
+                    switch (voState.State)
+                    {
+                        case Services.State.Added:
+                            currentPath.RemovePoint(voState.VisualObject);
+                            break;
+                        case Services.State.Moved:
+                            voState.OldPoint.CopyTo(voState.VisualObject.Point);
+                            break;
+                        case Services.State.Deleted:
+                            currentPath.InsertPoint(voState.VOIndex, voState.VisualObject);
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                else if (storable is VOGroupState voGroupState)
+                {
+                    switch (voGroupState.State)
+                    {
+                        case Services.State.Moved:
+                            foreach (var _voState in voGroupState.VisualObjects)
+                            {
+                                _voState.OldPoint.CopyTo(_voState.VisualObject.Point);
+                            }
+                            break;
+                        case Services.State.Deleted:
+                            foreach (var _voState in voGroupState.VisualObjects)
+                            {
+                                currentPath.InsertPoint(_voState.VOIndex, _voState.VisualObject);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                currentPH.MoveLeft();
+            }
+        }
+        private void Redo(object sender, ExecutedRoutedEventArgs e)
+        {
+            var currentPath = m_pathVM.CurrentPath;
+
+            if (currentPath != null)
+            {
+                var currentPH = m_pathHistory[currentPath];
+
+                if (currentPH.IsPositionOnEnd)
+                    return;
+
+                currentPH.MoveRight();
+
+                var storable = currentPH.CurrentElement;
+
+                if (storable is VOState voState)
+                {
+                    switch (voState.State)
+                    {
+                        case Services.State.Added:
+                            currentPath.InsertPoint(voState.VOIndex, voState.VisualObject);
+                            break;
+                        case Services.State.Moved:
+                            voState.NewPoint.CopyTo(voState.VisualObject.Point);
+                            break;
+                        case Services.State.Deleted:
+                            currentPath.RemovePoint(voState.VisualObject);
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                else if (storable is VOGroupState voGroupState)
+                {
+                    switch (voGroupState.State)
+                    {
+                        case Services.State.Moved:
+                            foreach (var _voState in voGroupState.VisualObjects)
+                            {
+                                _voState.NewPoint.CopyTo(_voState.VisualObject.Point);
+                            }
+                            break;
+                        case Services.State.Deleted:
+                            foreach (var _voState in voGroupState.VisualObjects)
+                            {
+                                currentPath.RemovePoint(_voState.VisualObject);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+        private void DeleteSelectedPoints(object sender, ExecutedRoutedEventArgs e)
+        {
+            RemoveSelectedPoints();
+        }
+
+        private void SaveCurrentPath(object sender, ExecutedRoutedEventArgs e)
+        {
+            m_pathVM.SaveCurrentPath.Execute(null);
+
+            var history = m_pathHistory[m_pathVM.CurrentPath];
+            history.SetNewOverloadThresholdElem(history.CurrentPosition);
+        }
+        private void SaveCurrentPathAs(object sender, ExecutedRoutedEventArgs e)
+        {
+            m_pathVM.SaveCurrentPathAs.Execute(null);
+
+            var history = m_pathHistory[m_pathVM.CurrentPath];
+            history.SetNewOverloadThresholdElem(history.CurrentPosition);
+        }
+
+        private void Help(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (View.HelpWindow.ExistWindow == null)
+                new View.HelpWindow().Show();
+            else
+                View.HelpWindow.ExistWindow.Activate();
+        }
+        private void About(object sender, RoutedEventArgs e)
+        {
+            if (View.AboutWindow.ExistWindow == null)
+                new View.AboutWindow().Show();
+            else
+                View.AboutWindow.ExistWindow.Activate();
         }
     }
 }

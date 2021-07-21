@@ -52,10 +52,15 @@ namespace GTA_SA_PathsRedactor.ViewModel
                        obj is Core.Models.GTA_SA_Point));
             m_removePointCommand = new RelayCommand(obj => CurrentPath.RemovePoint(obj as Models.VisualObject),
                                                     obj => obj is Models.VisualObject);
-            m_removeSelectedPointsCommand = new RelayCommand(obj => CurrentPath.RemoveSelectedPoint(),
+            m_removeSelectedPointsCommand = new RelayCommand(obj => CurrentPath.RemoveSelectedPoints(),
                                                              obj => CurrentPath != null && CurrentPath.SelectedDots.Count != 0);
 
-            m_clearPointsCommand = new RelayCommand(obj => CurrentPath.Clear(), obj => CurrentPath != null && CurrentPath.PointCount != 0);
+            m_clearPointsCommand = new RelayCommand(obj =>
+                                                    {
+                                                        CurrentPath.Clear();
+                                                        MapCleared?.Invoke(this, CurrentPath);
+                                                    }, 
+                                                    obj => CurrentPath != null && CurrentPath.PointCount != 0);
 
             m_loadPath = new RelayCommand(async obj => await LoadPathHelper(obj as string));
             m_savePath = new RelayCommand(async obj => await SavePathHelper(false), obj => m_currentPathIndex != -1);
@@ -79,9 +84,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 if (m_paths.Remove(pathEditor))
                 {
-                    CurrentPathIndex--;
-
                     PathRemoved?.Invoke(this, pathEditor);
+
+                    CurrentPathIndex--;
                 }
             }, obj => obj is PathEditor && m_paths.Count != 0);
 
@@ -156,6 +161,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         public event Action<PathVM, PathEditor> PathAdded;
         public event Action<PathVM, PathEditor> PathRemoved;
         public event Action<PathVM, PathSelectionArgs> PathSelected;
+        public event Action<PathVM, PathEditor> MapCleared;
 
         private async Task LoadPathHelper(string? path)
         {
@@ -184,17 +190,26 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             try
             {
-                var points = (await pointLoader.LoadAsync()).Select(point =>
-                                                                    {
-                                                                        var dot = new DotVisual(point);
-                                                                        dot.Transform(GlobalSettings.GetInstance()
-                                                                                                    .GetCurrentTranfromationData());
-                                                                        return dot;
-                                                                    });
+                var loadPointTask = pointLoader.LoadAsync();
 
-                AddNewPathHelper(newPath);
+                await Task.WhenAny(loadPointTask, Task.Delay(30000));
 
-                newPath.AddRangePoint(points);
+                if (loadPointTask.IsCompleted)
+                {
+                    var points = loadPointTask.Result.Select(point =>
+                                                             {
+                                                                 var dot = new DotVisual(point);
+                                                                 dot.Transform(GlobalSettings.GetInstance()
+                                                                                             .GetCurrentTranfromationData());
+                                                                 return dot;
+                                                             });
+
+                    AddNewPathHelper(newPath);
+
+                    newPath.AddRangePoint(points);
+                }
+                else App.LogErrorInfoAndShowMessageBox("Cannot parse points due to timeout. If this " +
+                                                       "will happen again, remove this custom loader and contact to creator.");
             }
             catch (System.IO.FileNotFoundException ex)
             {
@@ -223,13 +238,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 saveFileDialog.FileName = CurrentPath.PathName + ".dat";
 
                 if (saveFileDialog.ShowDialog() == true)
-                {
                     filePath = saveFileDialog.FileName;
-                }
                 else
-                {
                     return;
-                }
             }
 
             var pointSaver = GlobalSettings.GetInstance().CurrentSaver;
@@ -238,12 +249,18 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             try
             {
-                await pointSaver.SaveAsync(CurrentPath.Dots.Select(dot => 
-                                                                  { 
-                                                                      dot.TransformBack(GlobalSettings.GetInstance()
-                                                                                                      .GetCurrentTranfromationData()); 
-                                                                      return dot.OriginPoint; 
-                                                                  }));
+                var saveTask = pointSaver.SaveAsync(CurrentPath.Dots.Select(dot => 
+                                                                              { 
+                                                                                  dot.TransformBack(GlobalSettings.GetInstance()
+                                                                                                                  .GetCurrentTranfromationData()); 
+                                                                                  return dot.OriginPoint; 
+                                                                              }));
+
+                await Task.WhenAny(saveTask, Task.Delay(30000));
+
+                if (!saveTask.IsCompleted)
+                    App.LogErrorInfoAndShowMessageBox("Cannot save points due to timeout. If this " +
+                                                      "will happen again, remove this custom saver and contact to creator.");
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -262,9 +279,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private void AddNewPathHelper(PathEditor pathEditor)
         {
             m_paths.Add(pathEditor);
-            CurrentPathIndex = m_paths.Count - 1;
 
             PathAdded?.Invoke(this, pathEditor);
+
+            CurrentPathIndex = m_paths.Count - 1;
         }
 
         private void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propName = "")

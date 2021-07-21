@@ -10,6 +10,7 @@ using System.ComponentModel;
 using GTA_SA_PathsRedactor.Models;
 using GTA_SA_PathsRedactor.Core.Models;
 using GTA_SA_PathsRedactor.Services;
+using System.Threading.Tasks;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
@@ -89,8 +90,19 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 m_multipleSelectionMode = value;
 
+                if (!value)
+                {
+                    var selectedDot = m_selectedDots.LastOrDefault();
+
                     m_selectedDots.Clear();
                     SelectionClear();
+
+                    //if (selectedDot != null)
+                    //{
+                    //    selectedDot.IsSelected = true;
+                    //    CurrentObject = selectedDot;
+                    //}
+                }
                 OnPropertyChanged("MultipleSelectionMode");
             }
         }
@@ -229,6 +241,21 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             return index;
         }
+        public int IndexOf(VisualObject visualObject)
+        {
+            int index = -1;
+
+            foreach (var dot in m_dots)
+            {
+                ++index;
+                if (dot == visualObject)
+                {
+                    return index;
+                }
+            }
+
+            return index;
+        }
 
         public void AddPoint(GTA_SA_Point point)
         {
@@ -240,6 +267,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
         }
         public void AddPoint(VisualObject dot)
         {
+            dot.MouseDown -= m_dotHanler;
+            dot.PropertyChanged -= ObjectPropertyChanged;
+
             dot.MouseDown += m_dotHanler;
             dot.PropertyChanged += ObjectPropertyChanged;
 
@@ -258,6 +288,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             OnPropertyChanged("PointCount");
+
             Draw();
         }
 
@@ -333,18 +364,23 @@ namespace GTA_SA_PathsRedactor.ViewModel
         }
         public void InsertPoint(int index, VisualObject dot)
         {
-            if (index < 0 || index >= m_dots.Count)
+            if (index < 0 || index > m_dots.Count)
             {
                 throw new ArgumentOutOfRangeException("index");
             }
 
+            if (m_dots.Count == 1 || m_dots.Count == index)
+            {
+                AddPoint(dot);
+                return;
+            }
+
+            var lineIndex = index + 1 == m_dots.Count ? 0 : index + 1;
+
+            dot.MouseDown -= m_dotHanler;
+            dot.PropertyChanged -= ObjectPropertyChanged;
             dot.MouseDown += m_dotHanler;
             dot.PropertyChanged += ObjectPropertyChanged;
-
-            if (index + 1 == m_dots.Count)
-                index = 0;
-            else
-                index++;
 
             if (m_dots.Count > 1)
             {
@@ -369,8 +405,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 m_workField.Children.Insert(m_lines.Count - index - 2, dividedLine.RightLine);
             }
 
+            m_workField.Children.Insert(m_lines.Count + index, dot);
             m_dots.Insert(index, dot);
-            m_workField.Children.Insert(m_lines.Count + index + 1, dot);
 
             OnPropertyChanged("PointCount");
             Draw();
@@ -399,7 +435,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         }
 #pragma warning restore CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
 
-        public void RemoveSelectedPoint()
+        public void RemoveSelectedPoints()
         {
             foreach (var dot in SelectedDots)
             {
@@ -407,6 +443,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             SelectedDots.Clear();
+            Draw();
         }
 
         public void Clear()
@@ -469,15 +506,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
             int dotIndex = m_dots.IndexOf(dot);
             bool res = m_dots.Remove(dot);
 
-#if DEBUF
+#if DEBUG
             m_isNumrate = dotIndex == m_dots.Count;
 #endif
 
-
             if (!res)
-            {
                 return res;
-            }
 
             if (m_lines.Count == 1)
             {
@@ -486,10 +520,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             var dotLines = m_lines.Where(line => line.Start == dot.Point || line.End == dot.Point);
-            var lineStart = dotLines.ElementAt(0);
-            var lineEnd = dotLines.ElementAt(1);
 
-            if (lineStart.Start != dot.Point)
+            var lineStart = dotLines.ElementAt(0);
+            var lineEnd = dotLines.ElementAtOrDefault(1);
+
+            if (lineStart.Start != dot.Point && lineEnd != null)
             {
                 var temp = lineStart;
 
@@ -500,18 +535,19 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_workField.Children.Remove(dot);
 
             if (!isSelectionClear)
-            {
                 SelectedDots.RemoveVisualObject(dot);
-            }
 
             if (dotIndex == m_dots.Count)
             {
                 lineStart.Start = m_dots[0].Point;
 
-                m_workField.Children.Remove(lineEnd);
-                m_lines.Remove(lineEnd);
+                if (lineEnd != null)
+                {
+                    m_workField.Children.Remove(lineEnd);
+                    m_lines.Remove(lineEnd);
+                }
             }
-            else
+            else if (lineEnd != null)
             {
                 lineEnd.End = m_dots[dotIndex].Point;
 
@@ -520,12 +556,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             OnPropertyChanged("PointCount");
+
             Draw();
 
 #if DEBUF
             m_isNumrate = fasle;
 #endif
-            
 
             return res;
         }
@@ -597,9 +633,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private void DrawScale()
         {
             if (WorkField.Visibility != Visibility.Visible)
-            {
                 return;
-            }
 
             var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 

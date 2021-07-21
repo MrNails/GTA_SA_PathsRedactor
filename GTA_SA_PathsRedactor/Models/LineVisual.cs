@@ -154,5 +154,19 @@ namespace GTA_SA_PathsRedactor.Models
 
             return new DividedLine(left, right);
         }
+
+#if DEBUG
+        public override string ToString()
+        {
+            if (ToolTip != null)
+            {
+                var toolTipText = ToolTip.ToString();
+
+                return "Line " + toolTipText.Remove(toolTipText.IndexOf(';'));
+            }
+
+            return "Line";
+        }
+#endif
     }
 }

@@ -7,7 +7,7 @@ using GTA_SA_PathsRedactor.Services;
 
 namespace GTA_SA_PathsRedactor.Models
 {
-    public abstract class VisualObject : FrameworkElement, INotifyPropertyChanged, ITransformable
+    public abstract class VisualObject : FrameworkElement, INotifyPropertyChanged, ITransformable, ICloneable
     {
         private GTA_SA_Point m_point;
         private GTA_SA_Point m_originPoint;
@@ -107,5 +107,40 @@ namespace GTA_SA_PathsRedactor.Models
             m_point.Z = m_originPoint.Z;
             m_point.IsStopPoint = m_originPoint.IsStopPoint;
         }
+
+        public object Clone()
+        {
+            var type = GetType();
+            var newObj = (VisualObject)Activator.CreateInstance(type);
+
+            foreach (var propInfo in type.GetProperties())
+            {
+                if (propInfo.CanWrite && propInfo.CanRead)
+                {
+                    var currentObjValue = propInfo.GetValue(this);
+
+                    if (currentObjValue is ICloneable cloneable)
+                        propInfo.SetValue(newObj, cloneable.Clone());
+                    else
+                        propInfo.SetValue(newObj, currentObjValue);
+                }
+            }
+
+            return newObj;
+        }
+
+#if DEBUG
+        public override string ToString()
+        {
+            if (ToolTip != null)
+            {
+                var toolTipText = ToolTip.ToString();
+
+                return "Dot " + toolTipText.Remove(toolTipText.IndexOf(';'));
+            }
+
+            return "Dot ";
+        }
+#endif
     }
 }

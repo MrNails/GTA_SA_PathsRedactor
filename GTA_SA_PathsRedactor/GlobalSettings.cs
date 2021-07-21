@@ -15,7 +15,7 @@ namespace GTA_SA_PathsRedactor
     }
 
     [Serializable]
-    public sealed class GlobalSettings : INotifyPropertyChanged
+    public sealed class GlobalSettings : IDisposable, INotifyPropertyChanged
     {
         private static readonly PointTransformationData deltaFor1080x850;
         private static readonly PointTransformationData deltaFor1280x1024;
@@ -23,16 +23,16 @@ namespace GTA_SA_PathsRedactor
         private static readonly PointTransformationData deltaFor1920x1080;
         private static readonly GlobalSettings m_globalSettings;
 
-        private readonly object m_locker;
+        [NonSerialized] private readonly object m_locker;
 
-        private readonly PointTransformationData m_defaultPTD;
+        [NonSerialized] private readonly PointTransformationData m_defaultPTD;
 
         private Core.PointSaver n_currentSaver;
         private Core.PointLoader n_currentLoader;
         private PointTransformationData? m_PTD;
         private Resolution resolution;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        [field: NonSerialized] public event PropertyChangedEventHandler? PropertyChanged;
 
         #region Constructors
         // Static constructor needed for resolution deltas, 
@@ -66,14 +66,14 @@ namespace GTA_SA_PathsRedactor
 
             n_currentSaver = new DefaultPointSaver();
             n_currentLoader = new DefaultPointLoader();
+
+            resolution = Resolution._1280x1024;
         }
         #endregion
 
-        public PointTransformationData DefaultPTD
-        {
-            get => m_defaultPTD;
-        }
+        [JsonIgnore] public PointTransformationData DefaultPTD => m_defaultPTD;
 
+        [JsonConverter(typeof(Services.JsonConverters.PointSaverConverter))]
         public Core.PointSaver CurrentSaver
         {
             get => n_currentSaver;
@@ -87,6 +87,7 @@ namespace GTA_SA_PathsRedactor
                 OnPropertyChanged();
             }
         }
+        [JsonConverter(typeof(Services.JsonConverters.PointLoaderConverter))]
         public Core.PointLoader CurrentLoader
         {
             get => n_currentLoader;
@@ -145,6 +146,12 @@ namespace GTA_SA_PathsRedactor
             };
 
             return newPTD;
+        }
+
+        public void Dispose()
+        {
+            CurrentSaver?.Dispose();
+            CurrentLoader?.Dispose();
         }
 
         public static GlobalSettings GetInstance()

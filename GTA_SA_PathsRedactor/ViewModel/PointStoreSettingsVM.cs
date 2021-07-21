@@ -9,6 +9,7 @@ using GTA_SA_PathsRedactor.Services;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
@@ -30,6 +31,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_loadAssemlyCommand = new RelayCommand(LoadAssemblyCommandHandler);
 
             LoadDefaultInfo();
+            InitialiazeAssembliesInfos();
         }
 
         public TreeNodeWithItem? CurrentLoader
@@ -56,7 +58,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public RelayCommand LoadAssemlyCommand => m_loadAssemlyCommand;
 
-        private TreeNodeWithItem? GetExistAssymblyNode(AssemblyInfo assemblyInfo, IEnumerable<TreeNodeWithItem> treeNodeWithItems)
+        private TreeNodeWithItem? GetExistAssemblyNode(AssemblyInfo assemblyInfo, IEnumerable<TreeNodeWithItem> treeNodeWithItems)
         {
             foreach (var node in treeNodeWithItems)
             {
@@ -68,6 +70,73 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             return null;
+        }
+
+        private void InitialiazeAssembliesInfos()
+        {
+            foreach (var assembly in ProxyController.Assemblies)
+            {
+                LoadAssemblyInfo(assembly.GetAssemblyInfo(), assembly.Location);
+            }
+        }
+
+        private void LoadAssemblyInfo(AssemblyInfo assemblyInfo, string assemblyLocation)
+        {
+            var jsonFileInfo = assemblyLocation.Substring(0, assemblyLocation.LastIndexOf('.')) + ".json";
+
+            if (File.Exists(jsonFileInfo))
+            {
+                var derivedLoaders = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.PointLoader))
+                                                    .Select(type => type.FullName);
+                var derivedSavers = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.PointSaver))
+                                                   .Select(type => type.FullName);
+
+                ParseCustomInfo(File.ReadAllText(jsonFileInfo),
+                                (loaders, savers) =>
+                                {
+                                    var joinedLoaders = loaders.Join(derivedLoaders,
+                                                                     outer => outer.Name,
+                                                                     inner => inner,
+                                                                     (outer, inner) => outer);
+                                    var joinedSavers = savers.Join(derivedSavers,
+                                                                   outer => outer.Name,
+                                                                   inner => inner,
+                                                                   (outer, inner) => outer);
+
+                                    var resultLoaders = derivedLoaders.Except(joinedLoaders.Select(jLoader => jLoader.Name))
+                                                                      .Select(dLoader => new ItemInfo(dLoader, string.Empty, string.Empty))
+                                                                      .Union(joinedLoaders);
+                                    var resultSavers = derivedSavers.Except(joinedSavers.Select(jSaver => jSaver.Name))
+                                                                    .Select(dSaver => new ItemInfo(dSaver, string.Empty, string.Empty))
+                                                                    .Union(joinedSavers);
+
+                                    var loadersNode = new TreeNodeWithItem(assemblyInfo);
+                                    var saversNode = new TreeNodeWithItem(assemblyInfo);
+
+                                    loadersNode.DisplayMember = saversNode.DisplayMember = "Title";
+                                    saversNode.ValueMember = loadersNode.ValueMember = "FullName";
+
+                                    FillNode(loadersNode, resultLoaders, "Name");
+                                    FillNode(saversNode, resultSavers, "Name");
+
+                                    if (resultLoaders.Any())
+                                        m_loaders.Add(loadersNode);
+
+                                    if (resultSavers.Any())
+                                        m_savers.Add(saversNode);
+                                });
+            }
+            else
+            {
+                var loaderNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.PointLoader));
+                var saverNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.PointSaver));
+
+                saverNode.DisplayMember = loaderNode.DisplayMember = "Title";
+                saverNode.ValueMember = loaderNode.ValueMember = "FullName";
+
+                m_loaders.Add(loaderNode);
+                m_savers.Add(saverNode);
+            }
         }
 
         private void LoadDefaultInfo()
@@ -147,11 +216,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
             if (openFileDialog.ShowDialog() == true)
             {
                 var fileName = openFileDialog.FileName;
-                var jsonFileInfo = fileName.Substring(0, fileName.LastIndexOf('.')) + ".json";
                 var assemblyInfo = ProxyController.AddAssembly(fileName)?.GetAssemblyInfo();
 
-                var existSaverNode = GetExistAssymblyNode(assemblyInfo, m_savers);
-                var existLoaderNode = GetExistAssymblyNode(assemblyInfo, m_loaders);
+                var existSaverNode = GetExistAssemblyNode(assemblyInfo, m_savers);
+                var existLoaderNode = GetExistAssemblyNode(assemblyInfo, m_loaders);
 
                 if (existSaverNode != null || existLoaderNode != null)
                 {
@@ -160,59 +228,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                     return;
                 }
 
-                if (File.Exists(jsonFileInfo))
-                {
-                    var derivedLoaders = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.PointLoader))
-                                                        .Select(type => type.FullName);
-                    var derivedSavers = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.PointSaver))
-                                                       .Select(type => type.FullName);
-
-                    ParseCustomInfo(File.ReadAllText(jsonFileInfo), 
-                                    (loaders, savers) => 
-                                    {
-                                        var joinedLoaders = loaders.Join(derivedLoaders, 
-                                                                         outer => outer.Name, 
-                                                                         inner => inner, 
-                                                                         (outer, inner) => outer);
-                                        var joinedSavers = savers.Join(derivedSavers, 
-                                                                       outer => outer.Name, 
-                                                                       inner => inner, 
-                                                                       (outer, inner) => outer);
-
-                                        var resultLoaders = derivedLoaders.Except(joinedLoaders.Select(jLoader => jLoader.Name))
-                                                                          .Select(dLoader => new ItemInfo(dLoader, string.Empty, string.Empty))
-                                                                          .Union(joinedLoaders);
-                                        var resultSavers = derivedSavers.Except(joinedSavers.Select(jSaver => jSaver.Name))
-                                                                        .Select(dSaver => new ItemInfo(dSaver, string.Empty, string.Empty))
-                                                                        .Union(joinedSavers);
-
-                                        var loadersNode = new TreeNodeWithItem(assemblyInfo);
-                                        var saversNode = new TreeNodeWithItem(assemblyInfo);
-
-                                        loadersNode.DisplayMember = saversNode.DisplayMember = "Title";
-                                        saversNode.ValueMember = loadersNode.ValueMember = "FullName";
-
-                                        FillNode(loadersNode, resultLoaders, "Name");
-                                        FillNode(saversNode, resultSavers, "Name");
-
-                                        if (resultLoaders.Any())
-                                            m_loaders.Add(loadersNode);
-
-                                        if (resultSavers.Any())
-                                            m_savers.Add(saversNode);
-                                    });
-                }
-                else
-                {
-                    var loaderNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.PointLoader));
-                    var saverNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.PointSaver));
-
-                    saverNode.DisplayMember = loaderNode.DisplayMember = "Title";
-                    saverNode.ValueMember = loaderNode.ValueMember = "FullName";
-
-                    m_loaders.Add(loaderNode);
-                    m_savers.Add(saverNode);
-                }
+                LoadAssemblyInfo(assemblyInfo, fileName);
             }
         }
 

@@ -17,22 +17,11 @@ namespace GTA_SA_PathsRedactor.Services
         private bool m_createBackup;
         private bool m_disposed;
 
-        //private List<string> m_tempFileNames;
-
-        //static DefaultPointSaverLoader()
-        //{
-        //    FriendlyName = "default";
-        //    Description = "Default point loader and saver for files tracks.dat, " +
-        //                  "tracks2.dat, tracks3.dat, tracks4.dat";
-        //    CreatedBy = "MrNails";
-        //}
-
         public DefaultPointSaver() : this(string.Empty)
         { }
         public DefaultPointSaver(string fileName)
         {
             FileName = fileName;
-            //m_tempFileNames = new List<string>();
         }
 
         public override string FileName
@@ -113,6 +102,8 @@ namespace GTA_SA_PathsRedactor.Services
 
                 foreach (var point in points)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     stringBuilder.Clear();
                     stringBuilder.Append(point.X.ToString(CultureInfo.InvariantCulture))
                                  .Append(' ')
@@ -121,10 +112,10 @@ namespace GTA_SA_PathsRedactor.Services
                                  .Append(point.Y.ToString(CultureInfo.InvariantCulture))
                                  .Append(point.IsStopPoint ? " 1" : " 0");
 
+                    
+
                     await streamWriter.WriteLineAsync(stringBuilder.ToString());
                 }
-
-                cancellationToken.ThrowIfCancellationRequested();
             }
 
             fileInfo.Attributes = oldFileAttributes;

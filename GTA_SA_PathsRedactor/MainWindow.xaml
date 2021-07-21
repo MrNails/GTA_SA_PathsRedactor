@@ -8,22 +8,37 @@
         mc:Ignorable="d"
         Title="Main window" Height="1024" Width="1280" ResizeMode="CanMinimize"
         MouseWheel="Window_MouseWheel" KeyDown="Window_KeyDown" KeyUp="Window_KeyUp">
+    <Window.CommandBindings>
+        <CommandBinding Command="services:DefaultCommands.Undo" Executed="Undo"/>
+        <CommandBinding Command="services:DefaultCommands.Redo" Executed="Redo"/>
+        <CommandBinding Command="services:DefaultCommands.DeleteSelectedPoints" Executed="DeleteSelectedPoints"/>
+        <CommandBinding Command="services:DefaultCommands.SaveCurrentPath" Executed="SaveCurrentPath"/>
+        <CommandBinding Command="services:DefaultCommands.SaveCurrentPathAs" Executed="SaveCurrentPathAs"/>
+        <CommandBinding Command="services:DefaultCommands.Help" Executed="Help"/>
+        <CommandBinding Command="services:DefaultCommands.About" Executed="About"/>
+    </Window.CommandBindings>
     <Window.InputBindings>
-        <KeyBinding Key="Delete" Command="{Binding RemoveSelectedPointsCommand}"/>
-        <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding LoadPath}"/>
-        <KeyBinding Modifiers="Ctrl" Key="S" Command="{Binding SaveCurrentPath}"/>
-        <KeyBinding Gesture="Ctrl+Shift+S " Command="{Binding SaveCurrentPathAs}"/>
+        <KeyBinding Key="Delete" Command="services:DefaultCommands.DeleteSelectedPoints"/>
+        <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding Path=LoadPath}"/>
+        <KeyBinding Modifiers="Ctrl" Key="S" Command="services:DefaultCommands.SaveCurrentPath"/>
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="services:DefaultCommands.SaveCurrentPathAs" />
+        <KeyBinding Modifiers="Ctrl" Key="Z" Command="services:DefaultCommands.Undo"/>
+        <KeyBinding Modifiers="Ctrl" Key="Y" Command="services:DefaultCommands.Redo"/>
+        <KeyBinding Key="F1" Command="services:DefaultCommands.Help"/>
     </Window.InputBindings>
     <Window.Resources>
         <services:BindingProxy x:Key="WindowDataSourceProxy" Data="{Binding}"/>
         <services:BindingProxy x:Key="MainFieldProxy" Data="{Binding ElementName=MainField}"/>
     </Window.Resources>
     <DockPanel LastChildFill="True">
+        <StatusBar DockPanel.Dock="Bottom" Panel.ZIndex="3">
+            <StatusBarItem x:Name="CurrentPathInfo" MaxWidth="150" HorizontalAlignment="Left" MinHeight="23"/>
+        </StatusBar>
         <Menu DockPanel.Dock="Top" Panel.ZIndex="1" FontSize="15">
             <MenuItem Header="File">
-                <MenuItem Header="Load" Command="{Binding LoadPath}" InputGestureText="Ctrl + L"/>
-                <MenuItem Header="Save" Command="{Binding SaveCurrentPath}" InputGestureText="Ctrl + S"/>
-                <MenuItem Header="Save as" Command="{Binding SaveCurrentPathAs}" InputGestureText="Ctrl + Shift + S"/>
+                <MenuItem Header="Load" Command="{Binding Path=LoadPath}" InputGestureText="Ctrl + L"/>
+                <MenuItem Header="Save" Command="services:DefaultCommands.SaveCurrentPath" InputGestureText="Ctrl + S"/>
+                <MenuItem Header="Save as" Command="services:DefaultCommands.SaveCurrentPathAs" InputGestureText="Ctrl + Shift + S"/>
             </MenuItem>
             <MenuItem Header="Settings">
                 <MenuItem Header="Program resolutions">
@@ -36,10 +51,16 @@
                 <MenuItem Header="Loaders and savers information" Click="PointStoreSettingsMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="Commands">
-                <MenuItem Header="Delete selected points" Command="{Binding RemoveSelectedPointsCommand}" InputGestureText="Del"/>
+                <MenuItem Header="Delete selected points" Command="services:DefaultCommands.DeleteSelectedPoints" InputGestureText="Del"/>
+                <MenuItem Header="Undo" InputGestureText="Ctrl + Z" Command="services:DefaultCommands.Undo"/>
+                <MenuItem Header="Redo" InputGestureText="Ctrl + Y" Command="services:DefaultCommands.Redo"/>
+            </MenuItem>
+            <MenuItem Header="Windows">
+                <MenuItem Header="Help" Command="services:DefaultCommands.Help" InputGestureText="F1"/>
+                <MenuItem Header="About" Command="services:DefaultCommands.About"/>
             </MenuItem>
         </Menu>
-        <Border x:Name="UserContentContainer" DockPanel.Dock="Left" Panel.ZIndex="1"
+        <Border x:Name="UserContentContainer" DockPanel.Dock="Left" Panel.ZIndex="1" Margin="-2 0 0 0"
                 BorderBrush="Black" BorderThickness="2" Width="200" Background="Gray"/>
         <Canvas x:Name="MapContainer" Panel.ZIndex="0"
                 MouseUp="MapContainer_MouseUp" AllowDrop="true" 
@@ -75,7 +96,7 @@
                             </Style>
                         </MenuItem.Style>
                     </MenuItem>
-                    <MenuItem Header="Clear selected" Command="{Binding Path=Data.RemoveSelectedPointsCommand, Source={StaticResource WindowDataSourceProxy}}"/>
+                    <MenuItem Header="Clear selected" Click="RemoveSelectedPoint_Click"/>
                 </ContextMenu>
             </Canvas.ContextMenu>
         </Canvas>

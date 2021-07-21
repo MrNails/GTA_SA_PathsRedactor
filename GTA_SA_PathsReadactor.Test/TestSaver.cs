@@ -9,6 +9,8 @@ namespace GTA_SA_PathsRedactor.Test
 {
     public class TestSaver : PointSaver
     {
+        public string TestProp { get; set; }
+
         public override Task SaveAsync(IEnumerable<GTA_SA_Point> points)
         {
             System.Diagnostics.Debug.WriteLine($"TestSaver Invoked SaveAsync(IEnumerable<GTA_SA_Point>) ({DateTime.Now})");

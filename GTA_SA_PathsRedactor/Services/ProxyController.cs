@@ -24,6 +24,8 @@ namespace GTA_SA_PathsRedactor.Services
 
         public static ReadOnlyCollection<string> AssembliesFullNames => new ReadOnlyCollection<string>(assemblies.Select(assembly => assembly.FullName).ToList());
 
+        public static ReadOnlyCollection<Assembly> Assemblies { get => assemblies.AsReadOnly(); }
+
         public static Assembly AddAssembly(string assemblyPath)
         {
             lock (_loker)
@@ -41,6 +43,11 @@ namespace GTA_SA_PathsRedactor.Services
             }
         }
 
+        public static Type? GetTypeByName(string assemblyFullName, string typeFullName)
+        {
+            return assemblies.Where(assembly => assembly.FullName == assemblyFullName).FirstOrDefault()?.GetType(typeFullName);
+        }
+
         public static bool RemoveAssembly(string assemblyFullName)
         {
             lock (_loker)
@@ -54,6 +61,11 @@ namespace GTA_SA_PathsRedactor.Services
 
                 return true;
             }
+        }
+
+        public static bool ContainsAssembly(string assemblyFullName)
+        {
+            return assemblies.Where(assembly => assembly.FullName == assemblyFullName).Any();
         }
 
         public static TResult CreateInsanceFromAssembly<TResult>(string assemblyFullName, string typeName)

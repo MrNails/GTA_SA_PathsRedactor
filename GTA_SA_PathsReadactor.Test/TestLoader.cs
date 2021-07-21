@@ -16,10 +16,13 @@ namespace GTA_SA_PathsRedactor.Test
             return LoadAsync(CancellationToken.None);
         }
 
-        public override Task<IEnumerable<GTA_SA_Point>> LoadAsync(CancellationToken cancellationToken)
+        public override async Task<IEnumerable<GTA_SA_Point>> LoadAsync(CancellationToken cancellationToken)
         {
             System.Diagnostics.Debug.WriteLine($"TestLoader Invoked LoadAsync(CancellationToken) ({DateTime.Now})");
-            return Task.Run(() => new List<GTA_SA_Point>().AsEnumerable());
+
+            await Task.Delay(50000);
+
+            return new List<GTA_SA_Point>().AsEnumerable();
         }
     }
 }

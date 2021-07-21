@@ -79,12 +79,21 @@ namespace GTA_SA_PathsRedactor.Core.Models
         public bool Equals(GTA_SA_Point? other)
         {
             if (other == null)
-            {
                 return false;
-            }
 
             return other.m_x == m_x && other.m_y == m_y &&
                    other.m_z == m_z && other.m_isStopPoint == m_isStopPoint;
+        }
+
+        public void CopyTo(GTA_SA_Point other)
+        {
+            if (other == null)
+                return;
+
+            other.X = m_x;
+            other.Y = m_y;
+            other.Z = m_z;
+            other.IsStopPoint = m_isStopPoint;
         }
 
         public static bool operator ==(GTA_SA_Point? left, GTA_SA_Point? right)
