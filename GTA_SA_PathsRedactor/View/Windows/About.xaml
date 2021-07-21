@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
         mc:Ignorable="d"
-        Title="About" Height="350" Width="800"
+        Title="About" Height="250" Width="800" ResizeMode="NoResize"
         Closed="Window_Closed">
     <Window.Resources>
         <Style TargetType="TextBlock">
@@ -40,8 +40,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition />
         </Grid.RowDefinitions>
 
         <TextBlock Text="Program created by MrNails" HorizontalAlignment="Center" FontSize="20"/>
