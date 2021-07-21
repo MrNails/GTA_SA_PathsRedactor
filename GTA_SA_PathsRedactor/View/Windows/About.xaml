@@ -1,0 +1,63 @@
+﻿<Window x:Class="GTA_SA_PathsRedactor.View.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
+        mc:Ignorable="d"
+        Title="About" Height="350" Width="800"
+        Closed="Window_Closed">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin" Value="10 5 0 5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+        <Style x:Key="UnderlineText" TargetType="Run">
+            <Setter Property="FontSize" Value="16"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="TextDecorations" Value="Underline"/>
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard TargetProperty="Foreground.Color">
+                                <ColorAnimation To="Blue" Duration="0:0:0.1"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard TargetProperty="Foreground.Color">
+                                <ColorAnimation To="Black" Duration="0:0:0.1"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Grid Background="LightGray">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Program created by MrNails" HorizontalAlignment="Center" FontSize="20"/>
+        <TextBlock Grid.Row="1">
+            <Run Text="Version: "/>
+            <Run x:Name="VersionTextBlock"/>
+        </TextBlock>
+
+        <StackPanel Grid.Row="2">
+            <TextBlock Text="Description:" />
+            <TextBlock x:Name="DescriptionTextBlock" TextWrapping="Wrap" Margin="10 0 0 0" TextAlignment="Justify"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="3">
+            <Run Text="Github: "/>
+            <Run x:Name="GitHubLink" Style="{StaticResource UnderlineText}" Text="https://github.com/MrNails" MouseUp="GitHubLink_MouseUp"/>
+        </TextBlock>
+    </Grid>
+</Window>

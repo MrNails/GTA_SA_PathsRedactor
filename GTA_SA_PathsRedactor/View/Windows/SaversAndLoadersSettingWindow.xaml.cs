@@ -131,14 +131,18 @@ namespace GTA_SA_PathsRedactor.View
                     LoaderGroupBox.DataContext = node.Element;
 
                     if (GetTopmostNode(m_settingsVM.CurrentSaver)?.Equals(topmostNode) != true)
-                        SaverGroupBox.DataContext = null;
+                        LoaderAndSaverInfoGB.DataContext = null;
+                    else
+                        LoaderAndSaverInfoGB.DataContext = GetTopmostNode(node);
                     break;
                 case "2":
                     m_settingsVM.CurrentSaver = node;
                     SaverGroupBox.DataContext = node.Element;
 
                     if (GetTopmostNode(m_settingsVM.CurrentLoader)?.Equals(topmostNode) != true)
-                        LoaderGroupBox.DataContext = null;
+                        LoaderAndSaverInfoGB.DataContext = null;
+                    else
+                        LoaderAndSaverInfoGB.DataContext = GetTopmostNode(node);
                     break;
                 default:
                     break;
@@ -146,7 +150,7 @@ namespace GTA_SA_PathsRedactor.View
 
             m_isUIChange = false;
 
-            LoaderAndSaverInfoGB.DataContext = GetTopmostNode(node);
+            //LoaderAndSaverInfoGB.DataContext = GetTopmostNode(node);
         }
 
         private void PointStoreSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
