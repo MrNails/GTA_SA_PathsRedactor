@@ -14,6 +14,6 @@ First of all - you need download <a href="https://github.com/MrNails/GTA_SA_Path
   * Description - just description of your saver/loader;
 When you created your own classes (or class, not necessary create both loader and saver) you may use it in program.
 
-To use they in the program, you need open selection window in menu <a href="https://github.com/MrNails/GTA_SA_PathsRedactor/blob/master/Examples/Pictures/PointSaverAndLoaderMenuItem.png">Settings->Loaders and savers information<a/> and <a href="https://github.com/MrNails/GTA_SA_PathsRedactor/blob/master/Examples/Pictures/LoadCustomDLLButton.png">Settings->LOad<a/> your DLL. Then you need press <b>Select<b/> button and you can use your saver/loader.
+To use they in the program, you need open selection window in menu <a href="https://github.com/MrNails/GTA_SA_PathsRedactor/blob/master/Examples/Pictures/PointSaverAndLoaderMenuItem.png">Settings->Loaders and savers information<a/> and <a href="https://github.com/MrNails/GTA_SA_PathsRedactor/blob/master/Examples/Pictures/LoadCustomDLLButton.png">Load<a/> your DLL. Then you need press <b>Select<b/> button and you can use your saver/loader.
   
 For help about hotkey you can open Help window in menu item <b>Windows<b/> or press F1.
