@@ -229,6 +229,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         private async Task SavePathHelper(bool saveAs)
         {
+            if (CurrentPath == null)
+                return;
+
             string filePath = CurrentPath.PathFileName;
 
             if (filePath == string.Empty || saveAs)

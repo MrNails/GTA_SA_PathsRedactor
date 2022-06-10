@@ -145,7 +145,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 if (saveFileDialog.ShowDialog() == true)
                 {
-                    var transformSettingLoader = new TransformSettingSaverLoader(saveFileDialog.FileName);
+                    var transformSettingLoader = new TransformSettingSaverLoader(saveFileDialog.FileName, true);
 
                     transformSettingLoader.SaveSettings(CurrentPointTransformData);
 

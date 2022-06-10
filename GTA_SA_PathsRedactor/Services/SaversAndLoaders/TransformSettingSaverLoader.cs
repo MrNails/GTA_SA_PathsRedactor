@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Newtonsoft.Json;
 
 namespace GTA_SA_PathsRedactor.Services
@@ -6,9 +7,11 @@ namespace GTA_SA_PathsRedactor.Services
     public class TransformSettingSaverLoader
     {
         private string m_filePath;
+        private bool m_save;
 
-        public TransformSettingSaverLoader(string pathName)
+        public TransformSettingSaverLoader(string pathName, bool save = false)
         {
+            m_save = save;
             FilePath = pathName;
         }
 
@@ -17,9 +20,15 @@ namespace GTA_SA_PathsRedactor.Services
             get { return m_filePath; }
             set
             {
+                if (string.IsNullOrEmpty(value))
+                    throw new ArgumentException("File name cannot be empty.", nameof(value));
+
                 if (!File.Exists(value))
                 {
-                    throw new FileNotFoundException("Unable to find file: " + value);
+                    if (m_save)
+                        File.Create(value).Close();
+                    else
+                        throw new FileNotFoundException("Unable to find file: " + value);
                 }
 
                 m_filePath = value;

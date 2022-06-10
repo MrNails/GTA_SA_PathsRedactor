@@ -836,17 +836,27 @@ namespace GTA_SA_PathsRedactor
 
         private void SaveCurrentPath(object sender, ExecutedRoutedEventArgs e)
         {
+            if (!m_pathVM.SaveCurrentPath.CanExecute(null))
+                return;
+
             m_pathVM.SaveCurrentPath.Execute(null);
 
             var history = m_pathHistory[m_pathVM.CurrentPath];
-            history.SetNewOverloadThresholdElem(history.CurrentPosition);
+
+            if (history.CurrentPosition != -1)
+                history.SetNewOverloadThresholdElem(history.CurrentPosition);
         }
         private void SaveCurrentPathAs(object sender, ExecutedRoutedEventArgs e)
         {
+            if (!m_pathVM.SaveCurrentPath.CanExecute(null))
+                return;
+
             m_pathVM.SaveCurrentPathAs.Execute(null);
 
             var history = m_pathHistory[m_pathVM.CurrentPath];
-            history.SetNewOverloadThresholdElem(history.CurrentPosition);
+
+            if (history.CurrentPosition != -1)
+                history.SetNewOverloadThresholdElem(history.CurrentPosition);
         }
 
         private void Help(object sender, ExecutedRoutedEventArgs e)

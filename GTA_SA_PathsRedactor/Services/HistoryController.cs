@@ -157,10 +157,15 @@ namespace GTA_SA_PathsRedactor.Services
             OnPropertyChanged("IsPositionOnStart");
         }
 
+        /// <summary>
+        /// Set new theshold element that represent current system state i.e. system has been saved and current element is main element
+        /// </summary>
+        /// <param name="index">New element index</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void SetNewOverloadThresholdElem(int index)
         {
             if (index < 0 || index >= m_historyList.Count)
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
 
             m_newThresholdValue = m_historyList[index];
             m_isOverThreshold = false;
