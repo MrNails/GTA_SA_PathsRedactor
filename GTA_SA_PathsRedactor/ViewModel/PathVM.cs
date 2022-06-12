@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using Serilog;
 using GTA_SA_PathsRedactor.Services;
 using GTA_SA_PathsRedactor.Models;
+using System.IO;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
@@ -184,7 +185,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             pointLoader = GlobalSettings.GetInstance().CurrentLoader;
 
-            var newPath = new PathEditor(path.Remove(0, path.LastIndexOf('\\') + 1));
+            var fName = Path.GetFileNameWithoutExtension(path);
+
+            var newPath = new PathEditor(fName);
             newPath.PathFileName = path;
             pointLoader.FileName = path;
 
