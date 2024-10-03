@@ -30,9 +30,9 @@ namespace GTA_SA_PathsRedactor.Models
             set
             {
                 if (value == string.Empty)
-                    m_errors["Name"] = "Node name cannot be empty.";
+                    _errors["Name"] = "Node name cannot be empty.";
                 else
-                    m_errors["Name"] = "";
+                    _errors["Name"] = "";
 
                 m_name = value;
                 OnPropertyChanged();

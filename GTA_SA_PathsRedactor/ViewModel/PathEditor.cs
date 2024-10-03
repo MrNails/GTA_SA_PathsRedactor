@@ -49,8 +49,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
         {
             m_workField = new Canvas();
 
-            var defaultLine = new LineVisual(new GTA_SA_Point(0, 0, 0, false),
-                                             new GTA_SA_Point(0, 0, 0, false));
+            var defaultLine = new LineVisual(new WorldPoint(0, 0, 0, false),
+                                             new WorldPoint(0, 0, 0, false));
             m_workField.Children.Add(defaultLine);
 
             m_dots = new ObservableCollection<VisualObject>();
@@ -113,11 +113,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 if (value.Length == 0)
                 {
-                    m_errors["PathName"] = "Path name can't be empty.";
+                    _errors["PathName"] = "Path name can't be empty.";
                 }
                 else
                 {
-                    m_errors["PathName"] = "";
+                    _errors["PathName"] = "";
                 }
 
                 m_pathName = value;
@@ -131,11 +131,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 if (value.Length == 0)
                 {
-                    m_errors["PathFileName"] = "File path can't be empty.";
+                    _errors["PathFileName"] = "File path can't be empty.";
                 }
                 else
                 {
-                    m_errors["PathFileName"] = "";
+                    _errors["PathFileName"] = "";
                 }
 
                 m_pathFileName = value;
@@ -150,11 +150,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 if (value < 0)
                 {
-                    m_errors["LinesThickness"] = "Path's lines thickness can't be less than zero.";
+                    _errors["LinesThickness"] = "Path's lines thickness can't be less than zero.";
                     throw new ArgumentOutOfRangeException("value", "Path's lines thickness can't be less than zero.");
                 }
 
-                m_errors["LinesThickness"] = "";
+                _errors["LinesThickness"] = "";
                 m_linesColor.Thickness = value;
                 OnPropertyChanged("LinesThickness");
             }
@@ -257,11 +257,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             return index;
         }
 
-        public void AddPoint(GTA_SA_Point point)
+        public void AddPoint(WorldPoint point)
         {
             AddPoint(new DotVisual(point, m_linesColor.Brush));
         }
-        public void AddPoint(GTA_SA_Point point, Brush brush)
+        public void AddPoint(WorldPoint point, Brush brush)
         {
             AddPoint(new DotVisual(point, brush));
         }
@@ -292,7 +292,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             Draw();
         }
 
-        public void AddRangePoint(IEnumerable<GTA_SA_Point> points)
+        public void AddRangePoint(IEnumerable<WorldPoint> points)
         {
             AddRangePoint(points.Select(p => new DotVisual(p, m_linesColor.Brush)));
         }
@@ -354,11 +354,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
             Draw();
         }
 
-        public void InsertPoint(int index, GTA_SA_Point point)
+        public void InsertPoint(int index, WorldPoint point)
         {
             InsertPoint(index, new DotVisual(point));
         }
-        public void InsertPoint(int index, GTA_SA_Point point, Brush brush)
+        public void InsertPoint(int index, WorldPoint point, Brush brush)
         {
             InsertPoint(index, new Models.DotVisual(point, brush));
         }
@@ -414,7 +414,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
 
 #pragma warning disable CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
-        public bool RemovePoint(GTA_SA_Point? point)
+        public bool RemovePoint(WorldPoint? point)
         {
             var foundDot = m_dots.Where(dot => dot.InputHitTest(point.As2DPoint()) != null).FirstOrDefault();
 

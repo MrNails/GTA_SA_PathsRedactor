@@ -45,11 +45,11 @@ namespace GTA_SA_PathsRedactor.Services
             m_fileName = string.Empty;
         }
 
-        public override Task<IEnumerable<GTA_SA_Point>> LoadAsync()
+        public override Task<IEnumerable<WorldPoint>> LoadAsync()
         {
             return LoadAsync(CancellationToken.None);
         }
-        public override async Task<IEnumerable<GTA_SA_Point>> LoadAsync(CancellationToken cancellationToken)
+        public override async Task<IEnumerable<WorldPoint>> LoadAsync(CancellationToken cancellationToken)
         {
             if (m_disposed)
             {
@@ -61,7 +61,7 @@ namespace GTA_SA_PathsRedactor.Services
                 throw new DirectoryNotFoundException("Wrong file path.");
             }
 
-            GTA_SA_Point[]? points = null;
+            WorldPoint[]? points = null;
             string filePath = m_fileName;
             char[] splitCharacters = new char[] { ' ' };
             int lineNumber = 0;
@@ -73,7 +73,7 @@ namespace GTA_SA_PathsRedactor.Services
                 lineNumber++;
                 if (int.TryParse(streamReader.ReadLine(), out pointsCount))
                 {
-                    points = new GTA_SA_Point[pointsCount];
+                    points = new WorldPoint[pointsCount];
 
                     while (!streamReader.EndOfStream)
                     {
@@ -103,7 +103,7 @@ namespace GTA_SA_PathsRedactor.Services
                                 int.TryParse(currentLine[3], out isStop))
                             {
 
-                                points[lineNumber - 2] = new GTA_SA_Point(x, y, z, isStop == 1);
+                                points[lineNumber - 2] = new WorldPoint(x, y, z, isStop == 1);
                             }
                             else
                             {
