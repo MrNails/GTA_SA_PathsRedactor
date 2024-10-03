@@ -18,11 +18,11 @@ namespace GTA_SA_PathsRedactor.Models
             s_selectedPen = new Pen(new SolidColorBrush(Colors.Black), 1);
         }
 
-        public DotVisual() : this (new GTA_SA_Point())
+        public DotVisual() : this (new WorldPoint())
         { }
-        public DotVisual(GTA_SA_Point point) : this(point, new SolidColorBrush(Colors.Red))
+        public DotVisual(WorldPoint point) : this(point, new SolidColorBrush(Colors.Red))
         { }
-        public DotVisual(GTA_SA_Point point, Brush brush)
+        public DotVisual(WorldPoint point, Brush brush)
             : base(point)
         {
             Point = point;

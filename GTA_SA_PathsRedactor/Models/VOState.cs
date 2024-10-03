@@ -8,20 +8,20 @@ namespace GTA_SA_PathsRedactor.Models
     public class VOState : IStorableValue
     {
         private VisualObject m_visualObject;
-        private Core.Models.GTA_SA_Point? m_oldPoint;
-        private Core.Models.GTA_SA_Point? m_newPoint;
+        private Core.Models.WorldPoint? m_oldPoint;
+        private Core.Models.WorldPoint? m_newPoint;
         private int m_voIndex;
         private State m_state;
 
-        public VOState(VisualObject visualObject, Core.Models.GTA_SA_Point? oldPoint) :
+        public VOState(VisualObject visualObject, Core.Models.WorldPoint? oldPoint) :
             this(visualObject, oldPoint, -1, State.Moved)
         { }
-        public VOState(VisualObject visualObject, Core.Models.GTA_SA_Point? oldPoint, int voIndex) :
+        public VOState(VisualObject visualObject, Core.Models.WorldPoint? oldPoint, int voIndex) :
             this(visualObject, oldPoint, voIndex, State.Moved)
         { }
-        public VOState(VisualObject visualObject, Core.Models.GTA_SA_Point? oldPoint, int voIndex, State state)
+        public VOState(VisualObject visualObject, Core.Models.WorldPoint? oldPoint, int voIndex, State state)
         {
-            m_newPoint = (Core.Models.GTA_SA_Point)visualObject.Point.Clone();
+            m_newPoint = (Core.Models.WorldPoint)visualObject.Point.Clone();
             m_visualObject = visualObject;
             m_oldPoint = oldPoint;
             m_voIndex = voIndex;
@@ -30,12 +30,12 @@ namespace GTA_SA_PathsRedactor.Models
 
         public VisualObject VisualObject => m_visualObject;
 
-        public Core.Models.GTA_SA_Point OldPoint => m_state == State.Moved ? m_oldPoint : m_visualObject.Point;
-        public Core.Models.GTA_SA_Point NewPoint => m_newPoint;
+        public Core.Models.WorldPoint OldPoint => m_state == State.Moved ? m_oldPoint : m_visualObject.Point;
+        public Core.Models.WorldPoint NewPoint => m_newPoint;
 
         public int VOIndex => m_voIndex;
 
-        public object Value => new Tuple<VisualObject, Core.Models.GTA_SA_Point, int>(m_visualObject, m_oldPoint, VOIndex);
+        public object Value => new Tuple<VisualObject, Core.Models.WorldPoint, int>(m_visualObject, m_oldPoint, VOIndex);
 
         public State State => m_state;
     }

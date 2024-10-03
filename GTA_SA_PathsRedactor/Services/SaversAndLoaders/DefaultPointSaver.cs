@@ -66,11 +66,11 @@ namespace GTA_SA_PathsRedactor.Services
             m_createBackup = false;
         }
 
-        public override Task SaveAsync(IEnumerable<GTA_SA_Point> points)
+        public override Task SaveAsync(IEnumerable<WorldPoint> points)
         {
             return SaveAsync(points, CancellationToken.None);
         }
-        public override async Task SaveAsync(IEnumerable<GTA_SA_Point> points, CancellationToken cancellationToken)
+        public override async Task SaveAsync(IEnumerable<WorldPoint> points, CancellationToken cancellationToken)
         {
             if (m_disposed)
             {

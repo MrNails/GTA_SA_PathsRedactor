@@ -13,8 +13,8 @@ namespace GTA_SA_PathsRedactor.Models
     {
         private static readonly Brush s_defaultLineColor;
 
-        private GTA_SA_Point m_startPoint;
-        private GTA_SA_Point m_endPoint;
+        private WorldPoint m_startPoint;
+        private WorldPoint m_endPoint;
 
         private Pen m_color;
         private VisualCollection children;
@@ -26,10 +26,10 @@ namespace GTA_SA_PathsRedactor.Models
             s_defaultLineColor = new SolidColorBrush(Colors.Red);
         }
 
-        public LineVisual(GTA_SA_Point start, GTA_SA_Point end)
+        public LineVisual(WorldPoint start, WorldPoint end)
             : this (start, end, s_defaultLineColor)
         {}
-        public LineVisual(GTA_SA_Point start, GTA_SA_Point end, Brush lineColor)
+        public LineVisual(WorldPoint start, WorldPoint end, Brush lineColor)
         {
             children = new VisualCollection(this);
             m_color = new Pen();
@@ -39,7 +39,7 @@ namespace GTA_SA_PathsRedactor.Models
             LineColor = lineColor;
         }
 
-        public GTA_SA_Point Start
+        public WorldPoint Start
         {
             get { return m_startPoint; }
             set 
@@ -56,7 +56,7 @@ namespace GTA_SA_PathsRedactor.Models
                 OnPropertyChanged("Start");
             }
         }
-        public GTA_SA_Point End
+        public WorldPoint End
         {
             get { return m_endPoint; }
             set 
@@ -147,7 +147,7 @@ namespace GTA_SA_PathsRedactor.Models
             children.Add(body);
         }
 
-        public static DividedLine DivideLine(LineVisual oldLine, GTA_SA_Point newPoint)
+        public static DividedLine DivideLine(LineVisual oldLine, WorldPoint newPoint)
         {
             LineVisual left = new LineVisual(oldLine.m_startPoint, newPoint);
             LineVisual right = new LineVisual(newPoint, oldLine.m_endPoint);

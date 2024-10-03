@@ -6,12 +6,12 @@ namespace GTA_SA_PathsRedactor.Services
 {
     public static class PointExtensions
     {
-        public static Point As2DPoint(this GTA_SA_Point point)
+        public static Point As2DPoint(this WorldPoint point)
         {
             return new Point(point.X, point.Y);
         }
 
-        public static Point3D As3DPoint(this GTA_SA_Point point)
+        public static Point3D As3DPoint(this WorldPoint point)
         {
             return new Point3D(point.X, point.Y, point.Z);
         }

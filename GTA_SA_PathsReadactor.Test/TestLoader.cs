@@ -10,19 +10,19 @@ namespace GTA_SA_PathsRedactor.Test
 {
     public class TestLoader : PointLoader
     {
-        public override Task<IEnumerable<GTA_SA_Point>> LoadAsync()
+        public override Task<IEnumerable<WorldPoint>> LoadAsync()
         {
             System.Diagnostics.Debug.WriteLine($"TestLoader Invoked LoadAsync() ({DateTime.Now})");
             return LoadAsync(CancellationToken.None);
         }
 
-        public override async Task<IEnumerable<GTA_SA_Point>> LoadAsync(CancellationToken cancellationToken)
+        public override async Task<IEnumerable<WorldPoint>> LoadAsync(CancellationToken cancellationToken)
         {
             System.Diagnostics.Debug.WriteLine($"TestLoader Invoked LoadAsync(CancellationToken) ({DateTime.Now})");
 
             await Task.Delay(50000);
 
-            return new List<GTA_SA_Point>().AsEnumerable();
+            return new List<WorldPoint>().AsEnumerable();
         }
     }
 }
