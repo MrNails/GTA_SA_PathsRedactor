@@ -2,25 +2,24 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using GTA_SA_PathsRedactor.Core;
 using GTA_SA_PathsRedactor.Core.Models;
 
 namespace GTA_SA_PathsRedactor.Test
 {
-    public class TestSaver : IPointSaver
+    public sealed partial class TestSaver : ObservableObject, IPointSaver
     {
-        public string TestProp { get; set; }
+        [ObservableProperty]
+        private string _fileName;
+        
+        [ObservableProperty]
+        private bool _createBackup;
 
-        public override Task SaveAsync(IEnumerable<WorldPoint> points)
-        {
-            System.Diagnostics.Debug.WriteLine($"TestSaver Invoked SaveAsync(IEnumerable<GTA_SA_Point>) ({DateTime.Now})");
-            return SaveAsync(points, CancellationToken.None);
-        }
-
-        public override Task SaveAsync(IEnumerable<WorldPoint> points, CancellationToken cancellationToken)
+        public Task SaveAsync(IEnumerable<WorldPoint> points, CancellationToken cancellationToken = default)
         {
             System.Diagnostics.Debug.WriteLine($"TestSaver Invoked SaveAsync(IEnumerable<GTA_SA_Point>, CancellationToken) ({DateTime.Now})");
-            return Task.Delay(1000);
+            return Task.Delay(1000, cancellationToken);
         }
     }
 }
