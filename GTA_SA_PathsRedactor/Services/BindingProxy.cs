@@ -12,7 +12,7 @@ namespace GTA_SA_PathsRedactor.Services
         }
 
         #endregion
-        
+
         public object Data
         {
             get { return GetValue(DataProperty); }

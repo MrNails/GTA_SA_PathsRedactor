@@ -111,11 +111,11 @@ namespace GTA_SA_PathsRedactor.Services
             {
                 if (string.IsNullOrEmpty(value))
                 {
-                    _errors["TransformName"] = "Transformation name can't be empty.";
+                    m_errors["TransformName"] = "Transformation name can't be empty.";
                 }
                 else
                 {
-                    _errors["TransformName"] = "";
+                    m_errors["TransformName"] = "";
                 }
 
                 m_transformName = value;

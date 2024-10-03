@@ -30,7 +30,7 @@ namespace GTA_SA_PathsRedactor
         private Point m_selectionRectangleOldMousePos;
 
         private ViewModel.PathVM m_pathVM;
-        private WorldPoint? m_oldPoint;
+        private GTA_SA_Point? m_oldPoint;
 
         private Dictionary<ViewModel.PathEditor, Services.HistoryController> m_pathHistory;
 
@@ -403,7 +403,7 @@ namespace GTA_SA_PathsRedactor
             if (m_pointMoveMode && currentPath.CurrentObject != null)
             {
                 if (m_oldPoint == null)
-                    m_oldPoint = (WorldPoint)m_pathVM.CurrentPath.CurrentObject?.Point.Clone();
+                    m_oldPoint = (GTA_SA_Point)m_pathVM.CurrentPath.CurrentObject?.Point.Clone();
 
                 currentPath.CurrentObject.Point.X = currentPos.X;
                 currentPath.CurrentObject.Point.Y = currentPos.Y;
@@ -498,7 +498,7 @@ namespace GTA_SA_PathsRedactor
 
                 if (offsetX > 0.01 || offsetX < -0.01 && offsetY > 0.01 || offsetY < 0.01)
                 {
-                    var oldPoints = currentPath.SelectedDots.Select(dot => (WorldPoint)dot.Point.Clone()).ToList();
+                    var oldPoints = currentPath.SelectedDots.Select(dot => (GTA_SA_Point)dot.Point.Clone()).ToList();
 
                     currentPath.MoveSelectedPoints(offsetX / mainFieldSTransform.ScaleX, offsetY / mainFieldSTransform.ScaleY);
 
@@ -604,7 +604,7 @@ namespace GTA_SA_PathsRedactor
 
         private void AddPoint_Click(object sender, RoutedEventArgs e)
         {
-            var point = new WorldPoint(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
+            var point = new GTA_SA_Point(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
             var dot = new DotVisual(point);
             var currentPath = m_pathVM.CurrentPath;
 
@@ -619,7 +619,7 @@ namespace GTA_SA_PathsRedactor
         }
         private void InsertPoint_Click(object sender, RoutedEventArgs e)
         {
-            var point = new WorldPoint(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
+            var point = new GTA_SA_Point(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
             var line = m_lineContextMenu.PlacementTarget as LineVisual;
             var currentPath = m_pathVM.CurrentPath;
             var dot = new DotVisual(point);

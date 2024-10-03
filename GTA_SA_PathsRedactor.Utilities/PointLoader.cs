@@ -14,8 +14,8 @@ namespace GTA_SA_PathsRedactor.Core
 
         public virtual string FileName { get; set; }
 
-        public abstract Task<IEnumerable<Models.WorldPoint>> LoadAsync();
-        public abstract Task<IEnumerable<Models.WorldPoint>> LoadAsync(CancellationToken cancellationToken);
+        public abstract Task<IEnumerable<Models.GTA_SA_Point>> LoadAsync();
+        public abstract Task<IEnumerable<Models.GTA_SA_Point>> LoadAsync(CancellationToken cancellationToken);
 
         public virtual void Dispose()
         {

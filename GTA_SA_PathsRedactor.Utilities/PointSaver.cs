@@ -15,8 +15,8 @@ namespace GTA_SA_PathsRedactor.Core
         public virtual string FileName { get; set; }
         public virtual bool CreateBackup { get; set; }
 
-        public abstract Task SaveAsync(IEnumerable<Models.WorldPoint> points);
-        public abstract Task SaveAsync(IEnumerable<Models.WorldPoint> points,
+        public abstract Task SaveAsync(IEnumerable<Models.GTA_SA_Point> points);
+        public abstract Task SaveAsync(IEnumerable<Models.GTA_SA_Point> points,
                                        CancellationToken cancellationToken);
 
         public virtual void Dispose()

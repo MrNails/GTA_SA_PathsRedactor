@@ -9,27 +9,27 @@ namespace GTA_SA_PathsRedactor.Models
 {
     public abstract class VisualObject : FrameworkElement, INotifyPropertyChanged, ITransformable, ICloneable
     {
-        private WorldPoint m_point;
-        private WorldPoint m_originPoint;
+        private GTA_SA_Point m_point;
+        private GTA_SA_Point m_originPoint;
         private bool m_isSelected;
 
         protected VisualCollection children;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected VisualObject(WorldPoint point)
+        protected VisualObject(GTA_SA_Point point)
         {
             children = new VisualCollection(this);
 
             Point = point;
-            m_originPoint = (WorldPoint)point.Clone();
+            m_originPoint = (GTA_SA_Point)point.Clone();
         }
 
-        public WorldPoint OriginPoint
+        public GTA_SA_Point OriginPoint
         {
             get => m_originPoint;
         }
-        public WorldPoint Point
+        public GTA_SA_Point Point
         {
             get => m_point;
             set

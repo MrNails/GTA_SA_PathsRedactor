@@ -1,20 +1,42 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace GTA_SA_PathsRedactor.Core
 {
-    public abstract class Entity : ObservableObject, INotifyPropertyChanged, IDataErrorInfo
+    public abstract class Entity : INotifyPropertyChanged, IDataErrorInfo
     {
-        protected readonly Dictionary<string, string> _errors = new();
+        protected readonly Dictionary<string, string> m_errors;
 
-        public string this[string columnName] => _errors.TryGetValue(columnName, out var result) 
-            ? result 
-            : string.Empty;
+        protected Entity()
+        {
+            m_errors = new Dictionary<string, string>();
+        }
 
-        public string Error => _errors.Count == 1 
-            ? _errors.FirstOrDefault(pair => pair.Value != string.Empty).Value 
-            : $"Errors: {string.Join(", ", _errors.Where(pair => pair.Value != string.Empty))}";
+        public string this[string columnName]
+        {
+            get
+            {
+                string? res = string.Empty;
+
+                if (m_errors.TryGetValue(columnName, out res))
+                {
+                    return res;
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+        }
+
+        public string Error => m_errors.FirstOrDefault(pair => pair.Value != string.Empty).Value;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string prop = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+        }
     }
 }

@@ -44,12 +44,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 System.Diagnostics.Debug.WriteLine(obj);
 
                 var dot = obj as Models.VisualObject ??
-                          new Models.DotVisual(obj as Core.Models.WorldPoint);
+                          new Models.DotVisual(obj as Core.Models.GTA_SA_Point);
 
                 CurrentPath.AddPoint(dot);
             }, obj => obj != null && m_paths.Count != 0 &&
                       (obj is Models.VisualObject ||
-                       obj is Core.Models.WorldPoint));
+                       obj is Core.Models.GTA_SA_Point));
             m_removePointCommand = new RelayCommand(obj => CurrentPath.RemovePoint(obj as Models.VisualObject),
                                                     obj => obj is Models.VisualObject);
             m_removeSelectedPointsCommand = new RelayCommand(obj => CurrentPath.RemoveSelectedPoints(),
