@@ -8,7 +8,7 @@ using GTA_SA_PathsRedactor.Core.Models;
 
 namespace GTA_SA_PathsRedactor.Test
 {
-    public class TestLoader : PointLoader
+    public class TestLoader : IPointLoader
     {
         public override Task<IEnumerable<WorldPoint>> LoadAsync()
         {

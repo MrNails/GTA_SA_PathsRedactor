@@ -9,7 +9,7 @@ using GTA_SA_PathsRedactor.Core.Models;
 
 namespace GTA_SA_PathsRedactor.Services 
 {
-    public class DefaultPointLoader : PointLoader
+    public class DefaultPointLoader : IPointLoader
     {
         private string m_fileName;
         private bool m_disposed;

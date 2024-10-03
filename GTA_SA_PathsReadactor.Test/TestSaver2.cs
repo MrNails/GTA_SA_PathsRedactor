@@ -7,7 +7,7 @@ using GTA_SA_PathsRedactor.Core.Models;
 
 namespace OtherNameSpace.Test
 {
-    public class TestSaver2 : PointSaver
+    public class TestSaver2 : IPointSaver
     {
         public override Task SaveAsync(IEnumerable<WorldPoint> points)
         {

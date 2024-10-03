@@ -27,8 +27,8 @@ namespace GTA_SA_PathsRedactor
 
         [NonSerialized] private readonly PointTransformationData m_defaultPTD;
 
-        private Core.PointSaver n_currentSaver;
-        private Core.PointLoader n_currentLoader;
+        private Core.IPointSaver n_currentSaver;
+        private Core.IPointLoader n_currentLoader;
         private PointTransformationData? m_PTD;
         private Resolution resolution;
 
@@ -74,7 +74,7 @@ namespace GTA_SA_PathsRedactor
         [JsonIgnore] public PointTransformationData DefaultPTD => m_defaultPTD;
 
         [JsonConverter(typeof(Services.JsonConverters.PointSaverConverter))]
-        public Core.PointSaver CurrentSaver
+        public Core.IPointSaver CurrentSaver
         {
             get => n_currentSaver;
             set
@@ -88,7 +88,7 @@ namespace GTA_SA_PathsRedactor
             }
         }
         [JsonConverter(typeof(Services.JsonConverters.PointLoaderConverter))]
-        public Core.PointLoader CurrentLoader
+        public Core.IPointLoader CurrentLoader
         {
             get => n_currentLoader;
             set

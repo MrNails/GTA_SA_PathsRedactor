@@ -86,9 +86,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             if (File.Exists(jsonFileInfo))
             {
-                var derivedLoaders = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.PointLoader))
+                var derivedLoaders = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.IPointLoader))
                                                     .Select(type => type.FullName);
-                var derivedSavers = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.PointSaver))
+                var derivedSavers = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.IPointSaver))
                                                    .Select(type => type.FullName);
 
                 ParseCustomInfo(File.ReadAllText(jsonFileInfo),
@@ -128,8 +128,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
             else
             {
-                var loaderNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.PointLoader));
-                var saverNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.PointSaver));
+                var loaderNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.IPointLoader));
+                var saverNode = CreateNodeFromAssembly(assemblyInfo, typeof(Core.IPointSaver));
 
                 saverNode.DisplayMember = loaderNode.DisplayMember = "Title";
                 saverNode.ValueMember = loaderNode.ValueMember = "FullName";

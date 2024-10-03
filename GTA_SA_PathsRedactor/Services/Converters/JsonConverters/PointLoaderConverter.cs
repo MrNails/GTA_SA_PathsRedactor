@@ -5,16 +5,16 @@ using System;
 
 namespace GTA_SA_PathsRedactor.Services.JsonConverters
 {
-    class PointLoaderConverter : JsonConverter<PointLoader>
+    class PointLoaderConverter : JsonConverter<IPointLoader>
     {
         public override bool CanRead => false;
 
-        public override PointLoader? ReadJson(JsonReader reader, Type objectType, PointLoader? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override IPointLoader? ReadJson(JsonReader reader, Type objectType, IPointLoader? existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException("Unnecessary because CanRead is false. The type will skip the converter.");
         }
 
-        public override void WriteJson(JsonWriter writer, PointLoader? value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, IPointLoader? value, JsonSerializer serializer)
         {
             var newLoaderInfo = new 
             { 

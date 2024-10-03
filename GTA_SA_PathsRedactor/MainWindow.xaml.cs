@@ -708,12 +708,12 @@ namespace GTA_SA_PathsRedactor
                 if (currentTopmostLoaderElem.Title == "Default")
                     globalSettings.CurrentLoader = new Services.DefaultPointLoader();
                 else
-                    globalSettings.CurrentLoader = Services.ProxyController.CreateInsanceFromAssembly<Core.PointLoader>(topmostLoader.Value.ToString(), loader.Value.ToString());
+                    globalSettings.CurrentLoader = Services.ProxyController.CreateInsanceFromAssembly<Core.IPointLoader>(topmostLoader.Value.ToString(), loader.Value.ToString());
 
                 if (currentTopmostSaverElem.Title == "Default")
                     globalSettings.CurrentSaver = new Services.DefaultPointSaver();
                 else
-                    globalSettings.CurrentSaver = Services.ProxyController.CreateInsanceFromAssembly<Core.PointSaver>(topmostSaver.Value.ToString(), saver.Value.ToString());
+                    globalSettings.CurrentSaver = Services.ProxyController.CreateInsanceFromAssembly<Core.IPointSaver>(topmostSaver.Value.ToString(), saver.Value.ToString());
             }
 
             saversAndLoadersSettingWindow = null;

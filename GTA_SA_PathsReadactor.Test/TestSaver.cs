@@ -7,7 +7,7 @@ using GTA_SA_PathsRedactor.Core.Models;
 
 namespace GTA_SA_PathsRedactor.Test
 {
-    public class TestSaver : PointSaver
+    public class TestSaver : IPointSaver
     {
         public string TestProp { get; set; }
 

@@ -57,12 +57,12 @@ namespace GTA_SA_PathsRedactor.View
                 return treeNode;
         }
 
-        public void SetStartSaver(Core.PointSaver saver)
+        public void SetStartSaver(Core.IPointSaver saver)
         {
             m_settingsVM.CurrentSaver = GetExistNode(m_settingsVM.Savers, saver.GetType());
         }
         
-        public void SetStartLoader(Core.PointLoader loader)
+        public void SetStartLoader(Core.IPointLoader loader)
         {
             m_settingsVM.CurrentLoader = GetExistNode(m_settingsVM.Loaders, loader.GetType());
         }

@@ -165,7 +165,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         private async Task LoadPathHelper(string? path)
         {
-            Core.PointLoader? pointLoader = null;
+            Core.IPointLoader? pointLoader = null;
 
             if (path == null)
             {

@@ -88,13 +88,13 @@ namespace GTA_SA_PathsRedactor
 
                 if (saverAssembly != null && saverType != null && saver != null &&
                     Services.ProxyController.ContainsAssembly(saverAssembly))
-                    gSettings.CurrentSaver = (Core.PointSaver)saver.ToObject(Services.ProxyController.GetTypeByName(saverAssembly, saverType));
+                    gSettings.CurrentSaver = (Core.IPointSaver)saver.ToObject(Services.ProxyController.GetTypeByName(saverAssembly, saverType));
                 else if (saverType == typeof(Services.DefaultPointSaver).FullName)
                     gSettings.CurrentSaver = saver.ToObject<Services.DefaultPointSaver>();
 
                 if (loaderAssembly != null && loaderType != null && loader != null &&
                     Services.ProxyController.ContainsAssembly(loaderAssembly))
-                    gSettings.CurrentLoader = (Core.PointLoader)loader.ToObject(Services.ProxyController.GetTypeByName(loaderAssembly, loaderType));
+                    gSettings.CurrentLoader = (Core.IPointLoader)loader.ToObject(Services.ProxyController.GetTypeByName(loaderAssembly, loaderType));
                 else if (loaderType == typeof(Services.DefaultPointLoader).FullName)
                     gSettings.CurrentLoader = loader.ToObject<Services.DefaultPointLoader>();
 

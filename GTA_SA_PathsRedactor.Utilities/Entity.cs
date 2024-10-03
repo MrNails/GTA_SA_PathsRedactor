@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace GTA_SA_PathsRedactor.Core
 {
-    public abstract class Entity : ObservableObject, INotifyPropertyChanged, IDataErrorInfo
+    public abstract class Entity : ObservableObject, IDataErrorInfo
     {
         protected readonly Dictionary<string, string> _errors = new();
 

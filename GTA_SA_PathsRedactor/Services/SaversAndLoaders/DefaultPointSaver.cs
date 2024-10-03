@@ -11,7 +11,7 @@ using GTA_SA_PathsRedactor.Core.Models;
 
 namespace GTA_SA_PathsRedactor.Services
 {
-    public class DefaultPointSaver : PointSaver
+    public class DefaultPointSaver : IPointSaver
     {
         private string m_fileName;
         private bool m_createBackup;
