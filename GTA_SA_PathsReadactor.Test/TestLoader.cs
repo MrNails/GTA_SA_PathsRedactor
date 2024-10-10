@@ -22,5 +22,10 @@ namespace GTA_SA_PathsRedactor.Test
 
             return new List<WorldPoint>().AsEnumerable();
         }
+
+        public void Dispose()
+        {
+            FileName = string.Empty;
+        }
     }
 }

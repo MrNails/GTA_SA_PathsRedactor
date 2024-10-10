@@ -1,16 +1,18 @@
-﻿<Window x:Class="GTA_SA_PathsRedactor.View.SaversAndLoadersSettingWindow"
+﻿<Window x:Class="GTA_SA_PathsRedactor.View.Windows.SaversAndLoadersSettingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
         xmlns:models="clr-namespace:GTA_SA_PathsRedactor.Models"
         xmlns:controls="clr-namespace:GTA_SA_PathsRedactor.Controls"
         xmlns:converters="clr-namespace:GTA_SA_PathsRedactor.Services.Converters"
         mc:Ignorable="d"
         x:Name="SaverAndLoaderSettingWindow"
-        Title="Savers and loaders setting" MinHeight="600" MinWidth="1100"
-        Loaded="SaverAndLoaderSettingWindow_Loaded">
+        Title="Savers and loaders setting" 
+        MinHeight="600"
+        MinWidth="1100"
+        Loaded="SaverAndLoaderSettingWindow_Loaded"
+        Closing="SaversAndLoadersSettingWindow_OnClosing">
     <Window.Resources>
         <converters:ClassNameConverter x:Key="ClassNameConverter"/>
         

@@ -1,25 +1,19 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Documents;
 using GTA_SA_PathsRedactor.Services;
 
-namespace GTA_SA_PathsRedactor.View
+namespace GTA_SA_PathsRedactor.View.Windows
 {
     /// <summary>
     /// Interaction logic for About.xaml
     /// </summary>
     public partial class AboutWindow : Window
     {
-        private static AboutWindow? s_existWindow;
-
         public AboutWindow()
         {
             InitializeComponent();
-
-            if (s_existWindow == null)
-                s_existWindow = this;
 
             LoadAssemblyInfo();
         }
@@ -53,9 +47,7 @@ namespace GTA_SA_PathsRedactor.View
             else
                 DescriptionTextBlock.Text = assemblyInfo.Description;
         }
-
-        public static AboutWindow? ExistWindow => s_existWindow;
-
+        
         private void OpenLinkInBrowser(string url)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -64,12 +56,6 @@ namespace GTA_SA_PathsRedactor.View
                 Process.Start("xdg-open", url);
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 Process.Start("open", url);
-        }
-
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            if (s_existWindow == this)
-                s_existWindow = null;
         }
 
         private void GitHubLink_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)

@@ -1,7 +1,6 @@
 ﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GTA_SA_PathsRedactor.Core;
-using GTA_SA_PathsRedactor.Models;
 using GTA_SA_PathsRedactor.Services.SaversAndLoaders;
 
 namespace GTA_SA_PathsRedactor.Services;

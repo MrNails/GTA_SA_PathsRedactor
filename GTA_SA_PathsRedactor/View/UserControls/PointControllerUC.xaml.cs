@@ -1,74 +1,65 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using GTA_SA_PathsRedactor.Services;
 
 namespace GTA_SA_PathsRedactor.View
 {
     /// <summary>
-    /// Логика взаимодействия для PointControllerUC.xaml
+    /// Interaction logic for PointControllerUC.xaml
     /// </summary>
     public partial class PointControllerUC : UserControl
     {
-        private ViewModel.PathVM m_pathVM;
+        private ViewModel.PathViewModel _pathViewModel;
 
-        public PointControllerUC() : this(new ViewModel.PathVM())
-        { }
-        public PointControllerUC(ViewModel.PathVM pathVM)
+        public PointControllerUC()
+        {
+            InitializeComponent();
+        }
+        public PointControllerUC(ViewModel.PathViewModel pathViewModel)
         {
             InitializeComponent();
 
-            PathVM = pathVM;
+            PathViewModel = pathViewModel;
 
-            if (pathVM.CurrentPath != null)
+            if (pathViewModel.CurrentPath != null)
             {
-                PathColorCP.SelectedColor = pathVM.CurrentPath.Color;
+                PathColorCP.SelectedColor = pathViewModel.CurrentPath.Color;
             }
 
-            DataContext = PathVM;
+            DataContext = PathViewModel;
 
-            PathVM.PropertyChanged += PathVM_PropertyChanged;
+            PathViewModel.PropertyChanged += PathViewModelPropertyChanged;
 
             PathColorCP.SelectedColorChagned += PathColorCP_SelectedColorChagned;
         }
 
-        public ViewModel.PathVM PathVM
+        public ViewModel.PathViewModel PathViewModel
         {
-            get { return m_pathVM; }
+            get { return _pathViewModel; }
             set
             {
-                if (m_pathVM != null)
+                if (_pathViewModel != null)
                 {
-                    m_pathVM.PathSelected -= ChangeSelection_PathSelected;
+                    _pathViewModel.PathSelected -= ChangeSelection_PathSelected;
                 }
 
-                m_pathVM = value;
+                _pathViewModel = value;
                 DataContext = value;
 
-                m_pathVM.PathSelected += ChangeSelection_PathSelected;
+                _pathViewModel.PathSelected += ChangeSelection_PathSelected;
             }
         }
 
-        private void PathVM_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void PathViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "CurrentPathIndex" && m_pathVM.CurrentPathIndex != -1)
+            if (e.PropertyName == "CurrentPathIndex" && _pathViewModel.CurrentPathIndex != -1)
             {
-                PathColorCP.SelectedColor = m_pathVM.CurrentPath.Color;
+                PathColorCP.SelectedColor = _pathViewModel.CurrentPath.Color;
             }
         }
 
-        private void ChangeSelection_PathSelected(ViewModel.PathVM sender, Services.PathSelectionArgs e)
+        private void ChangeSelection_PathSelected(ViewModel.PathViewModel sender, Services.PathSelectionArgs e)
         {
             AvailablePathsListBox.UpdateLayout();
 
@@ -113,8 +104,8 @@ namespace GTA_SA_PathsRedactor.View
 
         private void PathColorCP_SelectedColorChagned(object sender, RoutedPropertyChangedEventArgs<SolidColorBrush> e)
         {
-            if (m_pathVM.CurrentPath != null)
-                m_pathVM.CurrentPath.Color.Color = PathColorCP.SelectedColor.Color;
+            if (_pathViewModel.CurrentPath != null)
+                _pathViewModel.CurrentPath.Color.Color = PathColorCP.SelectedColor.Color;
         }
     }
 }

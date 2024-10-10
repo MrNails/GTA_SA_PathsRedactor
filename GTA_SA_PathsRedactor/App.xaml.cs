@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using GTA_SA_PathsRedactor.IoC;
 using GTA_SA_PathsRedactor.Models;
 using GTA_SA_PathsRedactor.Services;
 using GTA_SA_PathsRedactor.Services.Wrappers;
@@ -30,7 +31,7 @@ namespace GTA_SA_PathsRedactor
                 Shutdown();
             }
 
-            ServiceProvider = ConfigureIoC();
+            ServiceProvider = IoCConfig.ConfigureIoC();
 
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             Startup += App_Startup;
@@ -38,22 +39,6 @@ namespace GTA_SA_PathsRedactor
         }
 
         public IServiceProvider ServiceProvider { get; }
-
-        private IServiceProvider ConfigureIoC()
-        {
-            var serviceCollection = new ServiceCollection();
-            var loggerService = new LoggerService();
-            Log.Logger = loggerService.CreateLogger();
-
-            serviceCollection.AddTransient<ILogger>(_ => loggerService.CreateLogger());
-
-            serviceCollection.AddSingleton<SettingsService>();
-            serviceCollection.AddSingleton<ProxyController>();
-            serviceCollection.AddSingleton<DataToStorageService>();
-            serviceCollection.AddSingleton<GlobalSettings>(serviceProvider => serviceProvider.GetService<SettingsService>()!.GetDefaultSettings<GlobalSettings>());
-
-            return serviceCollection.BuildServiceProvider();
-        }
 
         private void App_Exit(object sender, ExitEventArgs e)
         {
@@ -70,6 +55,9 @@ namespace GTA_SA_PathsRedactor
 
         private void App_Startup(object sender, StartupEventArgs e)
         {
+            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+            
             var path = Path.Combine(Environment.CurrentDirectory, "PointManipulationsDLLs.json");
             var projectData = new ProjectDataService(ServiceProvider);
             var json = string.Empty;

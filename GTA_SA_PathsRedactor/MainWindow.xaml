@@ -3,11 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GTA_SA_PathsRedactor"
         xmlns:services="clr-namespace:GTA_SA_PathsRedactor.Services"
         mc:Ignorable="d"
         Title="Main window" Height="1024" Width="1280" ResizeMode="CanMinimize"
-        MouseWheel="Window_MouseWheel" KeyDown="Window_KeyDown" KeyUp="Window_KeyUp">
+        Loaded="MainWindow_OnLoaded"
+        MouseWheel="Window_MouseWheel" 
+        KeyDown="Window_KeyDown" 
+        KeyUp="Window_KeyUp">
     <Window.CommandBindings>
         <CommandBinding Command="services:DefaultCommands.Undo" Executed="Undo"/>
         <CommandBinding Command="services:DefaultCommands.Redo" Executed="Redo"/>
@@ -41,12 +43,6 @@
                 <MenuItem Header="Save as" Command="services:DefaultCommands.SaveCurrentPathAs" InputGestureText="Ctrl + Shift + S"/>
             </MenuItem>
             <MenuItem Header="Settings">
-                <MenuItem Header="Program resolutions">
-                    <MenuItem Header="1080x850" Click="ResolutionChange_Click"/>
-                    <MenuItem Header="1280x1024" Click="ResolutionChange_Click"/>
-                    <MenuItem Header="1680x1050" Click="ResolutionChange_Click"/>
-                    <MenuItem Header="1920x1080" Click="ResolutionChange_Click"/>
-                </MenuItem>
                 <MenuItem Header="Path transform settings" Click="PathTransorm_Click"/>
                 <MenuItem Header="Loaders and savers information" Click="PointStoreSettingsMenuItem_Click"/>
             </MenuItem>

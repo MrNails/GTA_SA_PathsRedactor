@@ -12,7 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using CommunityToolkit.Mvvm.Input;
-using GTA_SA_PathsRedactor.Services.SaversAndLoaders;
+using GTA_SA_PathsRedactor.View.Windows;
+using GTA_SA_PathsRedactor.ViewModel;
 
 namespace GTA_SA_PathsRedactor
 {
@@ -31,10 +32,10 @@ namespace GTA_SA_PathsRedactor
         private Point m_oldConainerMousePos;
         private Point m_selectionRectangleOldMousePos;
 
-        private ViewModel.PathVM m_pathVM;
+        private ViewModel.PathViewModel? _pathViewModel;
         private WorldPoint? m_oldPoint;
 
-        private Dictionary<ViewModel.PathEditor, Services.HistoryController> m_pathHistory;
+        private Dictionary<ViewModel.PathEditorViewModel, Services.HistoryController> m_pathHistory;
 
         private UserControl[] m_userControls;
 
@@ -43,8 +44,7 @@ namespace GTA_SA_PathsRedactor
 
         public MainWindow()
         {
-            m_pathVM = new ViewModel.PathVM();
-            m_pathHistory = new Dictionary<ViewModel.PathEditor, Services.HistoryController>();
+            m_pathHistory = new Dictionary<ViewModel.PathEditorViewModel, Services.HistoryController>();
 
             InitializeComponent();
             LoadImage();
@@ -54,13 +54,11 @@ namespace GTA_SA_PathsRedactor
             m_mouseDown = false;
 
             MapContainer.Focusable = true;
-
-            this.DataContext = m_pathVM;
         }
 
         private void InitializeAdditionalComponent()
         {
-            var mainUC = new View.PointControllerUC(m_pathVM);
+            var mainUC = new View.PointControllerUC(_pathViewModel);
             var pathSettingUc = new View.PointTransformationUC();
 
             mainUC.VerticalAlignment = VerticalAlignment.Top;
@@ -89,7 +87,7 @@ namespace GTA_SA_PathsRedactor
 
             MainField.RenderTransform = tGroup;
 
-            m_pathVM.PathAdded += (s, arg) =>
+            _pathViewModel.PathAdded += (s, arg) =>
             {
                 arg.DotsMouseDown += DotClicked_MouseDown;
                 arg.LinesMouseDown += LinesMouseDown;
@@ -98,7 +96,7 @@ namespace GTA_SA_PathsRedactor
 
                 MainField.Children.Add(arg.WorkField);
             };
-            m_pathVM.PathRemoved += (s, arg) =>
+            _pathViewModel.PathRemoved += (s, arg) =>
             {
                 arg.DotsMouseDown -= DotClicked_MouseDown;
                 arg.LinesMouseDown -= LinesMouseDown;
@@ -107,8 +105,8 @@ namespace GTA_SA_PathsRedactor
 
                 MainField.Children.Remove(arg.WorkField);
             };
-            m_pathVM.PathSelected += PathSelected;
-            m_pathVM.MapCleared += (s, arg) =>
+            _pathViewModel.PathSelected += PathSelected;
+            _pathViewModel.MapCleared += (s, arg) =>
             {
 
             };
@@ -191,7 +189,7 @@ namespace GTA_SA_PathsRedactor
             }
         }
 
-        private void PathSelected(ViewModel.PathVM pathVM, Services.PathSelectionArgs e)
+        private void PathSelected(ViewModel.PathViewModel pathViewModel, Services.PathSelectionArgs e)
         {
             if (e.Path == null)
                 return;
@@ -219,7 +217,7 @@ namespace GTA_SA_PathsRedactor
 
         private void RemoveSelectedPoints()
         {
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
 
             if (currentPath != null && currentPath.SelectedDots.Count != 0)
             {
@@ -231,82 +229,6 @@ namespace GTA_SA_PathsRedactor
 
                 m_pathHistory[currentPath].AddNew(new VOGroupState(voStates, Services.State.Deleted));
             }
-        }
-
-        private void SetNewResolution(Resolution resolution)
-        {
-            switch (resolution)
-            {
-                case Resolution._1080x850:
-                    SetNewResolution(1080, 850);
-                    break;
-                case Resolution._1280x1024:
-                    SetNewResolution(1280, 1024);
-                    break;
-                case Resolution._1680x1050:
-                    SetNewResolution(1680, 1050);
-                    break;
-                case Resolution._1920x1080:
-                    SetNewResolution(1920, 1080);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void SetNewResolution(double width, double height)
-        {
-            // this.Width = width;
-            // this.Height = height;
-            //
-            // var gTransform = ((TransformGroup)m_userControls[0].LayoutTransform);
-            // var gSettings = GlobalSettings.GetInstance();
-            //
-            // if (m_gSettingPropChanged)
-            // {
-            //     ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
-            //
-            //     if (gSettings.Resolution == Resolution._1080x850)
-            //         ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
-            //
-            //     return;
-            // }
-            //
-            // ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
-            //
-            // switch (width)
-            // {
-            //     case 1080:
-            //         gSettings.Resolution = Resolution._1080x850;
-            //
-            //         ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
-            //         break;
-            //     case 1280:
-            //         gSettings.Resolution = Resolution._1280x1024;
-            //         break;
-            //     case 1680:
-            //         gSettings.Resolution = Resolution._1680x1050;
-            //         break;
-            //     case 1920:
-            //         gSettings.Resolution = Resolution._1920x1080;
-            //         break;
-            //     default:
-            //         break;
-            // }
-        }
-
-        private void MainWindow_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            var gSettings = (GlobalSettings)sender;
-
-            m_gSettingPropChanged = true;
-
-            if (e.PropertyName == "Resolution")
-            {
-                SetNewResolution(gSettings.Resolution);
-            }
-
-            m_gSettingPropChanged = false;
         }
 
         private void Window_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -342,9 +264,9 @@ namespace GTA_SA_PathsRedactor
                 ResetSelectionRectangle();
             }
 
-            if (m_pointMoveMode && m_oldPoint != null && m_pathVM.CurrentPath.CurrentObject != null)
+            if (m_pointMoveMode && m_oldPoint != null && _pathViewModel.CurrentPath.CurrentObject != null)
             {
-                m_pathHistory[m_pathVM.CurrentPath].AddNew(new VOState(m_pathVM.CurrentPath.CurrentObject, m_oldPoint));
+                m_pathHistory[_pathViewModel.CurrentPath].AddNew(new VOState(_pathViewModel.CurrentPath.CurrentObject, m_oldPoint));
                 m_oldPoint = null;
             }
 
@@ -376,8 +298,8 @@ namespace GTA_SA_PathsRedactor
                 Canvas.SetLeft(m_selectionRectangle, m_selectionRectangleOldMousePos.X);
                 m_selectionRectangle.Visibility = Visibility.Visible;
 
-                if (m_pathVM.CurrentPath != null)
-                    m_pathVM.CurrentPath.MultipleSelectionMode = true;
+                if (_pathViewModel.CurrentPath != null)
+                    _pathViewModel.CurrentPath.MultipleSelectionMode = true;
             }
             else if (m_pressedKey == Key.LeftShift && e.LeftButton == MouseButtonState.Pressed)
             {
@@ -400,12 +322,12 @@ namespace GTA_SA_PathsRedactor
             Point currentPos = e.GetPosition(MainField);
             Point currentContainerPos = e.GetPosition(MapContainer);
 
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
 
             if (m_pointMoveMode && currentPath.CurrentObject != null)
             {
                 if (m_oldPoint == null)
-                    m_oldPoint = (WorldPoint)m_pathVM.CurrentPath.CurrentObject?.Point.Clone();
+                    m_oldPoint = (WorldPoint)_pathViewModel.CurrentPath.CurrentObject?.Point.Clone();
 
                 currentPath.CurrentObject.Point.X = (float)currentPos.X;
                 currentPath.CurrentObject.Point.Y = (float)currentPos.Y;
@@ -480,11 +402,11 @@ namespace GTA_SA_PathsRedactor
             MapContainer.Focus();
 
             var mainFieldSTransform = (ScaleTransform)((TransformGroup)MainField.RenderTransform).Children[0];
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
 
-            if (m_pointMoveMode && m_oldPoint != null && m_pathVM.CurrentPath.CurrentObject != null)
+            if (m_pointMoveMode && m_oldPoint != null && _pathViewModel.CurrentPath.CurrentObject != null)
             {
-                m_pathHistory[m_pathVM.CurrentPath].AddNew(new VOState(m_pathVM.CurrentPath.CurrentObject, m_oldPoint));
+                m_pathHistory[_pathViewModel.CurrentPath].AddNew(new VOState(_pathViewModel.CurrentPath.CurrentObject, m_oldPoint));
                 m_oldPoint = null;
             }
 
@@ -550,7 +472,7 @@ namespace GTA_SA_PathsRedactor
         {
             if (sender is VisualObject vOject)
             {
-                var currentPath = m_pathVM.CurrentPath;
+                var currentPath = _pathViewModel.CurrentPath;
 
                 currentPath.CurrentObject = vOject;
                 vOject.IsSelected = !vOject.IsSelected;
@@ -583,22 +505,6 @@ namespace GTA_SA_PathsRedactor
             }
         }
 
-        private void ResolutionChange_Click(object sender, RoutedEventArgs e)
-        {
-            MenuItem? menuItem = sender as MenuItem;
-
-            if (menuItem != null)
-            {
-                string[] resolution = menuItem.Header.ToString().Split('x', StringSplitOptions.RemoveEmptyEntries);
-                int width, height;
-
-                if (int.TryParse(resolution[0], out width) && int.TryParse(resolution[1], out height))
-                {
-                    SetNewResolution(width, height);
-                }
-            }
-        }
-
         private void PathTransorm_Click(object sender, RoutedEventArgs e)
         {
             UserContentContainer.Child = m_userControls[1];
@@ -608,7 +514,7 @@ namespace GTA_SA_PathsRedactor
         {
             var point = new WorldPoint((float)m_oldMousePos.X, (float)m_oldMousePos.Y, 0, false);
             var dot = new DotVisual(point);
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
 
             // var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
@@ -623,7 +529,7 @@ namespace GTA_SA_PathsRedactor
         {
             var point = new WorldPoint((float)m_oldMousePos.X, (float)m_oldMousePos.Y, 0, false);
             var line = m_lineContextMenu.PlacementTarget as LineVisual;
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
             var dot = new DotVisual(point);
             // var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
@@ -639,7 +545,7 @@ namespace GTA_SA_PathsRedactor
 
             if (insertIndex != -1)
             {
-                m_pathHistory[m_pathVM.CurrentPath].AddNew(new VOState(dot, null, insertIndex, Services.State.Added));
+                m_pathHistory[_pathViewModel.CurrentPath].AddNew(new VOState(dot, null, insertIndex, Services.State.Added));
 
                 DebugTextBlock.Text = insertIndex.ToString();
 
@@ -649,7 +555,7 @@ namespace GTA_SA_PathsRedactor
         private void RemovePoint_Click(object sender, RoutedEventArgs e)
         {
             var dot = m_dotContextMenu.PlacementTarget as VisualObject;
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
 
             m_pathHistory[currentPath].AddNew(new VOState(dot, null, currentPath.IndexOf(dot), Services.State.Deleted));
 
@@ -672,7 +578,7 @@ namespace GTA_SA_PathsRedactor
 
                     foreach (var file in files)
                     {
-                        m_pathVM.LoadPath.Execute(file);
+                        _pathViewModel.LoadPath.Execute(file);
                     }
 
                     e.Handled = true;
@@ -723,7 +629,7 @@ namespace GTA_SA_PathsRedactor
 
         private void Undo(object sender, ExecutedRoutedEventArgs e)
         {
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
 
             if (currentPath != null)
             {
@@ -778,7 +684,7 @@ namespace GTA_SA_PathsRedactor
         }
         private void Redo(object sender, ExecutedRoutedEventArgs e)
         {
-            var currentPath = m_pathVM.CurrentPath;
+            var currentPath = _pathViewModel.CurrentPath;
 
             if (currentPath != null)
             {
@@ -838,42 +744,44 @@ namespace GTA_SA_PathsRedactor
 
         private void SaveCurrentPath(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!m_pathVM.SaveCurrentPath.CanExecute(null))
+            if (!_pathViewModel.SaveCurrentPath.CanExecute(null))
                 return;
 
-            m_pathVM.SaveCurrentPath.Execute(null);
+            _pathViewModel.SaveCurrentPath.Execute(null);
 
-            var history = m_pathHistory[m_pathVM.CurrentPath];
+            var history = m_pathHistory[_pathViewModel.CurrentPath];
 
             if (history.CurrentPosition != -1)
                 history.SetNewOverloadThresholdElem(history.CurrentPosition);
         }
         private void SaveCurrentPathAs(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!m_pathVM.SaveCurrentPath.CanExecute(null))
+            if (!_pathViewModel.SaveCurrentPath.CanExecute(null))
                 return;
 
-            m_pathVM.SaveCurrentPathAs.Execute(null);
+            _pathViewModel.SaveCurrentPathAs.Execute(null);
 
-            var history = m_pathHistory[m_pathVM.CurrentPath];
+            var history = m_pathHistory[_pathViewModel.CurrentPath];
 
             if (history.CurrentPosition != -1)
                 history.SetNewOverloadThresholdElem(history.CurrentPosition);
         }
 
         private void Help(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (View.HelpWindow.ExistWindow == null)
-                new View.HelpWindow().Show();
-            else
-                View.HelpWindow.ExistWindow.Activate();
+        { 
+            new HelpWindow().Show();
         }
         private void About(object sender, RoutedEventArgs e)
+        { 
+            new AboutWindow().Show();
+        }
+
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
-            if (View.AboutWindow.ExistWindow == null)
-                new View.AboutWindow().Show();
-            else
-                View.AboutWindow.ExistWindow.Activate();
+            if (_pathViewModel is null)
+            {
+                _pathViewModel = (PathViewModel)DataContext;
+            }
         }
     }
 }

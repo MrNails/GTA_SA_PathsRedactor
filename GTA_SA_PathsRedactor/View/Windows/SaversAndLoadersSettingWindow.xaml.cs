@@ -8,27 +8,21 @@ using System.Windows.Input;
 using GTA_SA_PathsRedactor.Models;
 using GTA_SA_PathsRedactor.Services;
 using GTA_SA_PathsRedactor.ViewModel;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace GTA_SA_PathsRedactor.View
+namespace GTA_SA_PathsRedactor.View.Windows
 {
     /// <summary>
-    /// Логика взаимодействия для SaversAndLoadersSettingWindow.xaml
+    /// Interaction logic for SaversAndLoadersSettingWindow.xaml
     /// </summary>
     public partial class SaversAndLoadersSettingWindow : Window
     {
-        private readonly PointStoreSettingsViewModel _settingsViewModel;
+        private PointStoreSettingsViewModel? _settingsViewModel;
 
         private bool _isUiChange;
 
         public SaversAndLoadersSettingWindow()
         {
             InitializeComponent();
-
-            _settingsViewModel = new PointStoreSettingsViewModel(((App)App.Current).ServiceProvider.GetService<ProxyController>()!);
-            _settingsViewModel.PropertyChanged += PointStoreSettingsPropertyChanged;
-
-            DataContext = _settingsViewModel;
         }
 
         public TreeNodeWithItem SelectedSaver => _settingsViewModel.CurrentSaver;
@@ -50,7 +44,7 @@ namespace GTA_SA_PathsRedactor.View
         {
             _settingsViewModel.CurrentSaver = GetExistNode(_settingsViewModel.Savers, saver.GetType());
         }
-        
+
         public void SetStartLoader(Core.IPointLoader loader)
         {
             _settingsViewModel.CurrentLoader = GetExistNode(_settingsViewModel.Loaders, loader.GetType());
@@ -90,6 +84,12 @@ namespace GTA_SA_PathsRedactor.View
 
         private void SaverAndLoaderSettingWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            if (_settingsViewModel is null)
+            {
+                _settingsViewModel = (PointStoreSettingsViewModel)DataContext;
+                _settingsViewModel.PropertyChanged += PointStoreSettingsPropertyChanged;
+            }
+
             SelectItemInTreeView(SaversTreeView, _settingsViewModel.CurrentSaver);
             SelectItemInTreeView(LoadersTreeView, _settingsViewModel.CurrentLoader);
         }
@@ -166,13 +166,19 @@ namespace GTA_SA_PathsRedactor.View
 
         private void AcceptButton_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true;
-            this.Close();
+            DialogResult = true;
+            Close();
         }
 
         private void TreeViewClick(object sender, MouseButtonEventArgs e)
         {
             _isUiChange = true;
+        }
+
+        private void SaversAndLoadersSettingWindow_OnClosing(object? sender, CancelEventArgs e)
+        {
+            if (_settingsViewModel is not null)
+                _settingsViewModel.PropertyChanged -= PointStoreSettingsPropertyChanged;
         }
     }
 }

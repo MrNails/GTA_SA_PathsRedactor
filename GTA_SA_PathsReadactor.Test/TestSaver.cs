@@ -21,5 +21,10 @@ namespace GTA_SA_PathsRedactor.Test
             System.Diagnostics.Debug.WriteLine($"TestSaver Invoked SaveAsync(IEnumerable<GTA_SA_Point>, CancellationToken) ({DateTime.Now})");
             return Task.Delay(1000, cancellationToken);
         }
+        
+        public void Dispose()
+        {
+            FileName = string.Empty;
+        }
     }
 }

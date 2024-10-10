@@ -13,7 +13,7 @@ using Microsoft.Win32;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    public class PointTransformVM : INotifyPropertyChanged
+    public class PointTransformViewModel : INotifyPropertyChanged
     {
         private int m_currentPointTransformDataIndex;
 
@@ -28,7 +28,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public PointTransformVM()
+        public PointTransformViewModel()
         {
             m_pointsTransformationDatas = new ObservableCollection<PointTransformationData>();
             m_pointsTransformationDatas.CollectionChanged += PointsTransformationData_CollectionChanged;

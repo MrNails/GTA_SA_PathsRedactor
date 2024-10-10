@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    public class PathEditor : Core.Entity
+    public class PathEditorViewModel : Core.Entity
     {
         private static readonly Color s_defaultLinesColor;
 
@@ -37,15 +37,15 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         protected Canvas m_workField;
 
-        static PathEditor()
+        static PathEditorViewModel()
         {
             s_defaultLinesColor = Colors.Red;
         }
 
-        public PathEditor(string pathName)
+        public PathEditorViewModel(string pathName)
             : this(pathName, new SolidColorBrush(s_defaultLinesColor))
         { }
-        public PathEditor(string pathName, SolidColorBrush linesColor)
+        public PathEditorViewModel(string pathName, SolidColorBrush linesColor)
         {
             m_workField = new Canvas();
 

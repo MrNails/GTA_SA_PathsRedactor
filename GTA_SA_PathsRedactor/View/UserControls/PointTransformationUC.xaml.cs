@@ -10,17 +10,17 @@ namespace GTA_SA_PathsRedactor.View
     /// </summary>
     public partial class PointTransformationUC : UserControl
     {
-        private ViewModel.PointTransformVM m_pointTransformVM;
+        private ViewModel.PointTransformViewModel _pointTransformViewModel;
 
         public PointTransformationUC()
         {
             InitializeComponent();
 
-            m_pointTransformVM = new ViewModel.PointTransformVM();
+            _pointTransformViewModel = new ViewModel.PointTransformViewModel();
 
             // m_pointTransformVM.AddNewPointTransformationData(GlobalSettings.GetInstance().PTD);
 
-            this.DataContext = m_pointTransformVM;
+            this.DataContext = _pointTransformViewModel;
         }
 
         public void AddGoToHomeCommand(RelayCommand goToMainMenu)
@@ -30,7 +30,7 @@ namespace GTA_SA_PathsRedactor.View
                 throw new ArgumentNullException("goToMainMenu");
             }
 
-            m_pointTransformVM.GoToMainMenu = goToMainMenu;
+            _pointTransformViewModel.GoToMainMenu = goToMainMenu;
         }
     }
 }
