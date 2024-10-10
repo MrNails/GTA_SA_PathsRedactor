@@ -7,62 +7,41 @@ using System.Threading.Tasks;
 using GTA_SA_PathsRedactor.Core;
 using GTA_SA_PathsRedactor.Core.Models;
 
-namespace GTA_SA_PathsRedactor.Services 
+namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders 
 {
-    public class DefaultPointLoader : IPointLoader
+    public sealed class DefaultPointLoader : IPointLoader
     {
-        private string m_fileName;
-        private bool m_disposed;
+        private string _fileName = string.Empty;
+        private bool _disposed;
 
-        public DefaultPointLoader() : this(string.Empty)
-        {}
-        public DefaultPointLoader(string fileName)
+        public string FileName
         {
-            FileName = fileName;
-        }
-
-        public override string FileName
-        {
-            get { return m_fileName; }
+            get => _fileName;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException("value");
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(DefaultPointLoader));
 
-                if (m_disposed)
-                    throw new ObjectDisposedException("PointSaverLoader");
-
-                m_fileName = value;
+                _fileName = string.IsNullOrWhiteSpace(value) 
+                    ? throw new ArgumentNullException(nameof(value))
+                    : value;
             }
         }
-
-        public override void Dispose()
+        
+        public async Task<IEnumerable<WorldPoint>> LoadAsync(CancellationToken cancellationToken = default)
         {
-            base.Dispose();
-
-            m_disposed = true;
-
-            m_fileName = string.Empty;
-        }
-
-        public override Task<IEnumerable<WorldPoint>> LoadAsync()
-        {
-            return LoadAsync(CancellationToken.None);
-        }
-        public override async Task<IEnumerable<WorldPoint>> LoadAsync(CancellationToken cancellationToken)
-        {
-            if (m_disposed)
+            if (_disposed)
             {
-                throw new ObjectDisposedException("PointSaverLoader");
+                throw new ObjectDisposedException(nameof(DefaultPointLoader));
             }
 
             if (!File.Exists(FileName))
             {
-                throw new DirectoryNotFoundException("Wrong file path.");
+                throw new FileNotFoundException("Wrong file path.");
             }
 
             WorldPoint[]? points = null;
-            string filePath = m_fileName;
+            string filePath = _fileName;
             char[] splitCharacters = new char[] { ' ' };
             int lineNumber = 0;
 
@@ -94,12 +73,12 @@ namespace GTA_SA_PathsRedactor.Services
                         }
                         else
                         {
-                            double x, y, z;
+                            float x, y, z;
                             int isStop;
 
-                            if (double.TryParse(currentLine[0], NumberStyles.Float | NumberStyles.AllowTrailingSign, CultureInfo.InvariantCulture, out x) &&
-                                double.TryParse(currentLine[1], NumberStyles.Float | NumberStyles.AllowTrailingSign, CultureInfo.InvariantCulture, out y) &&
-                                double.TryParse(currentLine[2], NumberStyles.Float | NumberStyles.AllowTrailingSign, CultureInfo.InvariantCulture, out z) &&
+                            if (float.TryParse(currentLine[0], NumberStyles.Float | NumberStyles.AllowTrailingSign, CultureInfo.InvariantCulture, out x) &&
+                                float.TryParse(currentLine[1], NumberStyles.Float | NumberStyles.AllowTrailingSign, CultureInfo.InvariantCulture, out y) &&
+                                float.TryParse(currentLine[2], NumberStyles.Float | NumberStyles.AllowTrailingSign, CultureInfo.InvariantCulture, out z) &&
                                 int.TryParse(currentLine[3], out isStop))
                             {
 
@@ -119,6 +98,12 @@ namespace GTA_SA_PathsRedactor.Services
             }
 
             return points;
+        }
+
+        public void Dispose()
+        {
+            _disposed = true;
+            _fileName = string.Empty;
         }
     }
 }

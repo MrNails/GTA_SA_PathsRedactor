@@ -2,90 +2,77 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.Loader;
 
 namespace GTA_SA_PathsRedactor.Services
 {
-    public static class ProxyController
+    public sealed class ProxyController
     {
-        private static readonly List<Assembly> assemblies;
+        private readonly List<Assembly> _assemblies;
 
-        private static readonly object _loker;
-
-        static ProxyController()
+        public ProxyController()
         {
-            _loker = new object();
-
-            assemblies = new List<Assembly>();
+            _assemblies = new List<Assembly>();
         }
 
-        public static ReadOnlyCollection<string> AssembliesFullNames => new ReadOnlyCollection<string>(assemblies.Select(assembly => assembly.FullName).ToList());
+        public IEnumerable<string> AssembliesFullNames => _assemblies.Select(assembly => assembly.FullName!);
 
-        public static ReadOnlyCollection<Assembly> Assemblies { get => assemblies.AsReadOnly(); }
+        public ReadOnlyCollection<Assembly> Assemblies => _assemblies.AsReadOnly();
 
-        public static Assembly AddAssembly(string assemblyPath)
+        public Assembly AddAssembly(string assemblyPath)
         {
-            lock (_loker)
-            {
-                var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
-                var existAssembly = assemblies.FirstOrDefault(_assembly => _assembly.FullName == assembly.FullName);
+            var loadedAssembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
+            var existAssembly = _assemblies.FirstOrDefault(assembly => assembly.FullName == loadedAssembly.FullName);
 
-                if (existAssembly != null)
-                    return existAssembly;
+            if (existAssembly != null)
+                return existAssembly;
 
-                assemblies.Add(assembly);
+            _assemblies.Add(loadedAssembly);
 
-
-                return assembly;
-            }
+            return loadedAssembly;
         }
 
-        public static Type? GetTypeByName(string assemblyFullName, string typeFullName)
+        public Type? GetTypeByName(string assemblyFullName, string typeFullName)
         {
-            return assemblies.Where(assembly => assembly.FullName == assemblyFullName).FirstOrDefault()?.GetType(typeFullName);
+            return _assemblies.FirstOrDefault(assembly => assembly.FullName == assemblyFullName)
+                ?.GetType(typeFullName);
         }
 
-        public static bool RemoveAssembly(string assemblyFullName)
+        public bool RemoveAssembly(string assemblyFullName)
         {
-            lock (_loker)
-            {
-                var assembly = assemblies.FirstOrDefault(_assembly => _assembly.FullName == assemblyFullName);
-
-                if (assembly == null)
-                    return false;
-
-                assemblies.Remove(assembly);
-
-                return true;
-            }
-        }
-
-        public static bool ContainsAssembly(string assemblyFullName)
-        {
-            return assemblies.Where(assembly => assembly.FullName == assemblyFullName).Any();
-        }
-
-        public static TResult CreateInsanceFromAssembly<TResult>(string assemblyFullName, string typeName)
-        {
-            var assembly = assemblies.FirstOrDefault(_assembly => _assembly.FullName == assemblyFullName);
-
-            return (TResult)assembly?.CreateInstance(typeName);
-        }
-
-        public static Type[] GetDerivedTypesFromAssembly(string assemblyFullName, Type baseType)
-        {
-            var assembly = assemblies.FirstOrDefault(_assembly => _assembly.FullName == assemblyFullName);
+            var assembly = _assemblies.FirstOrDefault(assembly => assembly.FullName == assemblyFullName);
 
             if (assembly == null)
-                return Array.Empty<Type>();
+                return false;
 
-            
+            _assemblies.Remove(assembly);
+
+            return true;
+        }
+
+        public bool ContainsAssembly(string assemblyFullName)
+        {
+            return _assemblies.Any(assembly => assembly.FullName == assemblyFullName);
+        }
+
+        public TResult? CreateInstanceFromAssembly<TResult>(string assemblyFullName, string typeName)
+        {
+            var assembly = _assemblies.FirstOrDefault(assembly => assembly.FullName == assemblyFullName);
+
+            return (TResult?)assembly?.CreateInstance(typeName);
+        }
+
+        public Type[] GetDerivedTypesFromAssembly(string assemblyFullName, Type baseType)
+        {
+            var assembly = _assemblies.FirstOrDefault(assembly => assembly.FullName == assemblyFullName);
+
+            if (assembly == null)
+                return [];
+
             var derivedTypes = assembly.GetTypes()
-                                       .Where(type => type.BaseType == baseType)
-                                       .ToArray();
+                                             .Where(type => type.BaseType == baseType)
+                                             .ToArray();
 
             return derivedTypes;
         }

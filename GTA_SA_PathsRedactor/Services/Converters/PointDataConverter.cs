@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
+using GTA_SA_PathsRedactor.Models;
 
 namespace GTA_SA_PathsRedactor.Services.Converters
 {
-    public class PointDataConverter : IValueConverter
+    public sealed class PointDataConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (parameter == null)
                 return value;
 
-            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+            var currentPTD = (PointTransformationData?)null; //GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
             if (currentPTD == null)
                 return value;
@@ -40,7 +41,7 @@ namespace GTA_SA_PathsRedactor.Services.Converters
             if (parameter == null)
                 return value;
 
-            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+            var currentPTD = (PointTransformationData?)null; //GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
             if (currentPTD == null)
                 return value;

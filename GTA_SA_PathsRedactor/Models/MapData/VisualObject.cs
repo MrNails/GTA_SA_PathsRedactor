@@ -92,8 +92,8 @@ namespace GTA_SA_PathsRedactor.Models
             int horizontallyInvert = pointTransformationData.InvertHorizontally ? -1 : 1;
             int verticallyInvert = pointTransformationData.InvertVertically ? -1 : 1;
 
-            Point.X = horizontallyInvert * OriginPoint.X / pointTransformationData.PointScaleX + pointTransformationData.OffsetX;
-            Point.Y = verticallyInvert * OriginPoint.Y / pointTransformationData.PointScaleY + pointTransformationData.OffsetY;
+            Point.X = (float)(horizontallyInvert * OriginPoint.X / pointTransformationData.PointScaleX + pointTransformationData.OffsetX);
+            Point.Y = (float)(verticallyInvert * OriginPoint.Y / pointTransformationData.PointScaleY + pointTransformationData.OffsetY);
         }
 
         public void TransformBack(PointTransformationData? pointTransformationData)
@@ -101,8 +101,8 @@ namespace GTA_SA_PathsRedactor.Models
             int horizontallyInvert = pointTransformationData.InvertHorizontally ? -1 : 1;
             int verticallyInvert = pointTransformationData.InvertVertically ? -1 : 1;
 
-            m_originPoint.X = horizontallyInvert * pointTransformationData.PointScaleX * (m_point.X - pointTransformationData.OffsetX);
-            m_originPoint.Y = verticallyInvert * pointTransformationData.PointScaleY * (m_point.Y - pointTransformationData.OffsetY);
+            m_originPoint.X = (float)(horizontallyInvert * pointTransformationData.PointScaleX * (m_point.X - pointTransformationData.OffsetX));
+            m_originPoint.Y = (float)(verticallyInvert * pointTransformationData.PointScaleY * (m_point.Y - pointTransformationData.OffsetY));
 
             m_point.Z = m_originPoint.Z;
             m_point.IsStopPoint = m_originPoint.IsStopPoint;

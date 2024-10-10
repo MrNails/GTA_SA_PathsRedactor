@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using Serilog;
 using GTA_SA_PathsRedactor.Services;
@@ -18,28 +20,28 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private int m_currentPathIndex;
         private ObservableCollection<PathEditor> m_paths;
 
-        private RelayCommand m_addPointCommand;
-        private RelayCommand m_insertPointCommand;
-        private RelayCommand m_removePointCommand;
-        private RelayCommand m_removeSelectedPointsCommand;
-        private RelayCommand m_clearPointsCommand;
+        private ICommand m_addPointCommand;
+        private ICommand m_insertPointCommand;
+        private ICommand m_removePointCommand;
+        private ICommand m_removeSelectedPointsCommand;
+        private ICommand m_clearPointsCommand;
 
-        private RelayCommand m_savePath;
-        private RelayCommand m_savePathAs;
-        private RelayCommand m_loadPath;
+        private ICommand m_savePath;
+        private ICommand m_savePathAs;
+        private ICommand m_loadPath;
 
-        private RelayCommand m_createNewPath;
-        private RelayCommand m_addNewPath;
-        private RelayCommand m_removePath;
+        private ICommand m_createNewPath;
+        private ICommand m_addNewPath;
+        private ICommand m_removePath;
 
-        private RelayCommand m_selectPath;
+        private ICommand m_selectPath;
 
         public PathVM()
         {
             m_paths = new ObservableCollection<PathEditor>();
             m_currentPathIndex = -1;
 
-            m_addPointCommand = new RelayCommand(obj =>
+            m_addPointCommand = new RelayCommand<object>(obj =>
             {
                 System.Diagnostics.Debug.WriteLine(obj);
 
@@ -50,23 +52,23 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }, obj => obj != null && m_paths.Count != 0 &&
                       (obj is Models.VisualObject ||
                        obj is Core.Models.WorldPoint));
-            m_removePointCommand = new RelayCommand(obj => CurrentPath.RemovePoint(obj as Models.VisualObject),
+            m_removePointCommand = new RelayCommand<VisualObject>(obj => CurrentPath.RemovePoint(obj as Models.VisualObject),
                                                     obj => obj is Models.VisualObject);
-            m_removeSelectedPointsCommand = new RelayCommand(obj => CurrentPath.RemoveSelectedPoints(),
-                                                             obj => CurrentPath != null && CurrentPath.SelectedDots.Count != 0);
+            m_removeSelectedPointsCommand = new RelayCommand(() => CurrentPath.RemoveSelectedPoints(),
+                                                             () => CurrentPath != null && CurrentPath.SelectedDots.Count != 0);
 
-            m_clearPointsCommand = new RelayCommand(obj =>
+            m_clearPointsCommand = new RelayCommand(() =>
                                                     {
                                                         CurrentPath.Clear();
                                                         MapCleared?.Invoke(this, CurrentPath);
                                                     }, 
-                                                    obj => CurrentPath != null && CurrentPath.PointCount != 0);
+                                                    () => CurrentPath != null && CurrentPath.PointCount != 0);
 
-            m_loadPath = new RelayCommand(async obj => await LoadPathHelper(obj as string));
-            m_savePath = new RelayCommand(async obj => await SavePathHelper(false), obj => m_currentPathIndex != -1);
-            m_savePathAs = new RelayCommand(async obj => await SavePathHelper(true), obj => m_currentPathIndex != -1);
+            m_loadPath = new AsyncRelayCommand<string>(obj => LoadPathHelper(obj as string));
+            m_savePath = new AsyncRelayCommand(() => SavePathHelper(false), () => m_currentPathIndex != -1);
+            m_savePathAs = new AsyncRelayCommand(() => SavePathHelper(true), () => m_currentPathIndex != -1);
 
-            m_createNewPath = new RelayCommand(obj =>
+            m_createNewPath = new RelayCommand<string>(obj =>
             {
                 string pathName = obj as string ?? "New path " + (++s_pathCounter).ToString();
                 var newPath = new PathEditor(pathName);
@@ -74,11 +76,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 AddNewPathHelper(newPath);
                 OnPropertyChanged("Paths");
             });
-            m_addNewPath = new RelayCommand(obj =>
+            m_addNewPath = new RelayCommand<PathEditor>(obj =>
             {
                 AddNewPathHelper(obj as PathEditor);
             }, obj => obj is PathEditor);
-            m_removePath = new RelayCommand(obj =>
+            m_removePath = new RelayCommand<PathEditor>(obj =>
             {
                 var pathEditor = obj as PathEditor;
 
@@ -90,7 +92,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
             }, obj => obj is PathEditor && m_paths.Count != 0);
 
-            m_selectPath = new RelayCommand(obj =>
+            m_selectPath = new RelayCommand<object>(obj =>
             {
                 var newIndex = -1;
 
@@ -122,21 +124,21 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
-        public RelayCommand AddPointCommand => m_addPointCommand;
-        public RelayCommand InsertPointCommand => m_insertPointCommand;
-        public RelayCommand RemovePointCommand => m_removePointCommand;
-        public RelayCommand RemoveSelectedPointsCommand => m_removeSelectedPointsCommand;
-        public RelayCommand ClearPointsCommand => m_clearPointsCommand;
+        public ICommand AddPointCommand => m_addPointCommand;
+        public ICommand InsertPointCommand => m_insertPointCommand;
+        public ICommand RemovePointCommand => m_removePointCommand;
+        public ICommand RemoveSelectedPointsCommand => m_removeSelectedPointsCommand;
+        public ICommand ClearPointsCommand => m_clearPointsCommand;
 
-        public RelayCommand SaveCurrentPath => m_savePath;
-        public RelayCommand SaveCurrentPathAs => m_savePathAs;
-        public RelayCommand LoadPath => m_loadPath;
+        public ICommand SaveCurrentPath => m_savePath;
+        public ICommand SaveCurrentPathAs => m_savePathAs;
+        public ICommand LoadPath => m_loadPath;
 
-        public RelayCommand AddNewPathCommand => m_addNewPath;
-        public RelayCommand CreateNewPathCommand => m_createNewPath;
-        public RelayCommand RemovePathCommand => m_removePath;
+        public ICommand AddNewPathCommand => m_addNewPath;
+        public ICommand CreateNewPathCommand => m_createNewPath;
+        public ICommand RemovePathCommand => m_removePath;
 
-        public RelayCommand SelectPathCommand => m_selectPath;
+        public ICommand SelectPathCommand => m_selectPath;
 
         public int CurrentPathIndex
         {
@@ -182,48 +184,48 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
             }
 
-            pointLoader = GlobalSettings.GetInstance().CurrentLoader;
-
-            var newPath = new PathEditor(path.Remove(0, path.LastIndexOf('\\') + 1));
-            newPath.PathFileName = path;
-            pointLoader.FileName = path;
-
-            try
-            {
-                var loadPointTask = pointLoader.LoadAsync();
-
-                await Task.WhenAny(loadPointTask, Task.Delay(30000));
-
-                if (loadPointTask.IsCompleted)
-                {
-                    var points = loadPointTask.Result.Select(point =>
-                                                             {
-                                                                 var dot = new DotVisual(point);
-                                                                 dot.Transform(GlobalSettings.GetInstance()
-                                                                                             .GetCurrentTranfromationData());
-                                                                 return dot;
-                                                             });
-
-                    AddNewPathHelper(newPath);
-
-                    newPath.AddRangePoint(points);
-                }
-                else App.LogErrorInfoAndShowMessageBox("Cannot parse points due to timeout. If this " +
-                                                       "will happen again, remove this custom loader and contact to creator.");
-            }
-            catch (System.IO.FileNotFoundException ex)
-            {
-                App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
-            }
-            catch (Core.PointsLoadingException ex)
-            {
-                App.LogErrorInfoAndShowMessageBox($"Cannot parse file\n\n{ex.PointsFileName}\n\n" +
-                                                  $"An error occured on line {ex.FileErrorLine}.");
-            }
-            catch (Exception ex)
-            {
-                App.LogErrorInfoAndShowMessageBox("An error occure while point loading.", ex);
-            }
+            // pointLoader = GlobalSettings.GetInstance().CurrentLoader;
+            //
+            // var newPath = new PathEditor(path.Remove(0, path.LastIndexOf('\\') + 1));
+            // newPath.PathFileName = path;
+            // pointLoader.FileName = path;
+            //
+            // try
+            // {
+            //     var loadPointTask = pointLoader.LoadAsync();
+            //
+            //     await Task.WhenAny(loadPointTask, Task.Delay(30000));
+            //
+            //     if (loadPointTask.IsCompleted)
+            //     {
+            //         var points = loadPointTask.Result.Select(point =>
+            //                                                  {
+            //                                                      var dot = new DotVisual(point);
+            //                                                      dot.Transform(GlobalSettings.GetInstance()
+            //                                                                                  .GetCurrentTranfromationData());
+            //                                                      return dot;
+            //                                                  });
+            //
+            //         AddNewPathHelper(newPath);
+            //
+            //         newPath.AddRangePoint(points);
+            //     }
+            //     else App.LogErrorInfoAndShowMessageBox("Cannot parse points due to timeout. If this " +
+            //                                            "will happen again, remove this custom loader and contact to creator.");
+            // }
+            // catch (System.IO.FileNotFoundException ex)
+            // {
+            //     App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
+            // }
+            // catch (Core.PointsLoadingException ex)
+            // {
+            //     App.LogErrorInfoAndShowMessageBox($"Cannot parse file\n\n{ex.PointsFileName}\n\n" +
+            //                                       $"An error occured on line {ex.FileErrorLine}.");
+            // }
+            // catch (Exception ex)
+            // {
+            //     App.LogErrorInfoAndShowMessageBox("An error occure while point loading.", ex);
+            // }
 
         }
 
@@ -246,37 +248,37 @@ namespace GTA_SA_PathsRedactor.ViewModel
                     return;
             }
 
-            var pointSaver = GlobalSettings.GetInstance().CurrentSaver;
-            pointSaver.CreateBackup = true;
-            pointSaver.FileName = filePath;
-
-            try
-            {
-                var saveTask = pointSaver.SaveAsync(CurrentPath.Dots.Select(dot => 
-                                                                              { 
-                                                                                  dot.TransformBack(GlobalSettings.GetInstance()
-                                                                                                                  .GetCurrentTranfromationData()); 
-                                                                                  return dot.OriginPoint; 
-                                                                              }));
-
-                await Task.WhenAny(saveTask, Task.Delay(30000));
-
-                if (!saveTask.IsCompleted)
-                    App.LogErrorInfoAndShowMessageBox("Cannot save points due to timeout. If this " +
-                                                      "will happen again, remove this custom saver and contact to creator.");
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
-            }
-            catch (System.IO.FileNotFoundException ex)
-            {
-                App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
-            }
-            catch (Exception ex)
-            {
-                App.LogErrorInfoAndShowMessageBox("An error occure while file opening.", ex);
-            }
+            // var pointSaver = GlobalSettings.GetInstance().CurrentSaver;
+            // pointSaver.CreateBackup = true;
+            // pointSaver.FileName = filePath;
+            //
+            // try
+            // {
+            //     var saveTask = pointSaver.SaveAsync(CurrentPath.Dots.Select(dot => 
+            //                                                                   { 
+            //                                                                       dot.TransformBack(GlobalSettings.GetInstance()
+            //                                                                                                       .GetCurrentTranfromationData()); 
+            //                                                                       return dot.OriginPoint; 
+            //                                                                   }));
+            //
+            //     await Task.WhenAny(saveTask, Task.Delay(30000));
+            //
+            //     if (!saveTask.IsCompleted)
+            //         App.LogErrorInfoAndShowMessageBox("Cannot save points due to timeout. If this " +
+            //                                           "will happen again, remove this custom saver and contact to creator.");
+            // }
+            // catch (UnauthorizedAccessException ex)
+            // {
+            //     App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
+            // }
+            // catch (System.IO.FileNotFoundException ex)
+            // {
+            //     App.LogErrorInfoAndShowMessageBox(ex.Message, ex);
+            // }
+            // catch (Exception ex)
+            // {
+            //     App.LogErrorInfoAndShowMessageBox("An error occure while file opening.", ex);
+            // }
         }
 
         private void AddNewPathHelper(PathEditor pathEditor)

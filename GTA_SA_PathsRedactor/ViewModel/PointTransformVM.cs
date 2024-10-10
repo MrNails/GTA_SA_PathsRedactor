@@ -6,6 +6,9 @@ using System.IO;
 using GTA_SA_PathsRedactor.Services;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
+using GTA_SA_PathsRedactor.Models;
 using Microsoft.Win32;
 
 namespace GTA_SA_PathsRedactor.ViewModel
@@ -14,12 +17,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
     {
         private int m_currentPointTransformDataIndex;
 
-        private RelayCommand m_saveSetting;
-        private RelayCommand m_loadSetting;
-        private RelayCommand m_goToMainMenu;
+        private ICommand m_saveSetting;
+        private ICommand m_loadSetting;
+        private ICommand m_goToMainMenu;
 
-        private RelayCommand m_addNewSetting;
-        private RelayCommand m_removeCurrentSetting;
+        private ICommand m_addNewSetting;
+        private ICommand m_removeCurrentSetting;
 
         private ObservableCollection<PointTransformationData> m_pointsTransformationDatas;
 
@@ -33,19 +36,19 @@ namespace GTA_SA_PathsRedactor.ViewModel
             m_saveSetting = new RelayCommand(SaveSettingCommandHandler);
             m_loadSetting = new RelayCommand(LoadSettingCommandHandler);
 
-            m_addNewSetting = new RelayCommand(obj => m_pointsTransformationDatas.Add(new PointTransformationData()));
-            m_removeCurrentSetting = new RelayCommand(obj => m_pointsTransformationDatas.Remove(obj as PointTransformationData),
-                                                      obj => obj != null && obj is PointTransformationData &&
-                                                             obj != GlobalSettings.GetInstance().DefaultPTD);
+            m_addNewSetting = new RelayCommand(() => m_pointsTransformationDatas.Add(new PointTransformationData()));
+            m_removeCurrentSetting = new RelayCommand<PointTransformationData>(obj => m_pointsTransformationDatas.Remove(obj)
+                                                      //obj => obj != null && obj is PointTransformationData && obj != GlobalSettings.GetInstance().DefaultPTD
+                                                      );
 
             m_currentPointTransformDataIndex = -1;
         }
       
-        public RelayCommand SaveSettingsCommand => m_saveSetting;
-        public RelayCommand LoadSettingsCommand => m_loadSetting;
+        public ICommand SaveSettingsCommand => m_saveSetting;
+        public ICommand LoadSettingsCommand => m_loadSetting;
 
-        public RelayCommand AddNewSettingCommand => m_addNewSetting;
-        public RelayCommand RemoveCurrentSettingCommand => m_removeCurrentSetting;
+        public ICommand AddNewSettingCommand => m_addNewSetting;
+        public ICommand RemoveCurrentSettingCommand => m_removeCurrentSetting;
 
         public PointTransformationData? CurrentPointTransformData 
         {
@@ -82,13 +85,13 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 OnPropertyChanged("CurrentPointTransformDataIndex");
                 OnPropertyChanged("CurrentPointTransformData");
 
-                GlobalSettings.GetInstance().PTD = CurrentPointTransformData;
+                // GlobalSettings.GetInstance().PTD = CurrentPointTransformData;
             }
         }
 
-        public RelayCommand GoToMainMenu
+        public ICommand GoToMainMenu
         {
-            get { return m_goToMainMenu ?? (m_goToMainMenu = new RelayCommand(obj => { })); }
+            get => m_goToMainMenu;
             set 
             {
                 if (value == null)
@@ -136,22 +139,22 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
-        private void SaveSettingCommandHandler(object? obj)
+        private void SaveSettingCommandHandler()
         {
             try
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "JSON files (*.json) |*.json";
 
-                if (saveFileDialog.ShowDialog() == true)
-                {
-                    var transformSettingLoader = new TransformSettingSaverLoader(saveFileDialog.FileName, true);
-
-                    transformSettingLoader.SaveSettings(CurrentPointTransformData);
-
-                    MessageBox.Show("Settings saved succesfully", "Information",
-                                    MessageBoxButton.OK, MessageBoxImage.Asterisk);
-                }
+                // if (saveFileDialog.ShowDialog() == true)
+                // {
+                //     var transformSettingLoader = new TransformSettingSaverLoader(saveFileDialog.FileName, true);
+                //
+                //     transformSettingLoader.SaveSettings(CurrentPointTransformData);
+                //
+                //     MessageBox.Show("Settings saved succesfully", "Information",
+                //                     MessageBoxButton.OK, MessageBoxImage.Asterisk);
+                // }
             }
             catch (Exception ex)
             {
@@ -165,24 +168,24 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             }
         }
-        private void LoadSettingCommandHandler(object? obj)
+        private void LoadSettingCommandHandler()
         {
             try
             {
                 OpenFileDialog openFileDialog = new OpenFileDialog();
                 openFileDialog.Filter = "JSON files (*.json) |*.json";
 
-                if (openFileDialog.ShowDialog() == true)
-                {
-                    var transformSettingLoader = new TransformSettingSaverLoader(openFileDialog.FileName);
-
-                    var setting = transformSettingLoader.LoadSettings();
-
-                    AddNewPointTransformationData(setting);
-
-                    MessageBox.Show("Settings loaded succesfully", "Information",
-                                    MessageBoxButton.OK, MessageBoxImage.Asterisk);
-                }
+                // if (openFileDialog.ShowDialog() == true)
+                // {
+                //     var transformSettingLoader = new TransformSettingSaverLoader(openFileDialog.FileName);
+                //
+                //     var setting = transformSettingLoader.LoadSettings();
+                //
+                //     AddNewPointTransformationData(setting);
+                //
+                //     MessageBox.Show("Settings loaded succesfully", "Information",
+                //                     MessageBoxButton.OK, MessageBoxImage.Asterisk);
+                // }
             }
             catch (FileNotFoundException)
             {

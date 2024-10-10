@@ -1,85 +1,72 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GTA_SA_PathsRedactor.Core;
 using GTA_SA_PathsRedactor.Core.Models;
 
-namespace GTA_SA_PathsRedactor.Services
+namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders
 {
-    public class DefaultPointSaver : IPointSaver
+    public sealed class DefaultPointSaver : IPointSaver
     {
-        private string m_fileName;
-        private bool m_createBackup;
-        private bool m_disposed;
+        private string _fileName = string.Empty;
+        private bool _createBackup;
+        private bool _disposed;
 
-        public DefaultPointSaver() : this(string.Empty)
-        { }
-        public DefaultPointSaver(string fileName)
+        public string FileName
         {
-            FileName = fileName;
-        }
-
-        public override string FileName
-        {
-            get { return m_fileName; }
+            get => _fileName;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException("value");
-                if (m_disposed)
-                    throw new ObjectDisposedException("PointSaverLoader");
+                if (_disposed)
+                    throw new ObjectDisposedException(nameof(DefaultPointSaver));
 
-                m_fileName = value;
+                _fileName = string.IsNullOrWhiteSpace(value) 
+                    ? throw new ArgumentNullException(nameof(value))
+                    : value;
             }
         }
 
-        public override bool CreateBackup
+        public bool CreateBackup
         {
-            get => m_createBackup;
+            get => _createBackup;
             set
             {
-                if (m_disposed)
+                if (_disposed)
                 {
-                    throw new ObjectDisposedException("PointSaverLoader");
+                    throw new ObjectDisposedException(nameof(DefaultPointSaver));
                 }
 
-                m_createBackup = value;
+                _createBackup = value;
             }
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
-            base.Dispose();
+            var tempFilePath = CreateTempFilePath(FileName);
+            if (File.Exists(tempFilePath))
+                File.Delete(tempFilePath);
 
-            var tempFilePase = CreateTempFilePath(FileName);
-            if (File.Exists(tempFilePase))
-                File.Delete(tempFilePase);
+            _disposed = true;
 
-            m_disposed = true;
-
-            m_fileName = string.Empty;
-            m_createBackup = false;
+            _fileName = string.Empty;
+            _createBackup = false;
         }
-
-        public override Task SaveAsync(IEnumerable<WorldPoint> points)
+        
+        public async Task SaveAsync(IEnumerable<WorldPoint> points, CancellationToken cancellationToken = default)
         {
-            return SaveAsync(points, CancellationToken.None);
-        }
-        public override async Task SaveAsync(IEnumerable<WorldPoint> points, CancellationToken cancellationToken)
-        {
-            if (m_disposed)
+            if (_disposed)
             {
                 throw new ObjectDisposedException("PointSaverLoader");
             }
 
             if (points == null)
             {
-                throw new ArgumentNullException("points");
+                throw new ArgumentNullException(nameof(points));
             }
 
             StringBuilder stringBuilder = new StringBuilder();
@@ -93,7 +80,7 @@ namespace GTA_SA_PathsRedactor.Services
             var oldFileAttributes = fileInfo.Attributes;
             fileInfo.Attributes = FileAttributes.Hidden;
 
-            if (m_createBackup && File.Exists(FileName))
+            if (_createBackup && File.Exists(FileName))
                 SetFileAsBackup(FileName);
 
             using (var streamWriter = new StreamWriter(fStream))

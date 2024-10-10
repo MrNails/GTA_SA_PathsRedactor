@@ -1,80 +1,80 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
+using System.Text.Json.Nodes;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using GTA_SA_PathsRedactor.Models;
 using GTA_SA_PathsRedactor.Services;
 using Microsoft.Win32;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Reflection;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    public class PointStoreSettingsVM : Core.Entity
+    public class PointStoreSettingsViewModel : Core.Entity
     {
-        private TreeNodeWithItem? m_currentLoader;
-        private TreeNodeWithItem? m_currentSaver;
+        private readonly ProxyController _proxyController;
+        
+        private readonly ICommand _loadAssemblyCommand;
 
-        private ObservableCollection<TreeNodeWithItem> m_loaders;
-        private ObservableCollection<TreeNodeWithItem> m_savers;
+        private TreeNodeWithItem? _currentLoader;
+        private TreeNodeWithItem? _currentSaver;
 
-        private RelayCommand m_loadAssemlyCommand;
-
-        public PointStoreSettingsVM()
+        public PointStoreSettingsViewModel(ProxyController proxyController)
         {
-            m_loaders = new ObservableCollection<TreeNodeWithItem>();
-            m_savers = new ObservableCollection<TreeNodeWithItem>();
+            Loaders = new ObservableCollection<TreeNodeWithItem>();
+            Savers = new ObservableCollection<TreeNodeWithItem>();
+            _proxyController = proxyController;
 
-            m_loadAssemlyCommand = new RelayCommand(LoadAssemblyCommandHandler);
+            _loadAssemblyCommand = new RelayCommand(LoadAssemblyCommandHandler);
 
             LoadDefaultInfo();
-            InitialiazeAssembliesInfos();
+            InitializeAssembliesInfos();
         }
 
         public TreeNodeWithItem? CurrentLoader
         {
-            get => m_currentLoader;
+            get => _currentLoader;
             set
             {
-                m_currentLoader = value;
+                _currentLoader = value;
                 OnPropertyChanged();
             }
         }
         public TreeNodeWithItem? CurrentSaver
         {
-            get => m_currentSaver;
+            get => _currentSaver;
             set
             {
-                m_currentSaver = value;
+                _currentSaver = value;
                 OnPropertyChanged();
             }
         }
 
-        public ObservableCollection<TreeNodeWithItem> Loaders => m_loaders;
-        public ObservableCollection<TreeNodeWithItem> Savers => m_savers;
+        public ObservableCollection<TreeNodeWithItem> Loaders { get; }
+        public ObservableCollection<TreeNodeWithItem> Savers { get; }
 
-        public RelayCommand LoadAssemlyCommand => m_loadAssemlyCommand;
+        public ICommand LoadAssemblyCommand => _loadAssemblyCommand;
 
         private TreeNodeWithItem? GetExistAssemblyNode(AssemblyInfo assemblyInfo, IEnumerable<TreeNodeWithItem> treeNodeWithItems)
         {
             foreach (var node in treeNodeWithItems)
             {
-                if (node.Element is not AssemblyInfo)
+                if (node.Element is not AssemblyInfo info)
                     continue;
 
-                if ((AssemblyInfo)node.Element == assemblyInfo)
+                if (info == assemblyInfo)
                     return node;
             }
 
             return null;
         }
 
-        private void InitialiazeAssembliesInfos()
+        private void InitializeAssembliesInfos()
         {
-            foreach (var assembly in ProxyController.Assemblies)
+            foreach (var assembly in _proxyController.Assemblies)
             {
                 LoadAssemblyInfo(assembly.GetAssemblyInfo(), assembly.Location);
             }
@@ -86,9 +86,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             if (File.Exists(jsonFileInfo))
             {
-                var derivedLoaders = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.IPointLoader))
+                var derivedLoaders = _proxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.IPointLoader))
                                                     .Select(type => type.FullName);
-                var derivedSavers = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.IPointSaver))
+                var derivedSavers = _proxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, typeof(Core.IPointSaver))
                                                    .Select(type => type.FullName);
 
                 ParseCustomInfo(File.ReadAllText(jsonFileInfo),
@@ -120,10 +120,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
                                     FillNode(saversNode, resultSavers, "Name");
 
                                     if (resultLoaders.Any())
-                                        m_loaders.Add(loadersNode);
+                                        Loaders.Add(loadersNode);
 
                                     if (resultSavers.Any())
-                                        m_savers.Add(saversNode);
+                                        Savers.Add(saversNode);
                                 });
             }
             else
@@ -134,8 +134,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 saverNode.DisplayMember = loaderNode.DisplayMember = "Title";
                 saverNode.ValueMember = loaderNode.ValueMember = "FullName";
 
-                m_loaders.Add(loaderNode);
-                m_savers.Add(saverNode);
+                Loaders.Add(loaderNode);
+                Savers.Add(saverNode);
             }
         }
 
@@ -174,10 +174,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
                                 CurrentLoader = (TreeNodeWithItem)loadersNode.Nodes[0];
                                 CurrentSaver = (TreeNodeWithItem)saversNode.Nodes[0];
 
-                                m_loaders.Add(loadersNode);
-                                m_savers.Add(saversNode);
+                                Loaders.Add(loadersNode);
+                                Savers.Add(saversNode);
                             });
         }
+        
         private void FillNode<T>(TreeNodeWithItem node, IEnumerable<T> infos, string infoDisplayMember)
         {
             foreach (var info in infos)
@@ -192,7 +193,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         private TreeNodeWithItem CreateNodeFromAssembly(AssemblyInfo assemblyInfo, Type baseType)
         {
-            var derivedTypes = ProxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, baseType);
+            var derivedTypes = _proxyController.GetDerivedTypesFromAssembly(assemblyInfo.FullName, baseType);
             var topmostNode = new TreeNodeWithItem(assemblyInfo);
 
             foreach (var type in derivedTypes)
@@ -207,7 +208,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             return topmostNode;
         }
 
-        private void LoadAssemblyCommandHandler(object? obj)
+        private void LoadAssemblyCommandHandler()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Dynamic-link library files (*.dll)|*.dll";
@@ -216,10 +217,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
             if (openFileDialog.ShowDialog() == true)
             {
                 var fileName = openFileDialog.FileName;
-                var assemblyInfo = ProxyController.AddAssembly(fileName)?.GetAssemblyInfo();
+                var assemblyInfo = _proxyController.AddAssembly(fileName).GetAssemblyInfo();
 
-                var existSaverNode = GetExistAssemblyNode(assemblyInfo, m_savers);
-                var existLoaderNode = GetExistAssemblyNode(assemblyInfo, m_loaders);
+                var existSaverNode = GetExistAssemblyNode(assemblyInfo, Savers);
+                var existLoaderNode = GetExistAssemblyNode(assemblyInfo, Loaders);
 
                 if (existSaverNode != null || existLoaderNode != null)
                 {
@@ -234,24 +235,23 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         private void ParseCustomInfo(string jsonString, Action<IEnumerable<ItemInfo?>, IEnumerable<ItemInfo?>> endAction)
         {
-            var result = JsonConvert.DeserializeObject(jsonString);
-
-            if (result is JObject jObj)
+            var result = JsonNode.Parse(jsonString);
+            
+            if (result is JsonObject jObj)
             {
-                Func<JToken, ItemInfo> transformToken = token =>
+                Func<JsonNode, ItemInfo> transformToken = token =>
                     {
-                        var name = token.Value<string>("Name");
-                        var description = token.Value<string>("Description");
-                        var purpose = token.Value<string>("Purpose");
-
+                        var name = token["Name"]?.GetValue<string>();
+                        var description = token["Description"]?.GetValue<string>();
+                        var purpose = token["Purpose"]?.GetValue<string>();
+            
                         return new ItemInfo(name, purpose, description);
                     };
-
-                var loaders = jObj.GetValue("Loaders")
-                                  .Select(transformToken);
-                var savers = jObj.GetValue("Savers")
+            
+                var loaders = (jObj["Loaders"] as JsonArray).Select(transformToken);
+                var savers = (jObj["Savers"] as JsonArray)
                                  .Select(transformToken);
-
+            
                 endAction(loaders, savers);
             }
             else

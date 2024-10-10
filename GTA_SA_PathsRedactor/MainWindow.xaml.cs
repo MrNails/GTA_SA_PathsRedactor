@@ -11,6 +11,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using CommunityToolkit.Mvvm.Input;
+using GTA_SA_PathsRedactor.Services.SaversAndLoaders;
 
 namespace GTA_SA_PathsRedactor
 {
@@ -63,7 +65,7 @@ namespace GTA_SA_PathsRedactor
 
             mainUC.VerticalAlignment = VerticalAlignment.Top;
             pathSettingUc.VerticalAlignment = VerticalAlignment.Top;
-            pathSettingUc.AddGoToHomeCommand(new Services.RelayCommand(obj =>
+            pathSettingUc.AddGoToHomeCommand(new RelayCommand(() =>
             {
                 UserContentContainer.Child = m_userControls[0];
             }));
@@ -131,10 +133,10 @@ namespace GTA_SA_PathsRedactor
             m_lineContextMenu.Items.Add(addPointMenuItem);
             m_dotContextMenu.Items.Add(removePointMenuItem);
 
-            GlobalSettings.GetInstance().PropertyChanged += MainWindow_PropertyChanged;
+            // GlobalSettings.GetInstance().PropertyChanged += MainWindow_PropertyChanged;
 
             m_gSettingPropChanged = true;
-            SetNewResolution(GlobalSettings.GetInstance().Resolution);
+            // SetNewResolution(GlobalSettings.GetInstance().Resolution);
             m_gSettingPropChanged = false;
         }
 
@@ -254,43 +256,43 @@ namespace GTA_SA_PathsRedactor
 
         private void SetNewResolution(double width, double height)
         {
-            this.Width = width;
-            this.Height = height;
-
-            var gTransform = ((TransformGroup)m_userControls[0].LayoutTransform);
-            var gSettings = GlobalSettings.GetInstance();
-
-            if (m_gSettingPropChanged)
-            {
-                ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
-
-                if (gSettings.Resolution == Resolution._1080x850)
-                    ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
-
-                return;
-            }
-
-            ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
-
-            switch (width)
-            {
-                case 1080:
-                    gSettings.Resolution = Resolution._1080x850;
-
-                    ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
-                    break;
-                case 1280:
-                    gSettings.Resolution = Resolution._1280x1024;
-                    break;
-                case 1680:
-                    gSettings.Resolution = Resolution._1680x1050;
-                    break;
-                case 1920:
-                    gSettings.Resolution = Resolution._1920x1080;
-                    break;
-                default:
-                    break;
-            }
+            // this.Width = width;
+            // this.Height = height;
+            //
+            // var gTransform = ((TransformGroup)m_userControls[0].LayoutTransform);
+            // var gSettings = GlobalSettings.GetInstance();
+            //
+            // if (m_gSettingPropChanged)
+            // {
+            //     ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
+            //
+            //     if (gSettings.Resolution == Resolution._1080x850)
+            //         ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
+            //
+            //     return;
+            // }
+            //
+            // ((ScaleTransform)gTransform.Children[0]).ScaleY = 1;
+            //
+            // switch (width)
+            // {
+            //     case 1080:
+            //         gSettings.Resolution = Resolution._1080x850;
+            //
+            //         ((ScaleTransform)gTransform.Children[0]).ScaleY = 0.9;
+            //         break;
+            //     case 1280:
+            //         gSettings.Resolution = Resolution._1280x1024;
+            //         break;
+            //     case 1680:
+            //         gSettings.Resolution = Resolution._1680x1050;
+            //         break;
+            //     case 1920:
+            //         gSettings.Resolution = Resolution._1920x1080;
+            //         break;
+            //     default:
+            //         break;
+            // }
         }
 
         private void MainWindow_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -405,8 +407,8 @@ namespace GTA_SA_PathsRedactor
                 if (m_oldPoint == null)
                     m_oldPoint = (WorldPoint)m_pathVM.CurrentPath.CurrentObject?.Point.Clone();
 
-                currentPath.CurrentObject.Point.X = currentPos.X;
-                currentPath.CurrentObject.Point.Y = currentPos.Y;
+                currentPath.CurrentObject.Point.X = (float)currentPos.X;
+                currentPath.CurrentObject.Point.Y = (float)currentPos.Y;
             }
             else if (!m_pointMoveMode && m_pressedKey != Key.LeftShift && e.LeftButton == MouseButtonState.Pressed)
             {
@@ -500,7 +502,7 @@ namespace GTA_SA_PathsRedactor
                 {
                     var oldPoints = currentPath.SelectedDots.Select(dot => (WorldPoint)dot.Point.Clone()).ToList();
 
-                    currentPath.MoveSelectedPoints(offsetX / mainFieldSTransform.ScaleX, offsetY / mainFieldSTransform.ScaleY);
+                    currentPath.MoveSelectedPoints((float)(offsetX / mainFieldSTransform.ScaleX), (float)(offsetY / mainFieldSTransform.ScaleY));
 
                     var oldPointsEnumerator = oldPoints.GetEnumerator();
                     var newPointsEnumerator = currentPath.SelectedDots.GetEnumerator();
@@ -604,14 +606,14 @@ namespace GTA_SA_PathsRedactor
 
         private void AddPoint_Click(object sender, RoutedEventArgs e)
         {
-            var point = new WorldPoint(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
+            var point = new WorldPoint((float)m_oldMousePos.X, (float)m_oldMousePos.Y, 0, false);
             var dot = new DotVisual(point);
             var currentPath = m_pathVM.CurrentPath;
 
-            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+            // var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
-            dot.TransformBack(currentPTD);
-            dot.Transform(currentPTD);
+            // dot.TransformBack(currentPTD);
+            // dot.Transform(currentPTD);
 
             m_pathHistory[currentPath].AddNew(new VOState(dot, null, currentPath.Dots.Count, Services.State.Added));
 
@@ -619,16 +621,16 @@ namespace GTA_SA_PathsRedactor
         }
         private void InsertPoint_Click(object sender, RoutedEventArgs e)
         {
-            var point = new WorldPoint(m_oldMousePos.X, m_oldMousePos.Y, 0, false);
+            var point = new WorldPoint((float)m_oldMousePos.X, (float)m_oldMousePos.Y, 0, false);
             var line = m_lineContextMenu.PlacementTarget as LineVisual;
             var currentPath = m_pathVM.CurrentPath;
             var dot = new DotVisual(point);
-            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+            // var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
 
             var insertIndex = currentPath.IndexOf(dot => dot.Point == line?.Start);
 
-            dot.TransformBack(currentPTD);
-            dot.Transform(currentPTD);
+            // dot.TransformBack(currentPTD);
+            // dot.Transform(currentPTD);
 
             if (insertIndex == currentPath.Dots.Count - 1)
                 insertIndex = 0;
@@ -689,34 +691,34 @@ namespace GTA_SA_PathsRedactor
 
         private void PointStoreSettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var globalSettings = GlobalSettings.GetInstance();
-            var saversAndLoadersSettingWindow = new View.SaversAndLoadersSettingWindow();
-            saversAndLoadersSettingWindow.SetStartLoader(globalSettings.CurrentLoader);
-            saversAndLoadersSettingWindow.SetStartSaver(globalSettings.CurrentSaver);
-
-            if (saversAndLoadersSettingWindow.ShowDialog() == true)
-            {
-                var saver = saversAndLoadersSettingWindow.SelectedSaver;
-                var loader = saversAndLoadersSettingWindow.SelectedLoader;
-
-                var topmostSaver = saversAndLoadersSettingWindow.GetTopmostNode(saver);
-                var topmostLoader = saversAndLoadersSettingWindow.GetTopmostNode(loader);
-
-                var currentTopmostLoaderElem = topmostLoader.Element as AssemblyInfo;
-                var currentTopmostSaverElem = topmostSaver.Element as AssemblyInfo;
-
-                if (currentTopmostLoaderElem.Title == "Default")
-                    globalSettings.CurrentLoader = new Services.DefaultPointLoader();
-                else
-                    globalSettings.CurrentLoader = Services.ProxyController.CreateInsanceFromAssembly<Core.IPointLoader>(topmostLoader.Value.ToString(), loader.Value.ToString());
-
-                if (currentTopmostSaverElem.Title == "Default")
-                    globalSettings.CurrentSaver = new Services.DefaultPointSaver();
-                else
-                    globalSettings.CurrentSaver = Services.ProxyController.CreateInsanceFromAssembly<Core.IPointSaver>(topmostSaver.Value.ToString(), saver.Value.ToString());
-            }
-
-            saversAndLoadersSettingWindow = null;
+            // var globalSettings = GlobalSettings.GetInstance();
+            // var saversAndLoadersSettingWindow = new View.SaversAndLoadersSettingWindow();
+            // saversAndLoadersSettingWindow.SetStartLoader(globalSettings.CurrentLoader);
+            // saversAndLoadersSettingWindow.SetStartSaver(globalSettings.CurrentSaver);
+            //
+            // if (saversAndLoadersSettingWindow.ShowDialog() == true)
+            // {
+            //     var saver = saversAndLoadersSettingWindow.SelectedSaver;
+            //     var loader = saversAndLoadersSettingWindow.SelectedLoader;
+            //
+            //     var topmostSaver = saversAndLoadersSettingWindow.GetTopmostNode(saver);
+            //     var topmostLoader = saversAndLoadersSettingWindow.GetTopmostNode(loader);
+            //
+            //     var currentTopmostLoaderElem = topmostLoader.Element as AssemblyInfo;
+            //     var currentTopmostSaverElem = topmostSaver.Element as AssemblyInfo;
+            //
+            //     if (currentTopmostLoaderElem.Title == "Default")
+            //         globalSettings.CurrentLoader = new DefaultPointLoader();
+            //     else
+            //         globalSettings.CurrentLoader = Services.ProxyController.CreateInsanceFromAssembly<Core.IPointLoader>(topmostLoader.Value.ToString(), loader.Value.ToString());
+            //
+            //     if (currentTopmostSaverElem.Title == "Default")
+            //         globalSettings.CurrentSaver = new DefaultPointSaver();
+            //     else
+            //         globalSettings.CurrentSaver = Services.ProxyController.CreateInsanceFromAssembly<Core.IPointSaver>(topmostSaver.Value.ToString(), saver.Value.ToString());
+            // }
+            //
+            // saversAndLoadersSettingWindow = null;
         }
 
         private void Undo(object sender, ExecutedRoutedEventArgs e)

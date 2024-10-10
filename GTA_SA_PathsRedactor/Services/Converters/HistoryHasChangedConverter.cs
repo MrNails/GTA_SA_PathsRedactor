@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace GTA_SA_PathsRedactor.Services.Converters
 {
-    public class HistoryHasChangedConverter : IValueConverter
+    public sealed class HistoryHasChangedConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GTA_SA_PathsRedactor.Core
 {
-    public interface IPointSaver 
+    public interface IPointSaver : IDisposable
     {
         string FileName { get; set; }
         bool CreateBackup { get; set; }

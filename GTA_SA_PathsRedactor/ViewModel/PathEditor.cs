@@ -63,10 +63,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
             PathName = pathName;
             PathFileName = "";
 
-            var gSettings = GlobalSettings.GetInstance();
-
-            gSettings.PropertyChanged += GlobalSettings_PropertyChanged;
-            gSettings.PTD.PropertyChanged += TransformationDataPropertyChanged;
+            // var gSettings = GlobalSettings.GetInstance();
+            //
+            // gSettings.PropertyChanged += GlobalSettings_PropertyChanged;
+            // gSettings.PTD.PropertyChanged += TransformationDataPropertyChanged;
         }
 
         public int PointCount
@@ -490,9 +490,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public void MoveSelectedPoints(Point offset)
         {
-            MoveSelectedPoints(offset.X, offset.Y);
+            MoveSelectedPoints((float)offset.X, (float)offset.Y);
         }
-        public void MoveSelectedPoints(double offsetX, double offsetY)
+        public void MoveSelectedPoints(float offsetX, float offsetY)
         {
             foreach (var selectedDot in SelectedDots)
             {
@@ -591,13 +591,13 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 if (e.PropertyName == "PTD")
                 {
-                    var gSettings = GlobalSettings.GetInstance();
-
-                    if (gSettings.PTD != null)
-                    {
-                        gSettings.PTD.PropertyChanged -= TransformationDataPropertyChanged;
-                        gSettings.PTD.PropertyChanged += TransformationDataPropertyChanged;
-                    }
+                    // var gSettings = GlobalSettings.GetInstance();
+                    //
+                    // if (gSettings.PTD != null)
+                    // {
+                    //     gSettings.PTD.PropertyChanged -= TransformationDataPropertyChanged;
+                    //     gSettings.PTD.PropertyChanged += TransformationDataPropertyChanged;
+                    // }
                 }
                 DrawScale();
             }
@@ -635,12 +635,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
             if (WorkField.Visibility != Visibility.Visible)
                 return;
 
-            var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
-
-            foreach (var dot in m_dots)
-            {
-                dot.Transform(currentPTD);
-            }
+            // var currentPTD = GlobalSettings.GetInstance().GetCurrentTranfromationData();
+            //
+            // foreach (var dot in m_dots)
+            // {
+            //     dot.Transform(currentPTD);
+            // }
         }
 
         public sealed class VisualObjectsCollection : IEnumerable<VisualObject>

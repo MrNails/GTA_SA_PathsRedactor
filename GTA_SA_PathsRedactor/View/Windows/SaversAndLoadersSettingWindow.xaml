@@ -69,7 +69,7 @@
         </Grid.RowDefinitions>
 
         <Menu Grid.ColumnSpan="4" FontSize="16">
-            <MenuItem Header="Load" Command="{Binding Path=LoadAssemlyCommand}"/>
+            <MenuItem Header="Load" Command="{Binding Path=LoadAssemblyCommand}"/>
         </Menu>
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="Available loaders" 

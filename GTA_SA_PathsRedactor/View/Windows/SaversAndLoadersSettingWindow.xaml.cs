@@ -1,21 +1,14 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using GTA_SA_PathsRedactor.Models;
 using GTA_SA_PathsRedactor.Services;
 using GTA_SA_PathsRedactor.ViewModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GTA_SA_PathsRedactor.View
 {
@@ -24,26 +17,22 @@ namespace GTA_SA_PathsRedactor.View
     /// </summary>
     public partial class SaversAndLoadersSettingWindow : Window
     {
-        private static PointStoreSettingsVM m_settingsVM;
+        private readonly PointStoreSettingsViewModel _settingsViewModel;
 
-        private bool m_isUIChange;
-
-        static SaversAndLoadersSettingWindow()
-        {
-            m_settingsVM = new PointStoreSettingsVM();
-        }
+        private bool _isUiChange;
 
         public SaversAndLoadersSettingWindow()
         {
             InitializeComponent();
 
-            m_settingsVM.PropertyChanged += PointStoreSettingsPropertyChanged;
+            _settingsViewModel = new PointStoreSettingsViewModel(((App)App.Current).ServiceProvider.GetService<ProxyController>()!);
+            _settingsViewModel.PropertyChanged += PointStoreSettingsPropertyChanged;
 
-            DataContext = m_settingsVM;
+            DataContext = _settingsViewModel;
         }
 
-        public TreeNodeWithItem SelectedSaver => m_settingsVM.CurrentSaver;
-        public TreeNodeWithItem SelectedLoader => m_settingsVM.CurrentLoader;
+        public TreeNodeWithItem SelectedSaver => _settingsViewModel.CurrentSaver;
+        public TreeNodeWithItem SelectedLoader => _settingsViewModel.CurrentLoader;
 
         public T? GetTopmostNode<T>(T? treeNode)
             where T : TreeNode
@@ -59,12 +48,12 @@ namespace GTA_SA_PathsRedactor.View
 
         public void SetStartSaver(Core.IPointSaver saver)
         {
-            m_settingsVM.CurrentSaver = GetExistNode(m_settingsVM.Savers, saver.GetType());
+            _settingsViewModel.CurrentSaver = GetExistNode(_settingsViewModel.Savers, saver.GetType());
         }
         
         public void SetStartLoader(Core.IPointLoader loader)
         {
-            m_settingsVM.CurrentLoader = GetExistNode(m_settingsVM.Loaders, loader.GetType());
+            _settingsViewModel.CurrentLoader = GetExistNode(_settingsViewModel.Loaders, loader.GetType());
         }
 
         private TreeNodeWithItem GetExistNode(ObservableCollection<TreeNodeWithItem> collection, Type objectType)
@@ -101,8 +90,8 @@ namespace GTA_SA_PathsRedactor.View
 
         private void SaverAndLoaderSettingWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            SelectItemInTreeView(SaversTreeView, m_settingsVM.CurrentSaver);
-            SelectItemInTreeView(LoadersTreeView, m_settingsVM.CurrentLoader);
+            SelectItemInTreeView(SaversTreeView, _settingsViewModel.CurrentSaver);
+            SelectItemInTreeView(LoadersTreeView, _settingsViewModel.CurrentLoader);
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -116,9 +105,9 @@ namespace GTA_SA_PathsRedactor.View
             {
                 LoaderAndSaverInfoGB.DataContext = node;
 
-                if (GetTopmostNode(m_settingsVM.CurrentSaver)?.Equals(topmostNode) != true)
+                if (GetTopmostNode(_settingsViewModel.CurrentSaver)?.Equals(topmostNode) != true)
                     SaverGroupBox.DataContext = null;
-                if (GetTopmostNode(m_settingsVM.CurrentLoader)?.Equals(topmostNode) != true)
+                if (GetTopmostNode(_settingsViewModel.CurrentLoader)?.Equals(topmostNode) != true)
                     LoaderGroupBox.DataContext = null;
 
                 return;
@@ -127,19 +116,19 @@ namespace GTA_SA_PathsRedactor.View
             switch (treeView.Tag)
             {
                 case "1":
-                    m_settingsVM.CurrentLoader = node;
+                    _settingsViewModel.CurrentLoader = node;
                     LoaderGroupBox.DataContext = node.Element;
 
-                    if (GetTopmostNode(m_settingsVM.CurrentSaver)?.Equals(topmostNode) != true)
+                    if (GetTopmostNode(_settingsViewModel.CurrentSaver)?.Equals(topmostNode) != true)
                         LoaderAndSaverInfoGB.DataContext = null;
                     else
                         LoaderAndSaverInfoGB.DataContext = GetTopmostNode(node);
                     break;
                 case "2":
-                    m_settingsVM.CurrentSaver = node;
+                    _settingsViewModel.CurrentSaver = node;
                     SaverGroupBox.DataContext = node.Element;
 
-                    if (GetTopmostNode(m_settingsVM.CurrentLoader)?.Equals(topmostNode) != true)
+                    if (GetTopmostNode(_settingsViewModel.CurrentLoader)?.Equals(topmostNode) != true)
                         LoaderAndSaverInfoGB.DataContext = null;
                     else
                         LoaderAndSaverInfoGB.DataContext = GetTopmostNode(node);
@@ -148,19 +137,19 @@ namespace GTA_SA_PathsRedactor.View
                     break;
             }
 
-            m_isUIChange = false;
+            _isUiChange = false;
 
             //LoaderAndSaverInfoGB.DataContext = GetTopmostNode(node);
         }
 
         private void PointStoreSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (m_isUIChange)
+            if (_isUiChange)
             {
                 return;
             }
 
-            var setting = (PointStoreSettingsVM)sender;
+            var setting = (PointStoreSettingsViewModel)sender;
 
             switch (e.PropertyName)
             {
@@ -183,7 +172,7 @@ namespace GTA_SA_PathsRedactor.View
 
         private void TreeViewClick(object sender, MouseButtonEventArgs e)
         {
-            m_isUIChange = true;
+            _isUiChange = true;
         }
     }
 }
