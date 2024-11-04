@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using GTA_SA_PathsRedactor.Core;
-using GTA_SA_PathsRedactor.Models;
 using GTA_SA_PathsRedactor.Services.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,8 +33,6 @@ public sealed class ProjectDataService
     }
     public void RestoreInfo(string? jsonString)
     {
-        _serviceProvider.GetService<SettingsService>()!.SetDefaultSettings(new GlobalSettings());
-        
         if (string.IsNullOrWhiteSpace(jsonString) || 
             JsonNode.Parse(jsonString) is not JsonObject jsonObject)
         {
@@ -70,6 +67,8 @@ public sealed class ProjectDataService
     {
         var loader = jObject["CurrentLoader"];
         var saver = jObject["CurrentSaver"];
+        
+        
 
         if (loader is null && saver is null)
         {

@@ -13,6 +13,9 @@ namespace GTA_SA_PathsRedactor.Core.Models
         [ObservableProperty]
         private bool _isStopPoint;
 
+        [ObservableProperty]
+        private bool _isSelected;
+
         public WorldPoint() : this(0, 0, 0, false)
         { }
         public WorldPoint(float x, float y, float z, bool isStopPoint)

@@ -20,24 +20,25 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private readonly NotificationService _notificationService;
         private readonly ILogger _logger;
 
-        private int m_currentPathIndex;
-        private ObservableCollection<PathEditorViewModel> m_paths;
+        private readonly ObservableCollection<PathEditorViewModel> _paths;
+        
+        private int _currentPathIndex;
 
-        private ICommand m_addPointCommand;
-        private ICommand m_insertPointCommand;
-        private ICommand m_removePointCommand;
-        private ICommand m_removeSelectedPointsCommand;
-        private ICommand m_clearPointsCommand;
+        private ICommand _addPointCommand;
+        private ICommand _insertPointCommand;
+        private ICommand _removePointCommand;
+        private ICommand _removeSelectedPointsCommand;
+        private ICommand _clearPointsCommand;
 
-        private ICommand m_savePath;
-        private ICommand m_savePathAs;
-        private ICommand m_loadPath;
+        private ICommand _savePath;
+        private ICommand _savePathAs;
+        private ICommand _loadPath;
 
-        private ICommand m_createNewPath;
-        private ICommand m_addNewPath;
-        private ICommand m_removePath;
+        private ICommand _createNewPath;
+        private ICommand _addNewPath;
+        private ICommand _removePath;
 
-        private ICommand m_selectPath;
+        private ICommand _selectPath;
 
         public PathViewModel(DataToStorageService dataToStorageService, NotificationService notificationService,
             ILogger logger)
@@ -46,38 +47,38 @@ namespace GTA_SA_PathsRedactor.ViewModel
             _notificationService = notificationService;
             _logger = logger;
 
-            m_paths = new ObservableCollection<PathEditorViewModel>();
-            m_currentPathIndex = -1;
+            _paths = new ObservableCollection<PathEditorViewModel>();
+            _currentPathIndex = -1;
 
-            m_addPointCommand = new RelayCommand<object>(obj =>
+            _addPointCommand = new RelayCommand<object>(obj =>
             {
                 System.Diagnostics.Debug.WriteLine(obj);
 
                 var dot = obj as Models.VisualObject ??
                           new Models.DotVisual(obj as Core.Models.WorldPoint);
 
-                CurrentPath.AddPoint(dot);
-            }, obj => obj != null && m_paths.Count != 0 &&
+                // CurrentPath.AddPoint(dot);
+            }, obj => obj != null && _paths.Count != 0 &&
                       (obj is Models.VisualObject ||
                        obj is Core.Models.WorldPoint));
-            m_removePointCommand = new RelayCommand<VisualObject>(
-                obj => CurrentPath.RemovePoint(obj as Models.VisualObject),
+            _removePointCommand = new RelayCommand<VisualObject>(
+                obj => {},
                 obj => obj is Models.VisualObject);
-            m_removeSelectedPointsCommand = new RelayCommand(() => CurrentPath.RemoveSelectedPoints(),
-                () => CurrentPath != null && CurrentPath.SelectedDots.Count != 0);
+            _removeSelectedPointsCommand = new RelayCommand(() => { },
+                () => CurrentPath != null);
 
-            m_clearPointsCommand = new RelayCommand(() =>
+            _clearPointsCommand = new RelayCommand(() =>
                 {
                     CurrentPath.Clear();
                     MapCleared?.Invoke(this, CurrentPath);
                 },
-                () => CurrentPath != null && CurrentPath.PointCount != 0);
+                () => CurrentPath != null );
 
-            m_loadPath = new AsyncRelayCommand<string>(obj => LoadPathHelper(obj as string));
-            m_savePath = new AsyncRelayCommand(() => SavePathHelper(false), () => m_currentPathIndex != -1);
-            m_savePathAs = new AsyncRelayCommand(() => SavePathHelper(true), () => m_currentPathIndex != -1);
+            _loadPath = new AsyncRelayCommand<string>(obj => LoadPathHelper(obj as string));
+            _savePath = new AsyncRelayCommand(() => SavePathHelper(false), () => _currentPathIndex != -1);
+            _savePathAs = new AsyncRelayCommand(() => SavePathHelper(true), () => _currentPathIndex != -1);
 
-            m_createNewPath = new RelayCommand<string>(obj =>
+            _createNewPath = new RelayCommand<string>(obj =>
             {
                 string pathName = obj as string ?? "New path " + (++s_pathCounter).ToString();
                 var newPath = new PathEditorViewModel(pathName);
@@ -85,21 +86,21 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 AddNewPathHelper(newPath);
                 OnPropertyChanged("Paths");
             });
-            m_addNewPath = new RelayCommand<PathEditorViewModel>(
+            _addNewPath = new RelayCommand<PathEditorViewModel>(
                 obj => { AddNewPathHelper(obj as PathEditorViewModel); }, obj => obj is PathEditorViewModel);
-            m_removePath = new RelayCommand<PathEditorViewModel>(obj =>
+            _removePath = new RelayCommand<PathEditorViewModel>(obj =>
             {
                 var pathEditor = obj as PathEditorViewModel;
 
-                if (m_paths.Remove(pathEditor))
+                if (_paths.Remove(pathEditor))
                 {
                     PathRemoved?.Invoke(this, pathEditor);
 
                     CurrentPathIndex--;
                 }
-            }, obj => obj is PathEditorViewModel && m_paths.Count != 0);
+            }, obj => obj is PathEditorViewModel && _paths.Count != 0);
 
-            m_selectPath = new RelayCommand<object>(obj =>
+            _selectPath = new RelayCommand<object>(obj =>
             {
                 var newIndex = -1;
 
@@ -109,58 +110,58 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 }
                 else
                 {
-                    newIndex = m_paths.IndexOf((PathEditorViewModel)obj);
+                    newIndex = _paths.IndexOf((PathEditorViewModel)obj);
                 }
 
                 CurrentPathIndex = newIndex;
             }, obj => obj != null && (obj is int || obj is PathEditorViewModel));
         }
 
-        public ObservableCollection<PathEditorViewModel> Paths => m_paths;
+        public ObservableCollection<PathEditorViewModel> Paths => _paths;
 
         public PathEditorViewModel? CurrentPath
         {
             get
             {
-                if (m_currentPathIndex == -1)
+                if (_currentPathIndex == -1)
                 {
                     return null;
                 }
 
-                return m_paths[m_currentPathIndex];
+                return _paths[_currentPathIndex];
             }
         }
 
-        public ICommand AddPointCommand => m_addPointCommand;
-        public ICommand InsertPointCommand => m_insertPointCommand;
-        public ICommand RemovePointCommand => m_removePointCommand;
-        public ICommand RemoveSelectedPointsCommand => m_removeSelectedPointsCommand;
-        public ICommand ClearPointsCommand => m_clearPointsCommand;
+        public ICommand AddPointCommand => _addPointCommand;
+        public ICommand InsertPointCommand => _insertPointCommand;
+        public ICommand RemovePointCommand => _removePointCommand;
+        public ICommand RemoveSelectedPointsCommand => _removeSelectedPointsCommand;
+        public ICommand ClearPointsCommand => _clearPointsCommand;
 
-        public ICommand SaveCurrentPath => m_savePath;
-        public ICommand SaveCurrentPathAs => m_savePathAs;
-        public ICommand LoadPath => m_loadPath;
+        public ICommand SaveCurrentPath => _savePath;
+        public ICommand SaveCurrentPathAs => _savePathAs;
+        public ICommand LoadPath => _loadPath;
 
-        public ICommand AddNewPathCommand => m_addNewPath;
-        public ICommand CreateNewPathCommand => m_createNewPath;
-        public ICommand RemovePathCommand => m_removePath;
+        public ICommand AddNewPathCommand => _addNewPath;
+        public ICommand CreateNewPathCommand => _createNewPath;
+        public ICommand RemovePathCommand => _removePath;
 
-        public ICommand SelectPathCommand => m_selectPath;
+        public ICommand SelectPathCommand => _selectPath;
 
         public int CurrentPathIndex
         {
-            get => m_currentPathIndex;
+            get => _currentPathIndex;
             set
             {
-                if (value < -1 || value >= m_paths.Count)
+                if (value < -1 || value >= _paths.Count)
                 {
                     throw new ArgumentOutOfRangeException("value");
                 }
 
                 PathSelected?.Invoke(this,
-                    new PathSelectionArgs(value != -1 ? m_paths[value] : null, m_currentPathIndex, value));
+                    new PathSelectionArgs(value != -1 ? _paths[value] : null, _currentPathIndex, value));
 
-                m_currentPathIndex = value;
+                _currentPathIndex = value;
 
                 OnPropertyChanged();
                 OnPropertyChanged("CurrentPath");
@@ -208,7 +209,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                     AddNewPathHelper(newPath);
 
-                    newPath.AddRangePoint(points);
+                    
                 }
                 else
                 {
@@ -267,7 +268,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             try
             {
-                var saveTask = pointSaver.SaveAsync(CurrentPath.Dots.Select(d => d.Point));
+                var saveTask = pointSaver.SaveAsync(CurrentPath.Points);
 
                 await Task.WhenAny(saveTask, Task.Delay(30000));
 
@@ -300,11 +301,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         private void AddNewPathHelper(PathEditorViewModel pathEditorViewModel)
         {
-            m_paths.Add(pathEditorViewModel);
+            _paths.Add(pathEditorViewModel);
 
             PathAdded?.Invoke(this, pathEditorViewModel);
 
-            CurrentPathIndex = m_paths.Count - 1;
+            CurrentPathIndex = _paths.Count - 1;
         }
 
         private void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propName = "")
