@@ -83,6 +83,6 @@
                     Background="Gray"/>
         </ScrollViewer>
 
-        <userControls:PathManipulatorUserControl ImagePath="/Resource/MapImage.png"/>
+        <userControls:PathManipulatorUserControl ImagePath="/Resource/MapImage.jpg"/>
     </DockPanel>
 </Window>

@@ -10,24 +10,17 @@
 This program can edit other paths, but for this capability you need create your custom loader and saver.
 See details on GitHub (https://github.com/MrNails/GTA_SA_PathsRedactor).</Description>
     <MSBuildCommunityTasksPath>$(SolutionDir)\.build</MSBuildCommunityTasksPath>
-    <AssemblyVersion>1.0.*</AssemblyVersion>
+    <AssemblyVersion>1.1.*</AssemblyVersion>
     <Deterministic>false</Deterministic>
     <TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resource\MapImage.jpg" />
-    <None Remove="Resource\noimage.png" />
-    <None Remove="Settings\Point transformation settings\DefaultPointSettings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Resource\MapImage.jpg" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Resource\noimage.png" />
     <Resource Include="Settings\Point transformation settings\DefaultPointSettings.json" />
+    <Content Include="Resource\MapImage.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

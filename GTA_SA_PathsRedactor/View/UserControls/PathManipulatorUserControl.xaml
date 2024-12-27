@@ -9,9 +9,22 @@
              d:DesignHeight="300" 
              d:DesignWidth="300"
              d:DataContext="{viewModel:PathEditorViewModel}"
-             x:Name="Root">
-
-    <Grid>
+             x:Name="Root"
+             ClipToBounds="True"
+             PreviewMouseWheel="PathManipulatorUserControl_OnPreviewMouseWheel"
+             PreviewMouseDown="PathManipulatorUserControl_OnPreviewMouseDown"
+             PreviewMouseMove="PathManipulatorUserControl_OnPreviewMouseMove"
+             PreviewMouseUp="PathManipulatorUserControl_OnPreviewMouseUp"
+             SizeChanged="PathManipulatorUserControl_OnSizeChanged">
+    <Grid x:Name="RenderGrid" 
+          RenderTransformOrigin="0.5, 0.5">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+                <TranslateTransform X="0" Y="0" />
+            </TransformGroup>
+        </Grid.RenderTransform>
+        
         <Image x:Name="MapIcon" 
                Stretch="Fill"
                Source="{Binding ElementName=Root, Path=ImagePath, Mode=OneWay}"/>

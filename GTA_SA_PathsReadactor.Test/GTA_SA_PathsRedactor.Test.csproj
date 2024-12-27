@@ -8,6 +8,8 @@
     <Product>GTA_SA_PathsRedactor.Test product</Product>
     <Description>Test description.</Description>
     <AssemblyName>Test loaders and savers by MrNails</AssemblyName>
+    <AssemblyVersion>1.1.*</AssemblyVersion>
+	<Deterministic>false</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
