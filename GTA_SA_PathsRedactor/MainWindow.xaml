@@ -23,11 +23,11 @@
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="Delete" Command="services:DefaultCommands.DeleteSelectedPoints"/>
-        <KeyBinding Modifiers="Ctrl" Key="L" Command="{Binding Path=LoadPath}"/>
-        <KeyBinding Modifiers="Ctrl" Key="S" Command="services:DefaultCommands.SaveCurrentPath"/>
+        <KeyBinding Modifiers="Control" Key="L" Command="{Binding Path=LoadPath}"/>
+        <KeyBinding Modifiers="Control" Key="S" Command="services:DefaultCommands.SaveCurrentPath"/>
         <KeyBinding Gesture="Ctrl+Shift+S" Command="services:DefaultCommands.SaveCurrentPathAs" />
-        <KeyBinding Modifiers="Ctrl" Key="Z" Command="services:DefaultCommands.Undo"/>
-        <KeyBinding Modifiers="Ctrl" Key="Y" Command="services:DefaultCommands.Redo"/>
+        <KeyBinding Modifiers="Control" Key="Z" Command="services:DefaultCommands.Undo"/>
+        <KeyBinding Modifiers="Control" Key="Y" Command="services:DefaultCommands.Redo"/>
         <KeyBinding Key="F1" Command="services:DefaultCommands.Help"/>
     </Window.InputBindings>
     <DockPanel LastChildFill="True">

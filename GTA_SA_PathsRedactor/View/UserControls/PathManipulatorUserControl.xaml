@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:services="clr-namespace:GTA_SA_PathsRedactor.Services"
              xmlns:viewModel="clr-namespace:GTA_SA_PathsRedactor.ViewModel"
+             xmlns:controls="clr-namespace:GTA_SA_PathsRedactor.Controls"
              mc:Ignorable="d"
              d:DesignHeight="300" 
              d:DesignWidth="300"
@@ -15,7 +16,11 @@
              PreviewMouseDown="PathManipulatorUserControl_OnPreviewMouseDown"
              PreviewMouseMove="PathManipulatorUserControl_OnPreviewMouseMove"
              PreviewMouseUp="PathManipulatorUserControl_OnPreviewMouseUp"
+             MouseLeave="PathManipulatorUserControl_OnMouseLeave"
              SizeChanged="PathManipulatorUserControl_OnSizeChanged">
+    <UserControl.Resources>
+        <services:BindingProxy x:Key="RootProxy" Data="{Binding ElementName=Root, Mode=OneWay}"/>
+    </UserControl.Resources>
     <Grid x:Name="RenderGrid" 
           RenderTransformOrigin="0.5, 0.5">
         <Grid.RenderTransform>
@@ -27,16 +32,19 @@
         
         <Image x:Name="MapIcon" 
                Stretch="Fill"
-               Source="{Binding ElementName=Root, Path=ImagePath, Mode=OneWay}"/>
-        <Canvas x:Name="MapContainer">
-            <TextBlock x:Name="DebugTextBlock" FontSize="18" Foreground="White" />
-            <Canvas.ContextMenu>
-                <ContextMenu Name="CanvasContextMenu">
-                    <MenuItem Header="Add point" />
-                    <MenuItem Header="Clear selection" />
+               Source="{Binding ElementName=Root, Path=ImagePath, Mode=OneWay}">
+            <Image.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Add point" 
+                              Click="AddPointMenuItem_OnClick"/>
+                    <MenuItem Header="Clear selection" 
+                              Command="{Binding Data.DataContext.ClearSelectionCommand, 
+                                                Mode=OneWay, 
+                                                Source={StaticResource RootProxy}}"/>
                 </ContextMenu>
-            </Canvas.ContextMenu>
-        </Canvas>
+            </Image.ContextMenu>
+        </Image>
+        <controls:PathManipulator x:Name="MapContainer" />
     </Grid>
 
 </UserControl>

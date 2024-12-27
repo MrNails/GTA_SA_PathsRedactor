@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using GTA_SA_PathsRedactor.Core.Models;
+using GTA_SA_PathsRedactor.ViewModel;
 
 namespace GTA_SA_PathsRedactor.View.UserControls;
 
@@ -91,14 +93,20 @@ public partial class PathManipulatorUserControl : UserControl
 
     private void PathManipulatorUserControl_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        _mouseDown = true;
         _mouseDownPosition = e.GetPosition(this);
+        if (e.LeftButton == MouseButtonState.Released)
+        {
+            e.Handled = false;
+            return;
+        }
+        
+        _mouseDown = true;
         
         var translateTransform = GetMapTranslateTransform();
         
         if (translateTransform is not null)
             _mapTranslation = new Point(translateTransform.X, translateTransform.Y);
-        
+
         e.Handled = true;
     }
     
@@ -129,9 +137,13 @@ public partial class PathManipulatorUserControl : UserControl
     private void PathManipulatorUserControl_OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
     {
         _mouseDown = false;
-        e.Handled = true;
     }
 
+    private void PathManipulatorUserControl_OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        _mouseDown = false;
+    }
+    
     private void PathManipulatorUserControl_OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         var translateTransform = GetMapTranslateTransform();
@@ -145,8 +157,20 @@ public partial class PathManipulatorUserControl : UserControl
             (scaleTransform.ScaleX.Equals(1) &&
             scaleTransform.ScaleY.Equals(1)))
             return;
-        
-        
+
         ClampMapToScreen(translateTransform, scaleTransform, translateTransform.X, translateTransform.Y);
+        e.Handled = true;
+    }
+
+    private void AddPointMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not PathEditorViewModel viewModel)
+            return;
+        
+        System.Diagnostics.Debug.WriteLine(_mouseDownPosition.ToString());
+        
+        var point = new WorldPoint((float)_mouseDownPosition.X, (float)_mouseDownPosition.Y, 0, false);
+        if (viewModel.AddPointCommand.CanExecute(point))
+            viewModel.AddPointCommand.Execute(point);
     }
 }
