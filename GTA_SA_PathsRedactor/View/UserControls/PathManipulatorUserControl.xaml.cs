@@ -166,10 +166,27 @@ public partial class PathManipulatorUserControl : UserControl
     {
         if (DataContext is not PathEditorViewModel viewModel)
             return;
+
+        var mapPointX = _mouseDownPosition.X;
+        var mapPointY = _mouseDownPosition.Y;
         
-        System.Diagnostics.Debug.WriteLine(_mouseDownPosition.ToString());
+        var scale = GetMapScaleTransform();
+        var translate = GetMapTranslateTransform();
         
-        var point = new WorldPoint((float)_mouseDownPosition.X, (float)_mouseDownPosition.Y, 0, false);
+        if (scale is not null &&
+            translate is not null &&
+            !scale.ScaleX.Equals(StandardZoom_) &&
+            !scale.ScaleY.Equals(StandardZoom_))
+        {
+            //Transform mouse click position as offset from center of map
+            mapPointX = RenderGrid.ActualWidth / 2 - mapPointX;
+            mapPointY = RenderGrid.ActualHeight / 2 - mapPointY;
+
+            mapPointX = RenderGrid.ActualWidth / 2 - (mapPointX + translate.X) / scale.ScaleX;
+            mapPointY = RenderGrid.ActualHeight / 2 - (mapPointY + translate.Y) / scale.ScaleY;
+        }
+
+        var point = new WorldPoint((float)mapPointX, (float)mapPointY, 0, false);
         if (viewModel.AddPointCommand.CanExecute(point))
             viewModel.AddPointCommand.Execute(point);
     }

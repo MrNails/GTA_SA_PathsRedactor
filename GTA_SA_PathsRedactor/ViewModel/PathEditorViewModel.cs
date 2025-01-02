@@ -23,12 +23,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
         [ObservableProperty]
         private WorldPoint? _selectedPoint;
 
-        private ICommand _addPointCommand;
-        private ICommand _removePointCommand;
-        private ICommand _insertPointCommand;
-        private ICommand _clearSelectionCommand;
-        private ICommand _selectPointsCommand;
-        private ICommand _moveSelectedPointsCommand;
+        private ICommand? _addPointCommand;
+        private ICommand? _removePointCommand;
+        private ICommand? _insertPointCommand;
+        private ICommand? _clearSelectionCommand;
+        private ICommand? _selectPointsCommand;
+        private ICommand? _moveSelectedPointsCommand;
 
         public PathEditorViewModel(string pathName) : this(pathName, Brushes.Red) { }
 
@@ -36,11 +36,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
         {
             _points = new ObservableCollection<WorldPoint>();
 
-            Color = linesColor;
-            PathName = pathName;
+            _pathName = pathName;
+            _pathFileName = string.Empty;
+            _pathColor = linesColor;
             
             LinesThickness = 2;
-            PathFileName = string.Empty;
         }
         
         public IReadOnlyList<WorldPoint> Points => _points;
@@ -63,7 +63,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             get => _pathFileName;
             set
             {
-                _errors[nameof(PathFileName)] = value.Length == 0 ? "File path can't be empty." : "";
+                _errors[nameof(PathFileName)] = value.Length == 0 ? "File path can't be empty." : string.Empty;
 
                 _pathFileName = value;
                 OnPropertyChanged();
@@ -92,7 +92,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             get => _pathColor;
             set
             {
-                _pathColor = value ?? Brushes.Red;
+                _pathColor = value;
                 OnPropertyChanged();
             }
         }

@@ -16,7 +16,7 @@ namespace GTA_SA_PathsRedactor.View.UserControls
         {
             InitializeComponent();
             
-            PathColorColorPicker.SelectedColorChagned += PathColorColorPickerSelectedColorChanged;
+            PathColorColorPicker.SelectedColorChanged += PathColorColorPickerSelectedColorChanged;
         }
 
         //TODO: Convert to DependencyProperty
@@ -55,7 +55,7 @@ namespace GTA_SA_PathsRedactor.View.UserControls
         }
         
 
-        private void PathColorColorPickerSelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<SolidColorBrush> e)
+        private void PathColorColorPickerSelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Brush> e)
         {
             //TODO: Try to move in xaml with converter
             if (PathViewModel?.CurrentPath is not null)

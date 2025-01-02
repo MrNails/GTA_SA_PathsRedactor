@@ -34,7 +34,7 @@ namespace GTA_SA_PathsRedactor.Controls
 
         public static readonly RoutedEvent DropDownOpenedEvent;
         public static readonly RoutedEvent DropDownClosedEvent;
-        public static readonly RoutedEvent SelectedColorChagnedEvent;
+        public static readonly RoutedEvent SelectedColorChangedEvent;
         public static readonly RoutedEvent ColorBoxTemplateChangedEvent;
 
         #endregion
@@ -84,7 +84,7 @@ namespace GTA_SA_PathsRedactor.Controls
 
             DropDownClosedEvent = EventManager.RegisterRoutedEvent(nameof(DropDownClosed), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(ColorPicker));
             DropDownOpenedEvent = EventManager.RegisterRoutedEvent(nameof(DropDownOpened), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(ColorPicker));
-            SelectedColorChagnedEvent = EventManager.RegisterRoutedEvent(nameof(SelectedColorChagned), RoutingStrategy.Bubble, typeof(RoutedPropertyChangedEventHandler<SolidColorBrush>), typeof(ColorPicker));
+            SelectedColorChangedEvent = EventManager.RegisterRoutedEvent(nameof(SelectedColorChanged), RoutingStrategy.Bubble, typeof(RoutedPropertyChangedEventHandler<Brush>), typeof(ColorPicker));
             ColorBoxTemplateChangedEvent = EventManager.RegisterRoutedEvent(nameof(ColorBoxTemplateChanged), RoutingStrategy.Bubble, typeof(RoutedPropertyChangedEventHandler<ControlTemplate>), typeof(ColorPicker));
 
             DefaultColors = GetDefaultColors();
@@ -107,8 +107,8 @@ namespace GTA_SA_PathsRedactor.Controls
         }
         public Brush SelectedColor
         {
-            get { return (SolidColorBrush)GetValue(SelectedColorProperty); }
-            set { SetValue(SelectedColorProperty, value); }
+            get => (Brush)GetValue(SelectedColorProperty);
+            set => SetValue(SelectedColorProperty, value);
         }
         public ControlTemplate ColorBoxTemplate
         {
@@ -131,10 +131,10 @@ namespace GTA_SA_PathsRedactor.Controls
             remove { RemoveHandler(DropDownClosedEvent, value); }
         }
 
-        public event RoutedPropertyChangedEventHandler<SolidColorBrush> SelectedColorChagned
+        public event RoutedPropertyChangedEventHandler<Brush> SelectedColorChanged
         {
-            add { AddHandler(SelectedColorChagnedEvent, value); }
-            remove { RemoveHandler(SelectedColorChagnedEvent, value); }
+            add { AddHandler(SelectedColorChangedEvent, value); }
+            remove { RemoveHandler(SelectedColorChangedEvent, value); }
         }
         public event RoutedPropertyChangedEventHandler<ControlTemplate> ColorBoxTemplateChanged
         {
@@ -347,7 +347,7 @@ namespace GTA_SA_PathsRedactor.Controls
             var colorPicker = (ColorPicker)d;
 
             var routedPropertyChangedEventArgs = new RoutedPropertyChangedEventArgs<Brush?>(newValue, oldValue);
-            routedPropertyChangedEventArgs.RoutedEvent = SelectedColorChagnedEvent;
+            routedPropertyChangedEventArgs.RoutedEvent = SelectedColorChangedEvent;
 
             colorPicker.RaiseEvent(routedPropertyChangedEventArgs);
         }
@@ -360,7 +360,7 @@ namespace GTA_SA_PathsRedactor.Controls
 
             var routedPropertyChangedEventArgs = new RoutedPropertyChangedEventArgs<ControlTemplate?>(newValue, oldValue)
             {
-                RoutedEvent = SelectedColorChagnedEvent
+                RoutedEvent = SelectedColorChangedEvent
             };
 
             colorPicker.RaiseEvent(routedPropertyChangedEventArgs);
@@ -372,7 +372,7 @@ namespace GTA_SA_PathsRedactor.Controls
     {
         public static readonly DependencyProperty ColorProperty = 
             DependencyProperty.Register(nameof(Color),
-                                        typeof(SolidColorBrush),
+                                        typeof(Brush),
                                         typeof(ColorBox),
                                         new FrameworkPropertyMetadata(
                                             Brushes.Black,

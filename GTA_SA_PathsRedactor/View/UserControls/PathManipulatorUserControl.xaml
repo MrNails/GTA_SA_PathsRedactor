@@ -44,7 +44,9 @@
                 </ContextMenu>
             </Image.ContextMenu>
         </Image>
-        <controls:PathManipulator x:Name="MapContainer" />
+        <controls:PathManipulator x:Name="MapContainer" 
+                                  PointsToDisplay="{Binding Points, Mode=OneWay}"
+                                  PointsColor="{Binding Color, Mode=OneWay}"/>
     </Grid>
 
 </UserControl>

@@ -57,7 +57,7 @@ public sealed class PathManipulator : FrameworkElement
         var stopPointColor = StopPointPointsColor;
         var pointsToDisplay = PointsToDisplay;
         
-        var pointPen = new Pen(Brushes.Transparent, 0);
+        var pointPen = new Pen(pointColor, 1);
         var selectedPointPen = new Pen(Brushes.Black, 1);
         var linePen = new Pen(pointColor, 1);
 
@@ -66,7 +66,7 @@ public sealed class PathManipulator : FrameworkElement
         
         drawingContext.DrawEllipse(firstPoint.IsStopPoint ? stopPointColor : pointColor, 
                                    firstPoint.IsSelected ? selectedPointPen : pointPen, 
-                                   new Point(firstPoint.X, firstPoint.Y), 1, 1);
+                                   new Point(firstPoint.X, firstPoint.Y), 2, 2);
         
         for (int i = 1; i < pointsToDisplay.Count; i++)
         {
@@ -76,7 +76,7 @@ public sealed class PathManipulator : FrameworkElement
             
             drawingContext.DrawEllipse(worldPoint.IsStopPoint ? stopPointColor : pointColor, 
                                        worldPoint.IsSelected ? selectedPointPen : pointPen, 
-                                       tmpCenter, 1, 1);
+                                       tmpCenter, 2, 2);
             
             drawingContext.DrawLine(linePen, new Point(previousPoint.X, previousPoint.Y), tmpCenter);
             

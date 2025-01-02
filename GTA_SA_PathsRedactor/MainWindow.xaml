@@ -5,9 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:services="clr-namespace:GTA_SA_PathsRedactor.Services"
         xmlns:userControls="clr-namespace:GTA_SA_PathsRedactor.View.UserControls"
+        xmlns:viewModel="clr-namespace:GTA_SA_PathsRedactor.ViewModel"
         mc:Ignorable="d"
         d:DesignWidth="600"
         d:DesignHeight="600"
+        d:DataContext="{viewModel:PathViewModel}"
         MinWidth="800"
         MinHeight="600 "
         Title="Main window" 
@@ -83,6 +85,7 @@
                     Background="Gray"/>
         </ScrollViewer>
 
-        <userControls:PathManipulatorUserControl ImagePath="/Resource/MapImage.jpg"/>
+        <userControls:PathManipulatorUserControl ImagePath="/Resource/MapImage.jpg"
+                                                 DataContext="{Binding CurrentPath, Mode=OneWay}"/>
     </DockPanel>
 </Window>
