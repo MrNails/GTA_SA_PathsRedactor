@@ -12,10 +12,10 @@
              d:DataContext="{viewModel:PathEditorViewModel}"
              x:Name="Root"
              ClipToBounds="True"
-             PreviewMouseWheel="PathManipulatorUserControl_OnPreviewMouseWheel"
-             PreviewMouseDown="PathManipulatorUserControl_OnPreviewMouseDown"
-             PreviewMouseMove="PathManipulatorUserControl_OnPreviewMouseMove"
-             PreviewMouseUp="PathManipulatorUserControl_OnPreviewMouseUp"
+             MouseWheel="PathManipulatorUserControl_OnPreviewMouseWheel"
+             MouseDown="PathManipulatorUserControl_OnPreviewMouseDown"
+             MouseMove="PathManipulatorUserControl_OnPreviewMouseMove"
+             MouseUp="PathManipulatorUserControl_OnPreviewMouseUp"
              MouseLeave="PathManipulatorUserControl_OnMouseLeave"
              SizeChanged="PathManipulatorUserControl_OnSizeChanged">
     <UserControl.Resources>
@@ -46,7 +46,10 @@
         </Image>
         <controls:PathManipulator x:Name="MapContainer" 
                                   PointsToDisplay="{Binding Points, Mode=OneWay}"
-                                  PointsColor="{Binding Color, Mode=OneWay}"/>
+                                  PointsColor="{Binding Color, Mode=OneWay}"
+                                  SelectedPoint="{Binding SelectedPoint, Mode=TwoWay}"
+                                  StopPointPointsColor="Coral"
+                                  PointRadius="2" />
     </Grid>
 
 </UserControl>

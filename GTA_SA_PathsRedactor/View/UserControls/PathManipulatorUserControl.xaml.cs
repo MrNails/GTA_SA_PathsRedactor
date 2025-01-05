@@ -19,6 +19,7 @@ public partial class PathManipulatorUserControl : UserControl
 
     private bool _mouseDown;
     private Point _mouseDownPosition;
+    private Point _mapContainerMouseDownPosition;
     private Point _mapTranslation;
     
     public PathManipulatorUserControl()
@@ -93,14 +94,15 @@ public partial class PathManipulatorUserControl : UserControl
 
     private void PathManipulatorUserControl_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        _mouseDownPosition = e.GetPosition(this);
         if (e.LeftButton == MouseButtonState.Released)
         {
+            _mapContainerMouseDownPosition = e.GetPosition(MapContainer);
             e.Handled = false;
             return;
         }
         
         _mouseDown = true;
+        _mouseDownPosition = e.GetPosition(this);
         
         var translateTransform = GetMapTranslateTransform();
         
@@ -166,28 +168,10 @@ public partial class PathManipulatorUserControl : UserControl
     {
         if (DataContext is not PathEditorViewModel viewModel)
             return;
-
-        var mapPointX = _mouseDownPosition.X;
-        var mapPointY = _mouseDownPosition.Y;
         
-        var scale = GetMapScaleTransform();
-        var translate = GetMapTranslateTransform();
-        
-        if (scale is not null &&
-            translate is not null &&
-            !scale.ScaleX.Equals(StandardZoom_) &&
-            !scale.ScaleY.Equals(StandardZoom_))
-        {
-            //Transform mouse click position as offset from center of map
-            mapPointX = RenderGrid.ActualWidth / 2 - mapPointX;
-            mapPointY = RenderGrid.ActualHeight / 2 - mapPointY;
-
-            mapPointX = RenderGrid.ActualWidth / 2 - (mapPointX + translate.X) / scale.ScaleX;
-            mapPointY = RenderGrid.ActualHeight / 2 - (mapPointY + translate.Y) / scale.ScaleY;
-        }
-
-        var point = new WorldPoint((float)mapPointX, (float)mapPointY, 0, false);
+        var point = new WorldPoint((float)_mapContainerMouseDownPosition.X, (float)_mapContainerMouseDownPosition.Y, 0, false);
         if (viewModel.AddPointCommand.CanExecute(point))
             viewModel.AddPointCommand.Execute(point);
     }
+
 }

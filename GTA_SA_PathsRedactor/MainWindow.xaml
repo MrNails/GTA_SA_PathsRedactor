@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         d:DesignWidth="600"
         d:DesignHeight="600"
-        d:DataContext="{viewModel:PathViewModel}"
+        d:DataContext="{viewModel:PathHolderViewModel}"
         MinWidth="800"
         MinHeight="600 "
         Title="Main window" 

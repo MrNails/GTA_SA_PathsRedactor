@@ -24,7 +24,7 @@ namespace GTA_SA_PathsRedactor
     /// </summary>
     public partial class MainWindow : Window
     {
-        private PathViewModel? _pathViewModel;
+        private PathHolderViewModel? _pathViewModel;
         private UserControl[] _userControls;
         
         public MainWindow()
@@ -34,7 +34,7 @@ namespace GTA_SA_PathsRedactor
 
         private void InitializeAdditionalComponent()
         {
-            var mainUserControl = new PointControllerUserControl {  PathViewModel = _pathViewModel };
+            var mainUserControl = new PointControllerUserControl {  DataContext = _pathViewModel };
             var pathSettingUc = new PointTransformationUC();
 
             mainUserControl.VerticalAlignment = VerticalAlignment.Top;
@@ -78,7 +78,7 @@ namespace GTA_SA_PathsRedactor
         {
             if (_pathViewModel is null)
             {
-                _pathViewModel = (PathViewModel)DataContext;
+                _pathViewModel = (PathHolderViewModel)DataContext;
                 InitializeAdditionalComponent();
             }
         }

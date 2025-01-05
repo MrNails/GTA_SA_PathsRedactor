@@ -10,14 +10,14 @@ using Serilog;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    public class PathViewModel : ObservableObject
+    public class PathHolderViewModel : ObservableObject
     {
         /// <summary>
         /// Time in milliseconds
         /// </summary>
         private const int MaxWaitingTimeForSavingLoadingPaths_ = 30000;
         
-        private static int _pathCounter = 0;
+        private static int _pathCounter;
 
         private readonly DataToStorageService _dataToStorageService;
         private readonly NotificationService _notificationService;
@@ -34,8 +34,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private ICommand? _removePath;
 
         private ICommand? _selectPath;
+        private ICommand? _clearSelectedPathPointsCommand;
 
-        public PathViewModel(DataToStorageService dataToStorageService, 
+        public PathHolderViewModel(DataToStorageService dataToStorageService, 
                              NotificationService notificationService, 
                              ILogger logger)
         {
@@ -75,8 +76,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
                     return;
                 
                 PathRemoved?.Invoke(this, pathEditorModel!);
-
-                CurrentPathIndex--;
             }, pathEditorModel => pathEditorModel is not null && Paths.Count != 0);
 
         public ICommand SelectPathCommand => _selectPath ??=
@@ -95,6 +94,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 CurrentPathIndex = newIndex;
             }, obj => obj is int or PathEditorViewModel);
+        
+        public ICommand ClearSelectedPathPointsCommand => _clearSelectedPathPointsCommand
+            ??= new RelayCommand<PathEditorViewModel>(path => path?.Clear(), path => path is not null);
 
         public int CurrentPathIndex
         {
@@ -116,9 +118,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
-        public event Action<PathViewModel, PathEditorViewModel>? PathAdded;
-        public event Action<PathViewModel, PathEditorViewModel>? PathRemoved;
-        public event Action<PathViewModel, PathSelectionArgs>? PathSelected;
+        public event Action<PathHolderViewModel, PathEditorViewModel>? PathAdded;
+        public event Action<PathHolderViewModel, PathEditorViewModel>? PathRemoved;
+        public event Action<PathHolderViewModel, PathSelectionArgs>? PathSelected;
 
         private async Task LoadPathExecute(string? path)
         {

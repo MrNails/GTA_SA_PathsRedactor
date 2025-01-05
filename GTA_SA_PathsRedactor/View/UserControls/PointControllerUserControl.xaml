@@ -28,7 +28,8 @@
                   Header="Path information"
                   BorderBrush="DarkGray"
                   BorderThickness="0.5"
-                  DataContext="{Binding Path=CurrentPath}" Panel.ZIndex="1">
+                  DataContext="{Binding Path=CurrentPath, Mode=OneWay}" 
+                  Panel.ZIndex="1">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1.2*" />
@@ -37,7 +38,8 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="5">
-                    <TextBlock Text="Path name" Margin="5 0 0 0" />
+                    <TextBlock Text="Path name" 
+                               Margin="5 0 0 0" />
                     <TextBox x:Name="PathNameTextBox"
                              Margin="5"
                              MinWidth="70"
@@ -54,11 +56,15 @@
                          Text="{Binding Path=PointCount, Mode=OneWay}" />
                 </TextBlock>
                 <DockPanel Grid.Row="2" Grid.Column="0" Margin="5 0 5 0">
-                    <TextBlock Text="Path color:" Margin="5 0 5 0" DockPanel.Dock="Left" />
+                    <TextBlock Text="Path color:" 
+                               Margin="5 0 5 0" 
+                               DockPanel.Dock="Left" />
                     <controls:ColorPicker x:Name="PathColorColorPicker" 
                                           DockPanel.Dock="Right"
                                           Style="{StaticResource ColorPickerTemplate}"
-                                          Height="25" Background="White" />
+                                          Height="25" 
+                                          SelectedColor="{Binding Color, Mode=TwoWay}"
+                                          Background="White"/>
                 </DockPanel>
             </Grid>
         </GroupBox>
@@ -67,31 +73,29 @@
                   Header="Selected point"
                   BorderBrush="DarkGray" 
                   BorderThickness="0.5"
-                  DataContext="{Binding Path=CurrentPath.CurrentObject}"
+                  DataContext="{Binding Path=CurrentPath, Mode=OneWay}"
                   Panel.ZIndex="0">
-            <StackPanel DataContext="{Binding Path=Point}">
+            <StackPanel DataContext="{Binding Path=SelectedPoint, Mode=OneWay}">
                 <StackPanel Margin="5">
                     <TextBlock Text="X" Margin="10 0 0 0 " />
-                    <TextBox x:Name="PointXTextBox" Style="{StaticResource ResourceKey=InternalTextBox}"
+                    <TextBox Style="{StaticResource ResourceKey=InternalTextBox}"
                              Text="{Binding Path=X, ValidatesOnExceptions=True, 
-                                    UpdateSourceTrigger=PropertyChanged,
-                                    Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=x}" />
+                                            UpdateSourceTrigger=PropertyChanged,
+                                            Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=x}" />
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Y" Margin="10 0 0 0 " />
-                    <TextBox x:Name="PointYTextBox" Style="{StaticResource ResourceKey=InternalTextBox}"
+                    <TextBox Style="{StaticResource ResourceKey=InternalTextBox}"
                              Text="{Binding Path=Y, ValidatesOnExceptions=True, 
-                                    UpdateSourceTrigger=PropertyChanged,
-                                    Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=y}" />
+                                            UpdateSourceTrigger=PropertyChanged,
+                                            Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=y}" />
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Z" Margin="10 0 0 0 " />
-                    <TextBox x:Name="PointZTextBox" 
-                             Style="{StaticResource ResourceKey=InternalTextBox}"
+                    <TextBox Style="{StaticResource ResourceKey=InternalTextBox}"
                              Text="{Binding Path=Z, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
-                <CheckBox Grid.Row="2" Grid.ColumnSpan="2" 
-                          FontSize="18" 
+                <CheckBox FontSize="18" 
                           VerticalContentAlignment="Center"
                           Content="Is stop point" 
                           Margin="10 5 5 5"
@@ -110,24 +114,29 @@
                         Margin="5 2 5 2"
                         Padding="4 2 4 2"
                         Width="30"
-                        Command="{Binding CreateNewPathCommand}" />
+                        Command="{Binding CreateNewPathCommand, Mode=OneWay}" />
                 <Button Content="Select"
                         x:Name="SelectPathButton"
                         Margin="5 2 5 2"
                         Padding="4 2 4 2"
                         Width="100"
-                        Command="{Binding SelectPathCommand}"
+                        Command="{Binding SelectPathCommand, Mode=OneWay}"
                         CommandParameter="{Binding ElementName=AvailablePathsListBox, Path=SelectedIndex}" />
                 <Button Content="-"
                         x:Name="RemovePathButton"
                         Margin="5 2 5 2"
                         Padding="4 2 4 2" Width="30"
-                        Command="{Binding RemovePathCommand}"
+                        Command="{Binding RemovePathCommand, Mode=OneWay}"
                         CommandParameter="{Binding ElementName=AvailablePathsListBox, Path=SelectedItem}" />
             </StackPanel>
 
-            <ListBox x:Name="AvailablePathsListBox" BorderThickness="2" MinHeight="250" MaxHeight="400"
-                     ItemsSource="{Binding Path=Paths, Mode=OneWay}" HorizontalContentAlignment="Stretch">
+            <ListBox x:Name="AvailablePathsListBox" 
+                     BorderThickness="2" 
+                     MinHeight="250" 
+                     MaxHeight="400"
+                     ItemsSource="{Binding Path=Paths, Mode=OneWay}" 
+                     SelectedIndex="{Binding Path=CurrentPathIndex, Mode=TwoWay}"
+                     HorizontalContentAlignment="Stretch">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid>
@@ -157,6 +166,7 @@
                 Margin="10"
                 FontSize="18"
                 Padding="5"
-                Command="{Binding Path=ClearPointsCommand}" />
+                Command="{Binding Path=ClearSelectedPathPointsCommand, Mode=OneWay}"
+                CommandParameter="{Binding CurrentPath, Mode=OneWay}"/>
     </StackPanel>
 </UserControl>

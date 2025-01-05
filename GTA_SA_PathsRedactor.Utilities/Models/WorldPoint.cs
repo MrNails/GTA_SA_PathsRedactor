@@ -87,6 +87,13 @@ namespace GTA_SA_PathsRedactor.Core.Models
             other.IsStopPoint = _isStopPoint;
         }
 
+        public double DistanceTo(WorldPoint other)
+        {
+            return Math.Sqrt(Math.Pow(_position.X - other._position.X, 2) + 
+                             Math.Pow(_position.Y - other._position.Y, 2) +
+                             Math.Pow(_position.Z - other._position.Z, 2));
+        }
+
         public static bool operator ==(WorldPoint? left, WorldPoint? right)
         {
             return left?.Equals(right) ?? ReferenceEquals(right, null);

@@ -38,14 +38,14 @@ public static class IoCConfig
     {
         serviceCollection.AddTransient<PointStoreSettingsViewModel>();
         
-        serviceCollection.AddSingleton<PathViewModel>();
+        serviceCollection.AddSingleton<PathHolderViewModel>();
         serviceCollection.AddSingleton<PointTransformViewModel>();
     }
     
     private static void ConfigureViews(ServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton<MainWindow>(serviceProvider =>
-            new MainWindow { DataContext = serviceProvider.GetRequiredService<PathViewModel>() });
+            new MainWindow { DataContext = serviceProvider.GetRequiredService<PathHolderViewModel>() });
         
         serviceCollection.AddTransient<SaversAndLoadersSettingWindow>(serviceProvider =>
             new SaversAndLoadersSettingWindow { DataContext = serviceProvider.GetRequiredService<PointStoreSettingsViewModel>() });

@@ -28,7 +28,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private ICommand? _insertPointCommand;
         private ICommand? _clearSelectionCommand;
         private ICommand? _selectPointsCommand;
-        private ICommand? _moveSelectedPointsCommand;
 
         public PathEditorViewModel(string pathName) : this(pathName, Brushes.Red) { }
 
@@ -101,16 +100,14 @@ namespace GTA_SA_PathsRedactor.ViewModel
             ??= new RelayCommand<WorldPoint>(point => _points.Add(point!), point => point is not null);
         public ICommand RemovePointCommand => _removePointCommand 
             ??= new RelayCommand<WorldPoint>(point => _points.Remove(point!), point => point is not null);
-        // public ICommand InsertPointCommand => _insertPointCommand ??= new RelayCommand<WorldPoint>(point => _points.Remove(point));
+        
+        //public ICommand InsertPointCommand => _insertPointCommand ??= new RelayCommand<WorldPoint>(point => _points.Remove(point));
 
         public ICommand ClearSelectionCommand => _clearSelectionCommand
             ??= new RelayCommand(ClearSelectionExecute);
 
         public ICommand SelectPointsCommand => _selectPointsCommand
             ??= new RelayCommand<Rect>(SelectPointsExecute);
-
-        public ICommand MoveSelectedPointsCommand => _moveSelectedPointsCommand
-            ??= new RelayCommand<Point>(MoveSelectedPointsExecute);
         
         public void Clear()
         {
@@ -126,6 +123,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
             {
                 selectedPoint.IsSelected = false;
             }
+
+            SelectedPoint = null;
             
             OnPropertyChanged(nameof(SelectedPoints));
         }
@@ -139,15 +138,6 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
             
             OnPropertyChanged(nameof(SelectedPoints));
-        }
-
-        private void MoveSelectedPointsExecute(Point offset)
-        {
-            foreach (var selectedPoint in SelectedPoints)
-            {
-                selectedPoint.X += (float)offset.X;
-                selectedPoint.Y += (float)offset.X;
-            }
         }
     }
 }
