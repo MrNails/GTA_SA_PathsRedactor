@@ -9,29 +9,26 @@ namespace GTA_SA_PathsRedactor.Services.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            return value;
+            
             if (parameter == null)
-                return value;
-
-            var currentPTD = (PointTransformationData?)null; //GlobalSettings.GetInstance().GetCurrentTranfromationData();
-
-            if (currentPTD == null)
                 return value;
 
             double nValue = (double)value;
 
-            switch (parameter.ToString().ToLower())
-            {
-                case "x":
-                    int horizontallyInvert = currentPTD.InvertHorizontally ? -1 : 1;
-
-                    return Math.Round(horizontallyInvert * currentPTD.PointScaleX * (nValue - currentPTD.OffsetX), 5);
-                case "y":
-                    int verticallyInvert = currentPTD.InvertVertically ? -1 : 1;
-
-                    return Math.Round(verticallyInvert * currentPTD.PointScaleY * (nValue - currentPTD.OffsetY), 5);
-                default:
-                    break;
-            }
+            // switch (parameter.ToString().ToLower())
+            // {
+            //     case "x":
+            //         int horizontallyInvert = currentPTD.InvertHorizontally ? -1 : 1;
+            //
+            //         return Math.Round(horizontallyInvert * currentPTD.PointScaleX * (nValue - currentPTD.OffsetX), 5);
+            //     case "y":
+            //         int verticallyInvert = currentPTD.InvertVertically ? -1 : 1;
+            //
+            //         return Math.Round(verticallyInvert * currentPTD.PointScaleY * (nValue - currentPTD.OffsetY), 5);
+            //     default:
+            //         break;
+            // }
 
             return value;
         }

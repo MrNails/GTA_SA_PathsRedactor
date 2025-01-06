@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GTA_SA_PathsRedactor.Core.Models;
 using GTA_SA_PathsRedactor.Core;
+using GTA_SA_PathsRedactor.Models.Dto;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
@@ -101,7 +102,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
         public ICommand RemovePointCommand => _removePointCommand 
             ??= new RelayCommand<WorldPoint>(point => _points.Remove(point!), point => point is not null);
         
-        //public ICommand InsertPointCommand => _insertPointCommand ??= new RelayCommand<WorldPoint>(point => _points.Remove(point));
+        public ICommand InsertPointCommand => _insertPointCommand 
+            ??= new RelayCommand<InsertPointDto>(dto => _points.Insert(dto!.IndexToInsert, dto.Point), 
+                                                 dto => dto is not null && 
+                                                                 dto.IndexToInsert >= 0 && 
+                                                                 dto.IndexToInsert < _points.Count);
 
         public ICommand ClearSelectionCommand => _clearSelectionCommand
             ??= new RelayCommand(ClearSelectionExecute);

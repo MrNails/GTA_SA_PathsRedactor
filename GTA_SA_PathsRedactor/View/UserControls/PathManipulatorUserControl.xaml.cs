@@ -5,6 +5,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using GTA_SA_PathsRedactor.Core.Models;
+using GTA_SA_PathsRedactor.Models.Dto;
+using GTA_SA_PathsRedactor.Services.Extensions;
 using GTA_SA_PathsRedactor.ViewModel;
 
 namespace GTA_SA_PathsRedactor.View.UserControls;
@@ -18,6 +20,7 @@ public partial class PathManipulatorUserControl : UserControl
         DependencyProperty.Register(nameof(ImagePath), typeof(string), typeof(PathManipulatorUserControl));
 
     private bool _mouseDown;
+    private bool _mapContainerMouseDown;
     private Point _mouseDownPosition;
     private Point _mapContainerMouseDownPosition;
     private Point _mapTranslation;
@@ -63,7 +66,7 @@ public partial class PathManipulatorUserControl : UserControl
         translateTransform.Y = signY * Math.Min(RenderGrid.ActualHeight * ((scaleTransform.ScaleY - StandardZoom_) / 2), Math.Abs(newY));
     }
     
-    private void PathManipulatorUserControl_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    private void PathManipulatorUserControl_OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
         var scaleTransform = GetMapScaleTransform();
         if (scaleTransform is null) 
@@ -92,7 +95,7 @@ public partial class PathManipulatorUserControl : UserControl
         e.Handled = true;
     }
 
-    private void PathManipulatorUserControl_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+    private void PathManipulatorUserControl_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.LeftButton == MouseButtonState.Released)
         {
@@ -112,7 +115,7 @@ public partial class PathManipulatorUserControl : UserControl
         e.Handled = true;
     }
     
-    private void PathManipulatorUserControl_OnPreviewMouseMove(object sender, MouseEventArgs e)
+    private void PathManipulatorUserControl_OnMouseMove(object sender, MouseEventArgs e)
     {
         if (!_mouseDown)
             return;
@@ -136,7 +139,7 @@ public partial class PathManipulatorUserControl : UserControl
         e.Handled = true;
     }
 
-    private void PathManipulatorUserControl_OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
+    private void PathManipulatorUserControl_OnMouseUp(object sender, MouseButtonEventArgs e)
     {
         _mouseDown = false;
     }
@@ -144,6 +147,7 @@ public partial class PathManipulatorUserControl : UserControl
     private void PathManipulatorUserControl_OnMouseLeave(object sender, MouseEventArgs e)
     {
         _mouseDown = false;
+        _mapContainerMouseDown = false;
     }
     
     private void PathManipulatorUserControl_OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -174,4 +178,45 @@ public partial class PathManipulatorUserControl : UserControl
             viewModel.AddPointCommand.Execute(point);
     }
 
+    private void InsertPointMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not PathEditorViewModel viewModel)
+            return;
+
+        var nearestPoints = MapContainer.FindConnectedPointsBetweenWhichLiesGiven(_mapContainerMouseDownPosition);
+
+        if (nearestPoints.Length == 0)
+            return;
+        
+        var point = new WorldPoint((float)_mapContainerMouseDownPosition.X, (float)_mapContainerMouseDownPosition.Y, 0, false);
+        var insertPointDto = new InsertPointDto(point, (viewModel.Points.IndexOf(nearestPoints[0]) + 1) % viewModel.Points.Count);
+        
+        if (viewModel.InsertPointCommand.CanExecute(insertPointDto))
+            viewModel.InsertPointCommand.Execute(insertPointDto);
+    }
+
+    private void PathManipulatorUserControl_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _mapContainerMouseDown = e.MouseDevice.DirectlyOver.Equals(MapContainer);
+    }
+    
+    private void PathManipulatorUserControl_OnPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_mapContainerMouseDown ||
+            DataContext is not PathEditorViewModel viewModel ||
+            viewModel.SelectedPoint is null)
+            return;
+
+        var mousePosition = e.GetPosition(MapContainer);
+        var selectedPoint = viewModel.SelectedPoint;
+
+        selectedPoint.X = (float)mousePosition.X;
+        selectedPoint.Y = (float)mousePosition.Y;
+        MapContainer.InvalidateVisual();
+    }
+
+    private void PathManipulatorUserControl_OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        _mapContainerMouseDown = false;
+    }
 }

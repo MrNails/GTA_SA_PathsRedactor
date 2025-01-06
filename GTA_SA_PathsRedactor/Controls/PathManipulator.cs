@@ -48,9 +48,6 @@ public sealed class PathManipulator : FrameworkElement
     private Pen _pathPen;
     private Pen _selectedPointPen;
     private Pen _stopPointPen;
-
-    private bool _isMouseDown;
-
     public PathManipulator()
     {
         _pathPen = new Pen(DefaultBrush_, PointRadius);
@@ -86,6 +83,28 @@ public sealed class PathManipulator : FrameworkElement
     {
         get => GetValue(SelectedPointProperty) as WorldPoint;
         set => SetValue(SelectedPointProperty, value);
+    }
+
+    public WorldPoint[] FindConnectedPointsBetweenWhichLiesGiven(Point givenPoint)
+    {
+        var points = PointsToDisplay;
+
+        for (int i = 0; i < points.Count; i++)
+        {
+            var point = points[i];
+            var nextPoint = points[(i + 1) % points.Count];
+
+            var pointToGivenDistance = point.DistanceTo(givenPoint);
+            var nextPointToGivenDistance = nextPoint.DistanceTo(givenPoint);
+            var distanceBetweenPoints = point.DistanceTo(nextPoint, true);
+
+            if (Math.Abs(pointToGivenDistance + nextPointToGivenDistance - distanceBetweenPoints) < 0.01)
+            {
+                return [point, nextPoint];
+            }
+        }
+
+        return [];
     }
     
     protected override void OnRender(DrawingContext drawingContext)
@@ -151,27 +170,6 @@ public sealed class PathManipulator : FrameworkElement
 
         if (SelectedPoint is not null)
             e.Handled = SelectedPoint.IsSelected = true;
-
-        _isMouseDown = true;
-    }
-
-    //TODO: Move in other place where mouse won't lose focus on point
-    protected override void OnPreviewMouseMove(MouseEventArgs e)
-    {
-        var selectedPoint = SelectedPoint;
-        if (!_isMouseDown || selectedPoint is null)
-            return;
-        
-        var newMousePosition = e.GetPosition(this);
-        selectedPoint.X = (float)newMousePosition.X;
-        selectedPoint.Y = (float)newMousePosition.Y;
-        
-        InvalidateVisual();
-    }
-
-    protected override void OnMouseUp(MouseButtonEventArgs e)
-    {
-        _isMouseDown = false;
     }
 
     private void PointsToDisplayOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
