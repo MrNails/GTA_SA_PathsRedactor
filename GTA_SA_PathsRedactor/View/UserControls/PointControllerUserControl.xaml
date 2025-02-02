@@ -81,19 +81,26 @@
                     <TextBox Style="{StaticResource ResourceKey=InternalTextBox}"
                              Text="{Binding Path=X, ValidatesOnExceptions=True, 
                                             UpdateSourceTrigger=PropertyChanged,
-                                            Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=x}" />
+                                            Converter={StaticResource ResourceKey=PointDataConverter}, 
+                                            ConverterParameter=x,
+                                            Delay=500}"/>
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Y" Margin="10 0 0 0 " />
                     <TextBox Style="{StaticResource ResourceKey=InternalTextBox}"
                              Text="{Binding Path=Y, ValidatesOnExceptions=True, 
                                             UpdateSourceTrigger=PropertyChanged,
-                                            Converter={StaticResource ResourceKey=PointDataConverter}, ConverterParameter=y}" />
+                                            Converter={StaticResource ResourceKey=PointDataConverter}, 
+                                            ConverterParameter=y,
+                                            Delay=500}" />
                 </StackPanel>
                 <StackPanel Margin="5">
                     <TextBlock Text="Z" Margin="10 0 0 0 " />
                     <TextBox Style="{StaticResource ResourceKey=InternalTextBox}"
-                             Text="{Binding Path=Z, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding Path=Z, 
+                                            ValidatesOnExceptions=True, 
+                                            UpdateSourceTrigger=PropertyChanged,
+                                            Delay=500}" />
                 </StackPanel>
                 <CheckBox FontSize="18" 
                           VerticalContentAlignment="Center"

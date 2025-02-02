@@ -20,8 +20,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private string _pathFileName;
         private double _linesThickness;
         private Brush _pathColor;
-
-        [ObservableProperty]
+        
         private WorldPoint? _selectedPoint;
 
         private ICommand? _addPointCommand;
@@ -97,6 +96,20 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
+        public WorldPoint? SelectedPoint
+        {
+            get => _selectedPoint ?? SelectedPoints.FirstOrDefault();
+            set
+            {
+                if (value is not null)
+                    ClearSelectionExecute();
+
+                _selectedPoint = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SelectedPoints));
+            }
+        }
+
         public ICommand AddPointCommand => _addPointCommand 
             ??= new RelayCommand<WorldPoint>(point => _points.Add(point!), point => point is not null);
         public ICommand RemovePointCommand => _removePointCommand 
@@ -141,7 +154,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 point.IsSelected = point.X >= rect.TopLeft.X && point.X <= rect.TopRight.X &&
                                    point.Y >= rect.TopLeft.Y && point.Y <= rect.BottomLeft.Y;
             }
-            
+
+            SelectedPoint = null;
             OnPropertyChanged(nameof(SelectedPoints));
         }
     }

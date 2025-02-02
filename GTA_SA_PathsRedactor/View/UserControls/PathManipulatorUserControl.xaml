@@ -47,6 +47,19 @@
                 </ContextMenu>
             </Image.ContextMenu>
         </Image>
+        
+        <Rectangle x:Name="SelectionRectangle" 
+                   StrokeThickness="2"
+                   StrokeDashArray="3 2"
+                   Stroke="Black"
+                   Visibility="Visible"
+                   VerticalAlignment="Top"
+                   HorizontalAlignment="Left">
+            <Rectangle.RenderTransform>
+                <TranslateTransform />
+            </Rectangle.RenderTransform>
+        </Rectangle>
+        
         <controls:PathManipulator x:Name="MapContainer" 
                                   PointsToDisplay="{Binding Points, Mode=OneWay}"
                                   PointsColor="{Binding Color, Mode=OneWay}"

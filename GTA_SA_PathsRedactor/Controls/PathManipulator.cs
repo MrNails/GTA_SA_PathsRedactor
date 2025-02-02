@@ -147,6 +147,9 @@ public sealed class PathManipulator : FrameworkElement
 
     protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
     {
+        if (e.LeftButton != MouseButtonState.Pressed)
+            return;
+        
         var position = e.GetPosition(this);
         var points = PointsToDisplay;
         var pointRadius = PointRadius;

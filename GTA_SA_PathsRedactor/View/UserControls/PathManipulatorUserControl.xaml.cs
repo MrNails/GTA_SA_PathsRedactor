@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,11 +19,11 @@ public partial class PathManipulatorUserControl : UserControl
     
     public static readonly DependencyProperty ImagePathProperty = 
         DependencyProperty.Register(nameof(ImagePath), typeof(string), typeof(PathManipulatorUserControl));
-
-    private bool _mouseDown;
+    
     private bool _mapContainerMouseDown;
     private Point _mouseDownPosition;
     private Point _mapContainerMouseDownPosition;
+    private Point _lastMapContainerMousePosition;
     private Point _mapTranslation;
     
     public PathManipulatorUserControl()
@@ -53,6 +54,28 @@ public partial class PathManipulatorUserControl : UserControl
 
         return transformGroup.Children.FirstOrDefault(child => child is TranslateTransform) as TranslateTransform;
     }
+
+    private Point TransformScreenToMapPoint(Point screenPoint)
+    {
+        var resultPoint = screenPoint;
+        var scale = GetMapScaleTransform();
+        var translate = GetMapTranslateTransform();
+        
+        if (scale is null ||
+            translate is null ||
+            scale.ScaleX.Equals(StandardZoom_) ||
+            scale.ScaleY.Equals(StandardZoom_)) 
+            return screenPoint;
+        
+        //Transform mouse click position as offset from center of map
+        resultPoint.X = RenderGrid.ActualWidth / 2 - resultPoint.X;
+        resultPoint.Y = RenderGrid.ActualHeight / 2 - resultPoint.Y;
+
+        resultPoint.X = RenderGrid.ActualWidth / 2 - (resultPoint.X + translate.X) / scale.ScaleX;
+        resultPoint.Y = RenderGrid.ActualHeight / 2 - (resultPoint.Y + translate.Y) / scale.ScaleY;
+
+        return screenPoint;
+    }
     
     private void ClampMapToScreen(TranslateTransform translateTransform, ScaleTransform scaleTransform, double newX, double newY)
     {
@@ -64,6 +87,33 @@ public partial class PathManipulatorUserControl : UserControl
         //Then we need to restrict current offset (need to make absolute to right restriction) by max offset.
         translateTransform.X = signX * Math.Min(RenderGrid.ActualWidth * ((scaleTransform.ScaleX - StandardZoom_) / 2), Math.Abs(newX));
         translateTransform.Y = signY * Math.Min(RenderGrid.ActualHeight * ((scaleTransform.ScaleY - StandardZoom_) / 2), Math.Abs(newY));
+    }
+    
+    private void HandleMouseMoveOnLeftButtonPressed(Point mapMousePosition)
+    {
+        if (Keyboard.IsKeyDown(Key.LeftCtrl) &&
+            _lastMapContainerMousePosition != default &&
+            DataContext is PathEditorViewModel viewModel)
+        {
+            viewModel.SelectedPoints.ForEach(point => point.Position -= new Vector3((float)(_lastMapContainerMousePosition.X - mapMousePosition.X),
+                (float)(_lastMapContainerMousePosition.Y - mapMousePosition.Y), 
+                0));
+            
+            MapContainer.InvalidateVisual();
+            return;
+        }
+
+        var rectangleTranslate = (TranslateTransform)SelectionRectangle.RenderTransform;
+        var newWidth = mapMousePosition.X - _mapContainerMouseDownPosition.X;
+        var newHeight = mapMousePosition.Y - _mapContainerMouseDownPosition.Y;
+
+        if (newWidth < 0)
+            rectangleTranslate.X = mapMousePosition.X;
+        if (newHeight < 0)
+            rectangleTranslate.Y = mapMousePosition.Y;
+
+        SelectionRectangle.Width = Math.Abs(newWidth);
+        SelectionRectangle.Height = Math.Abs(newHeight);
     }
     
     private void PathManipulatorUserControl_OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -97,56 +147,68 @@ public partial class PathManipulatorUserControl : UserControl
 
     private void PathManipulatorUserControl_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.LeftButton == MouseButtonState.Released)
-        {
-            _mapContainerMouseDownPosition = e.GetPosition(MapContainer);
-            e.Handled = false;
-            return;
-        }
-        
-        _mouseDown = true;
+        _mapContainerMouseDownPosition = e.GetPosition(MapContainer);
+        e.Handled = true;
+
         _mouseDownPosition = e.GetPosition(this);
+        
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            var rectangleTransform = (TranslateTransform)SelectionRectangle.RenderTransform;
+            rectangleTransform.X = _mapContainerMouseDownPosition.X;
+            rectangleTransform.Y = _mapContainerMouseDownPosition.Y;
+        }
         
         var translateTransform = GetMapTranslateTransform();
         
         if (translateTransform is not null)
             _mapTranslation = new Point(translateTransform.X, translateTransform.Y);
-
-        e.Handled = true;
     }
     
     private void PathManipulatorUserControl_OnMouseMove(object sender, MouseEventArgs e)
     {
-        if (!_mouseDown)
+        if (_mapContainerMouseDown)
             return;
 
-        var translateTransform = GetMapTranslateTransform();
-        if (translateTransform is null)
-            return;
-        
-        var scaleTransform = GetMapScaleTransform();
-        
-        if ((scaleTransform?.ScaleX ?? StandardZoom_).Equals(1) && 
-            (scaleTransform?.ScaleY ?? StandardZoom_).Equals(1))
-            return;
-        
         var position = e.GetPosition(this);
-        var newX = _mapTranslation.X + position.X - _mouseDownPosition.X;
-        var newY = _mapTranslation.Y + position.Y - _mouseDownPosition.Y;
+        var mapMousePosition = e.GetPosition(MapContainer);
+
+        if (e.MouseDevice.LeftButton == MouseButtonState.Pressed)
+        {
+            HandleMouseMoveOnLeftButtonPressed(mapMousePosition);
+        } 
+        else if (e.MiddleButton == MouseButtonState.Pressed)
+        {
+            var translateTransform = GetMapTranslateTransform();
+            if (translateTransform is null)
+                return;
         
-        ClampMapToScreen(translateTransform, scaleTransform!, newX, newY);
-
-        e.Handled = true;
+            var scaleTransform = GetMapScaleTransform();
+        
+            if ((scaleTransform?.ScaleX ?? StandardZoom_).Equals(1) && 
+                (scaleTransform?.ScaleY ?? StandardZoom_).Equals(1))
+                return;
+        
+            var newX = _mapTranslation.X + position.X - _mouseDownPosition.X;
+            var newY = _mapTranslation.Y + position.Y - _mouseDownPosition.Y;
+        
+            ClampMapToScreen(translateTransform, scaleTransform!, newX, newY);
+            
+            e.Handled = true;
+        }
+        
+        _lastMapContainerMousePosition = mapMousePosition;
     }
-
+    
     private void PathManipulatorUserControl_OnMouseUp(object sender, MouseButtonEventArgs e)
     {
-        _mouseDown = false;
+        _lastMapContainerMousePosition = default;
+        SelectionRectangle.Width = 0;
+        SelectionRectangle.Height = 0;
     }
 
     private void PathManipulatorUserControl_OnMouseLeave(object sender, MouseEventArgs e)
     {
-        _mouseDown = false;
         _mapContainerMouseDown = false;
     }
     
@@ -217,6 +279,18 @@ public partial class PathManipulatorUserControl : UserControl
 
     private void PathManipulatorUserControl_OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
     {
+        if (SelectionRectangle.ActualWidth > 3 &&
+            SelectionRectangle.ActualHeight > 3 &&
+            DataContext is PathEditorViewModel viewModel)
+        {
+            var selectionRectPosition = (TranslateTransform)SelectionRectangle.RenderTransform;
+            var topLeftPoint = new Point(selectionRectPosition.X, selectionRectPosition.Y);
+            var bottomRightPoint = new Point(selectionRectPosition.X + SelectionRectangle.ActualWidth, selectionRectPosition.Y + SelectionRectangle.ActualHeight);
+            
+            viewModel.SelectPointsCommand.Execute(new Rect(TransformScreenToMapPoint(topLeftPoint), TransformScreenToMapPoint(bottomRightPoint)));
+            MapContainer.InvalidateVisual();
+        }
+        
         _mapContainerMouseDown = false;
     }
 }
