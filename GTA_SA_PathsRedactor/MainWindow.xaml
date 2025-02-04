@@ -53,7 +53,9 @@
                           InputGestureText="Ctrl + Shift + S"/>
             </MenuItem>
             <MenuItem Header="Settings">
-                <MenuItem Header="Path transform settings" />
+                <MenuItem Header="Path transform settings" 
+                          Command="{Binding Path=PageContainerService.NavigateToPageCommand, Source={StaticResource Locator}, Mode=OneWay}"
+                          CommandParameter="{x:Static services:Constants.PathSettingsPageName_}" />
                 <MenuItem Header="Loaders and savers information" />
             </MenuItem>
             <MenuItem Header="Commands">
@@ -82,7 +84,9 @@
                     BorderBrush="Black" 
                     BorderThickness="2" 
                     Width="200" 
-                    Background="Gray"/>
+                    Background="Gray">
+                <ContentPresenter Content="{Binding Path=PageContainerService.CurrentPage, Source={StaticResource Locator}, Mode=OneWay}" />
+            </Border>
         </ScrollViewer>
 
         <userControls:PathManipulatorUserControl ImagePath="/Resource/MapImage.jpg"

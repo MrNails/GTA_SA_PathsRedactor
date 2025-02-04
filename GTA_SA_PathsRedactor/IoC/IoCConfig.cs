@@ -1,5 +1,5 @@
 ﻿using System;
-using GTA_SA_PathsRedactor.Models;
+using System.Windows.Controls;
 using GTA_SA_PathsRedactor.Services;
 using GTA_SA_PathsRedactor.View.Windows;
 using GTA_SA_PathsRedactor.ViewModel;
@@ -32,6 +32,7 @@ public static class IoCConfig
         serviceCollection.AddSingleton<ProxyController>();
         serviceCollection.AddSingleton<DataToStorageService>();
         serviceCollection.AddSingleton<NotificationService>();
+        serviceCollection.AddSingleton<PageContainerService<UserControl>>();
     }
     
     private static void ConfigureViewModels(ServiceCollection serviceCollection)

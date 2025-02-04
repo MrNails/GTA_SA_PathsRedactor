@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
+             xmlns:services="clr-namespace:GTA_SA_PathsRedactor.Services"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="200">
     <UserControl.Resources>
@@ -88,6 +89,9 @@
         </StackPanel>
         <!--<Button Content="Accept"  Background="LightGray" />-->
 
-        <Button Grid.Row="3" Content="Go to main menu" Command="{Binding Path=GoToMainMenu}"/>
+        <Button Grid.Row="3" 
+                Content="Go to main menu" 
+                Command="{Binding Path=PageContainerService.NavigatseToPageCommand, Source={StaticResource Locator}, Mode=OneWay}"
+                CommandParameter="{x:Static services:Constants.MainPageName_}"/>
     </Grid>
 </UserControl>

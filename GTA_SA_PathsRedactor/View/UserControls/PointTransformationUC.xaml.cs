@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Controls;
-using CommunityToolkit.Mvvm.Input;
-using GTA_SA_PathsRedactor.Models;
+﻿using System.Windows.Controls;
 
 namespace GTA_SA_PathsRedactor.View
 {
@@ -21,16 +18,6 @@ namespace GTA_SA_PathsRedactor.View
             // m_pointTransformVM.AddNewPointTransformationData(GlobalSettings.GetInstance().PTD);
 
             this.DataContext = _pointTransformViewModel;
-        }
-
-        public void AddGoToHomeCommand(RelayCommand goToMainMenu)
-        {
-            if (goToMainMenu == null)
-            {
-                throw new ArgumentNullException("goToMainMenu");
-            }
-
-            _pointTransformViewModel.GoToMainMenu = goToMainMenu;
         }
     }
 }

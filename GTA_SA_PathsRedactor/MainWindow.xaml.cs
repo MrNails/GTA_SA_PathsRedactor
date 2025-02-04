@@ -1,17 +1,8 @@
-﻿using GTA_SA_PathsRedactor.Core.Models;
-using GTA_SA_PathsRedactor.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using CommunityToolkit.Mvvm.Input;
+using GTA_SA_PathsRedactor.IoC;
+using GTA_SA_PathsRedactor.Services;
 using GTA_SA_PathsRedactor.View;
 using GTA_SA_PathsRedactor.View.UserControls;
 using GTA_SA_PathsRedactor.View.Windows;
@@ -24,29 +15,21 @@ namespace GTA_SA_PathsRedactor
     /// </summary>
     public partial class MainWindow : Window
     {
-        private PathHolderViewModel? _pathViewModel;
-        private UserControl[] _userControls;
+        private readonly PageContainerService<UserControl> _pageContainer;
         
+        private PathHolderViewModel? _pathViewModel;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            _pageContainer = IoCServicesLocator.PageContainerService;
         }
 
         private void InitializeAdditionalComponent()
         {
-            var mainUserControl = new PointControllerUserControl {  DataContext = _pathViewModel };
-            var pathSettingUc = new PointTransformationUC();
-
-            mainUserControl.VerticalAlignment = VerticalAlignment.Top;
-            pathSettingUc.VerticalAlignment = VerticalAlignment.Top;
-            pathSettingUc.AddGoToHomeCommand(new RelayCommand(() =>
-            {
-                UserContentContainer.Child = _userControls[0];
-            }));
-
-            UserContentContainer.Child = mainUserControl;
-
-            _userControls = [mainUserControl, pathSettingUc];
+            _pageContainer.AddPage(Constants.MainPageName_, new PointControllerUserControl { DataContext = _pathViewModel, VerticalAlignment = VerticalAlignment.Top });
+            _pageContainer.AddPage(Constants.PathSettingsPageName_, new PointTransformationUC { VerticalAlignment = VerticalAlignment.Top });
         }
 
         private void SaveCurrentPath(object sender, ExecutedRoutedEventArgs e)
