@@ -1,125 +1,69 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+using GTA_SA_PathsRedactor.Core;
 
 namespace GTA_SA_PathsRedactor.Services
 {
-    [Serializable]
-    public sealed class PointTransformationData : Core.Entity
+    public sealed partial  class PointTransformationData : Entity
     {
-        private bool m_invertHorizontally;
-        private bool m_invertVertically;
-        private double m_offsetX;
-        private double m_offsetY;
-        private double m_pointScaleX;
-        private double m_pointScaleY;
-        private double m_originalMapWidth;
-        private double m_originalMapHeight;
-        private string m_transformName;
+        private Matrix _matrixTransform;
+        
+        [ObservableProperty]
+        private double _offsetX;
+        [ObservableProperty]
+        private double _offsetY;
+        [ObservableProperty]
+        private double _pointScaleX;
+        [ObservableProperty]
+        private double _pointScaleY;
+        
+        private double _originalMapWidth;
+        private double _originalMapHeight;
+        private string _transformName;
 
-        public PointTransformationData() 
-            : this (0, 0, 0, 0, 0, 0, "empty")
-        {}
-        public PointTransformationData(double offsetX, double offsetY, double pointScaleX,
-                                       double pointScaleY, double originalMapWidth,
-                                       double originalMapHeight, string transformName)
+        public PointTransformationData()
         {
-            OffsetX = offsetX;
-            OffsetY = offsetY;
-            PointScaleX = pointScaleX;
-            PointScaleY = pointScaleY;
-            OriginalMapWidth = originalMapWidth;
-            OriginalMapHeight = originalMapHeight;
-            TransformName = transformName;
+            _transformName = string.Empty;
+            _matrixTransform = new Matrix();
         }
-
-        public bool InvertHorizontally
-        {
-            get { return m_invertHorizontally; }
-            set
-            {
-                m_invertHorizontally = value;
-                OnPropertyChanged("InvertHorizontally");
-            }
-        }
-        public bool InvertVertically
-        {
-            get { return m_invertVertically; }
-            set
-            {
-                m_invertVertically = value;
-                OnPropertyChanged("InvertVertically");
-            }
-        }
-        public double OffsetX
-        {
-            get { return m_offsetX; }
-            set
-            {
-                m_offsetX = value;
-                OnPropertyChanged("OffsetX");
-            }
-        }
-        public double OffsetY
-        {
-            get { return m_offsetY; }
-            set
-            {
-                m_offsetY = value;
-                OnPropertyChanged("OffsetY");
-            }
-        }
-        public double PointScaleX
-        {
-            get { return m_pointScaleX; }
-            set
-            {
-                m_pointScaleX = value;
-                OnPropertyChanged("PointScaleX");
-            }
-        }
-        public double PointScaleY
-        {
-            get { return m_pointScaleY; }
-            set
-            {
-                m_pointScaleY = value;
-                OnPropertyChanged("PointScaleY");
-            }
-        }
+        
         public double OriginalMapWidth
         {
-            get { return m_originalMapWidth; }
+            get => _originalMapWidth;
             set
             {
-                m_originalMapWidth = value;
-                OnPropertyChanged("OriginalMapWidth");
+                _errors[nameof(OriginalMapWidth)] = value <= 0 
+                    ? "Map original Width cannot be less than 0." 
+                    : string.Empty;
+                
+                _originalMapWidth = value;
+                OnPropertyChanged();
             }
         }
         public double OriginalMapHeight
         {
-            get { return m_originalMapHeight; }
+            get => _originalMapHeight;
             set
             {
-                m_originalMapHeight = value;
-                OnPropertyChanged("OriginalHeight");
+                _errors[nameof(OriginalMapHeight)] = value <= 0 
+                        ? "Map original Height cannot be less than 0." 
+                        : string.Empty;
+
+                _originalMapHeight = value;
+                OnPropertyChanged();
             }
         }
         public string TransformName
         {
-            get { return m_transformName; }
+            get => _transformName;
             set
             {
-                if (string.IsNullOrEmpty(value))
-                {
-                    _errors["TransformName"] = "Transformation name can't be empty.";
-                }
-                else
-                {
-                    _errors["TransformName"] = "";
-                }
+                _errors["TransformName"] = string.IsNullOrEmpty(value) 
+                    ? "Transformation name can't be empty." 
+                    : string.Empty;
 
-                m_transformName = value;
-                OnPropertyChanged("TransformName");
+                _transformName = value;
+                OnPropertyChanged();
             }
         }
     }

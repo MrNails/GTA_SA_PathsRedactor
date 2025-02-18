@@ -29,7 +29,7 @@ namespace GTA_SA_PathsRedactor
         private void InitializeAdditionalComponent()
         {
             _pageContainer.AddPage(Constants.MainPageName_, new PointControllerUserControl { DataContext = _pathViewModel, VerticalAlignment = VerticalAlignment.Top });
-            _pageContainer.AddPage(Constants.PathSettingsPageName_, new PointTransformationUC { VerticalAlignment = VerticalAlignment.Top });
+            _pageContainer.AddPage(Constants.PathSettingsPageName_, new PointTransformationUserControl { VerticalAlignment = VerticalAlignment.Top });
         }
 
         private void SaveCurrentPath(object sender, ExecutedRoutedEventArgs e)

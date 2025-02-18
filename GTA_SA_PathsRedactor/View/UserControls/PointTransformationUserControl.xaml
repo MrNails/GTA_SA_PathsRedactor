@@ -1,0 +1,77 @@
+﻿<UserControl x:Class="GTA_SA_PathsRedactor.View.PointTransformationUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GTA_SA_PathsRedactor.View"
+             xmlns:services="clr-namespace:GTA_SA_PathsRedactor.Services"
+             xmlns:userControls="clr-namespace:GTA_SA_PathsRedactor.View.UserControls"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="200">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type TextBox}" 
+               BasedOn="{StaticResource ResourceKey=TextBoxValidationTemplate}">
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style TargetType="{x:Type CheckBox}">
+            <Setter Property="Margin" Value="10 5 10 5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10 2 10 2"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Background" Value="LightGray"/>
+        </Style>
+        
+    </UserControl.Resources>
+    <Grid Background="Gray">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" TextBlock.FontSize="18">
+            <StackPanel Margin="10">
+                <TextBlock Text="Setting name"/>
+                <TextBox Text="{Binding Path=CurrentPointTransformData.TransformName, 
+                                        ValidatesOnDataErrors=True, 
+                                        UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <StackPanel Margin="10">
+                <TextBlock Text="OffsetX" />
+                <userControls:NumericUpDown />
+            </StackPanel>
+            <StackPanel Margin="10">
+                <TextBlock Text="OffsetY"/>
+                <userControls:NumericUpDown />
+            </StackPanel>
+            <StackPanel Margin="10">
+                <TextBlock Text="ScaleX"/>
+                <userControls:NumericUpDown />
+            </StackPanel>
+            <StackPanel Margin="10">
+                <TextBlock Text="ScaleY"/>
+                <userControls:NumericUpDown />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1">
+            <Button Content="Load settings" 
+                    Command="{Binding Path=LoadSettingsCommand}"/>
+            <Button Content="Save settings" 
+                    Command="{Binding Path=SaveSettingsCommand}"/>
+        </StackPanel>
+        <!--<Button Content="Accept"  Background="LightGray" />-->
+
+        <Button Grid.Row="2" 
+                VerticalAlignment="Bottom"
+                Content="Go to main menu" 
+                Command="{Binding Path=PageContainerService.NavigatToPageCommand, Source={StaticResource Locator}, Mode=OneWay}"
+                CommandParameter="{x:Static services:Constants.MainPageName_}"/>
+    </Grid>
+</UserControl>

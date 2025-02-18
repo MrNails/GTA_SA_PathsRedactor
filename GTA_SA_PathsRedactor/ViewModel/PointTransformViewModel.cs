@@ -1,144 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.IO;
 using GTA_SA_PathsRedactor.Services;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GTA_SA_PathsRedactor.Models;
 using Microsoft.Win32;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    public class PointTransformViewModel : INotifyPropertyChanged
+    public sealed partial class PointTransformViewModel : ObservableObject
     {
-        private int m_currentPointTransformDataIndex;
+        private readonly NotificationService _notificationService;
+        private readonly SettingsService _settingsService;
+        
+        private ICommand? _saveSetting;
+        private ICommand? _loadSetting;
+        
+        [ObservableProperty]
+        private PointTransformationData _pointTransformationData;
 
-        private ICommand m_saveSetting;
-        private ICommand m_loadSetting;
-        private ICommand m_goToMainMenu;
-
-        private ICommand m_addNewSetting;
-        private ICommand m_removeCurrentSetting;
-
-        private ObservableCollection<PointTransformationData> m_pointsTransformationDatas;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public PointTransformViewModel()
+        public PointTransformViewModel(NotificationService notificationService, SettingsService settingsService
+            )
         {
-            m_pointsTransformationDatas = new ObservableCollection<PointTransformationData>();
-            m_pointsTransformationDatas.CollectionChanged += PointsTransformationData_CollectionChanged;
-
-            m_saveSetting = new RelayCommand(SaveSettingCommandHandler);
-            m_loadSetting = new RelayCommand(LoadSettingCommandHandler);
-
-            m_addNewSetting = new RelayCommand(() => m_pointsTransformationDatas.Add(new PointTransformationData()));
-            m_removeCurrentSetting = new RelayCommand<PointTransformationData>(obj => m_pointsTransformationDatas.Remove(obj)
-                                                      //obj => obj != null && obj is PointTransformationData && obj != GlobalSettings.GetInstance().DefaultPTD
-                                                      );
-
-            m_currentPointTransformDataIndex = -1;
+            _notificationService = notificationService;
+            _settingsService = settingsService;
+            _pointTransformationData = new PointTransformationData();
         }
       
-        public ICommand SaveSettingsCommand => m_saveSetting;
-        public ICommand LoadSettingsCommand => m_loadSetting;
-
-        public ICommand AddNewSettingCommand => m_addNewSetting;
-        public ICommand RemoveCurrentSettingCommand => m_removeCurrentSetting;
-
-        public PointTransformationData? CurrentPointTransformData 
-        {
-            get
-            {
-                if (m_currentPointTransformDataIndex == -1)
-                {
-                    return null;
-                }
-
-                return m_pointsTransformationDatas[m_currentPointTransformDataIndex];
-            }
-        }
-        public ObservableCollection<PointTransformationData> PointTranformationDatas
-        {
-            get
-            {
-                return m_pointsTransformationDatas;
-            }
-        }
-
-        public int CurrentPointTransformDataIndex
-        {
-            get { return m_currentPointTransformDataIndex; }
-            set 
-            {
-                if (value < -1 || value >= m_pointsTransformationDatas.Count)
-                {
-                    throw new ArgumentOutOfRangeException("value");
-                }
-
-                m_currentPointTransformDataIndex = value;
-
-                OnPropertyChanged("CurrentPointTransformDataIndex");
-                OnPropertyChanged("CurrentPointTransformData");
-
-                // GlobalSettings.GetInstance().PTD = CurrentPointTransformData;
-            }
-        }
-
-        public ICommand GoToMainMenu
-        {
-            get => m_goToMainMenu;
-            set 
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-
-                m_goToMainMenu = value;
-                OnPropertyChanged("GoToMainMenu");
-            }
-        }
-
-        public void Clear()
-        {
-            m_pointsTransformationDatas.Clear();
-            CurrentPointTransformDataIndex = -1;
-        }
-
-        public void AddNewPointTransformationData()
-        {
-            AddNewPointTransformationData(new PointTransformationData());
-        }
-        public void AddNewPointTransformationData(int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                m_pointsTransformationDatas.Add(new PointTransformationData());
-            }
-        }
-        public void AddNewPointTransformationData(PointTransformationData pointTransformationData)
-        {
-            m_pointsTransformationDatas.Add(pointTransformationData);
-        }
-
-        public void AddNewPointTransformationDataRange(IEnumerable<PointTransformationData> pointsTransformationData)
-        {
-            foreach (var item in pointsTransformationData)
-            {
-                m_pointsTransformationDatas.Add(item);
-            }
-
-            if (m_pointsTransformationDatas.Any())
-            {
-                CurrentPointTransformDataIndex = m_pointsTransformationDatas.Count - 1;
-            }
-        }
-
+        public ICommand SaveSettingsCommand => _saveSetting ??= new RelayCommand(SaveSettingCommandHandler);
+        public ICommand LoadSettingsCommand => _loadSetting ??= new RelayCommand(LoadSettingCommandHandler);
+        
         private void SaveSettingCommandHandler()
         {
             try
@@ -159,13 +51,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
             catch (Exception ex)
             {
 #if DEBUG
-                MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                _notificationService.NotifyError($"{ex.Message}\n{ex.StackTrace}");
 #else
-                MessageBox.Show("An error ocured while settings saving.", "Information",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                _notificationService.NotifyError("An error ocured while settings is saving.");
 #endif
-
             }
         }
         private void LoadSettingCommandHandler()
@@ -189,43 +78,17 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
             catch (FileNotFoundException)
             {
-                MessageBox.Show("Specified file not found.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                _notificationService.NotifyError("Specified file not found.");
             }
             catch (Exception ex)
             {
 #if DEBUG
-                MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                _notificationService.NotifyError($"{ex.Message}\n{ex.StackTrace}");
 #else
-                MessageBox.Show("An error ocured while settings loading.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                _notificationService.NotifyError("An error ocured while settings is loading.");
 #endif
 
             }
-        }
-
-        private void PointsTransformationData_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            switch (e.Action)
-            {
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
-                    CurrentPointTransformDataIndex = m_pointsTransformationDatas.Count - 1;
-                    break;
-                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
-                    if (CurrentPointTransformDataIndex >= m_pointsTransformationDatas.Count)
-                    {
-                        CurrentPointTransformDataIndex = m_pointsTransformationDatas.Count - 1;
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void OnPropertyChanged(string propName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
     }
 }
