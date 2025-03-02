@@ -69,7 +69,7 @@ namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders
                 throw new ArgumentNullException(nameof(points));
             }
 
-            var stringBuilder = new StringBuilder()
+            var stringBuilder = new StringBuilder();
             var tempFilePath = CreateTempFilePath(FileName);
 
             using var fStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write,
