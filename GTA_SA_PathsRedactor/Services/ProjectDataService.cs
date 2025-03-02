@@ -25,7 +25,7 @@ public sealed class ProjectDataService
         
         ExtractLoaderAndSaver(jObject);
         
-        var proxyController = _serviceProvider.GetService<ProxyController>()!;
+        var proxyController = _serviceProvider.GetService<IProxyController>()!;
         var assemblyLocations = proxyController.Assemblies.Select(assembly => assembly.Location);
         jObject.Add("AssemblyLocations", new JsonArray([.. assemblyLocations]));
         
@@ -39,7 +39,7 @@ public sealed class ProjectDataService
             return;
         }
         
-        var proxyController = _serviceProvider.GetService<ProxyController>()!;
+        var proxyController = _serviceProvider.GetService<IProxyController>()!;
         var assemblyLocations = jsonObject["AssemblyLocations"]?.Deserialize<string[]>();
         assemblyLocations?.ForEach(assemblyLocation => proxyController.AddAssembly(assemblyLocation));
         
@@ -63,19 +63,17 @@ public sealed class ProjectDataService
                                          dataToStorageService.CurrentPointSaver)));
     }
 
-    private void RestoreLoaderAndSaver(JsonObject jObject, ProxyController proxyController)
+    private void RestoreLoaderAndSaver(JsonObject jObject, IProxyController proxyController)
     {
         var loader = jObject["CurrentLoader"];
         var saver = jObject["CurrentSaver"];
-        
-        
 
         if (loader is null && saver is null)
         {
             return;
         }
         
-        var dataToStorageService = _serviceProvider.GetService<DataToStorageService>()!;
+        var dataToStorageService = _serviceProvider.GetService<IDataToStorageService>()!;
 
         //Point loader or saver is null in case when proxy controller do not have appropriate assembly.
         //Proxy controller could not have this assembly in several cases:
@@ -103,7 +101,7 @@ public sealed class ProjectDataService
         }
     }
 
-    private T? GetDataManipulationInstance<T>(JsonNode jsonNode, ProxyController proxyController)
+    private T? GetDataManipulationInstance<T>(JsonNode jsonNode, IProxyController proxyController)
     {
         var assemblyInfo = jsonNode["AssemblyInfo"]?.GetValue<string>();
         var typeInfo = jsonNode["TypeInfo"]?.GetValue<string>();

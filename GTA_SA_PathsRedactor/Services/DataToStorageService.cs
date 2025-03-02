@@ -5,7 +5,13 @@ using GTA_SA_PathsRedactor.Services.SaversAndLoaders;
 
 namespace GTA_SA_PathsRedactor.Services;
 
-public sealed class DataToStorageService : ObservableObject
+public interface IDataToStorageService
+{
+    IPointLoader CurrentPointLoader { get; set; }
+    IPointSaver CurrentPointSaver { get; set; }
+}
+
+public sealed class DataToStorageService : ObservableObject, IDataToStorageService
 {
     private IPointLoader _currentPointLoader = new DefaultPointLoader();
     private IPointSaver _currentPointSaver = new DefaultPointSaver();

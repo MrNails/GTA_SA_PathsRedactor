@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Controls;
 using GTA_SA_PathsRedactor.Services;
+using GTA_SA_PathsRedactor.Services.Wrappers;
 using GTA_SA_PathsRedactor.View.Windows;
 using GTA_SA_PathsRedactor.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,11 +29,11 @@ public static class IoCConfig
         
         serviceCollection.AddTransient<ILogger>(_ => loggerService.CreateLogger());
 
-        serviceCollection.AddSingleton<SettingsService>();
-        serviceCollection.AddSingleton<ProxyController>();
-        serviceCollection.AddSingleton<DataToStorageService>();
-        serviceCollection.AddSingleton<NotificationService>();
-        serviceCollection.AddSingleton<PageContainerService<UserControl>>();
+        serviceCollection.AddSingleton<ISettingsService, SettingsService>();
+        serviceCollection.AddSingleton<IProxyController, ProxyController>();
+        serviceCollection.AddSingleton<IDataToStorageService, DataToStorageService>();
+        serviceCollection.AddSingleton<INotificationService, NotificationService>();
+        serviceCollection.AddSingleton<IPageContainerService<UserControl>, PageContainerService<UserControl>>();
     }
     
     private static void ConfigureViewModels(ServiceCollection serviceCollection)

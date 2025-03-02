@@ -15,14 +15,14 @@ namespace GTA_SA_PathsRedactor.ViewModel
 {
     public class PointStoreSettingsViewModel : Core.Entity
     {
-        private readonly ProxyController _proxyController;
+        private readonly IProxyController _proxyController;
         
         private readonly ICommand _loadAssemblyCommand;
 
         private TreeNodeWithItem? _currentLoader;
         private TreeNodeWithItem? _currentSaver;
 
-        public PointStoreSettingsViewModel(ProxyController proxyController)
+        public PointStoreSettingsViewModel(IProxyController proxyController)
         {
             Loaders = new ObservableCollection<TreeNodeWithItem>();
             Savers = new ObservableCollection<TreeNodeWithItem>();

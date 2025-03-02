@@ -13,5 +13,5 @@ public sealed class IoCServicesLocator
 {
     private static IServiceProvider ServiceProvider => ((App)Application.Current).ServiceProvider;
 
-    public static PageContainerService<UserControl> PageContainerService => ServiceProvider.GetRequiredService<PageContainerService<UserControl>>();
+    public static IPageContainerService<UserControl> PageContainerService => ServiceProvider.GetRequiredService<IPageContainerService<UserControl>>();
 }

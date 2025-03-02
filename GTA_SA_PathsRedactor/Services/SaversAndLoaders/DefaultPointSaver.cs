@@ -61,7 +61,7 @@ namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException("PointSaverLoader");
+                throw new ObjectDisposedException(nameof(DefaultPointSaver));
             }
 
             if (points == null)
@@ -69,8 +69,7 @@ namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders
                 throw new ArgumentNullException(nameof(points));
             }
 
-            StringBuilder stringBuilder = new StringBuilder();
-
+            var stringBuilder = new StringBuilder()
             var tempFilePath = CreateTempFilePath(FileName);
 
             using var fStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write,
@@ -99,8 +98,6 @@ namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders
                                  .Append(point.Y.ToString(CultureInfo.InvariantCulture))
                                  .Append(point.IsStopPoint ? " 1" : " 0");
 
-                    
-
                     await streamWriter.WriteLineAsync(stringBuilder.ToString());
                 }
             }
@@ -112,7 +109,15 @@ namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders
             File.Delete(tempFilePath);
         }
 
-        private string CreateTempFilePath(string filePath)
+        private void SetFileAsBackup(string filePath)
+        {
+            var backupFilePath = FileName + ".backup";
+
+            if (!File.Exists(backupFilePath))
+                File.Move(filePath, backupFilePath);
+        }
+
+        private static string CreateTempFilePath(string filePath)
         {
             StringBuilder pathBuilder = new StringBuilder(filePath);
 
@@ -120,14 +125,6 @@ namespace GTA_SA_PathsRedactor.Services.SaversAndLoaders
             pathBuilder.Insert(filePath.LastIndexOf('.') + 2, "_$");
 
             return pathBuilder.ToString();
-        }
-
-        private void SetFileAsBackup(string filePath)
-        {
-            var backupFilePath = FileName + ".backup";
-
-            if (!File.Exists(backupFilePath))
-                File.Move(filePath, backupFilePath);
         }
     }
 }

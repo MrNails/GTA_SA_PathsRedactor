@@ -26,6 +26,11 @@
             <Setter Property="Margin" Value="10"/>
             <Setter Property="Background" Value="LightGray"/>
         </Style>
+
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Margin" Value="0 0 0 3"/>
+        </Style>
         
     </UserControl.Resources>
     <Grid Background="Gray">
@@ -35,38 +40,33 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" TextBlock.FontSize="18">
-            <StackPanel Margin="10">
-                <TextBlock Text="Setting name"/>
-                <TextBox Text="{Binding Path=CurrentPointTransformData.TransformName, 
-                                        ValidatesOnDataErrors=True, 
-                                        UpdateSourceTrigger=PropertyChanged}"/>
-            </StackPanel>
+        <StackPanel Grid.Row="0"
+                    DataContext="{Binding PointTransformationData}"
+                    d:DataContext="{d:DesignInstance services:PointTransformationData}">
             <StackPanel Margin="10">
                 <TextBlock Text="OffsetX" />
-                <userControls:NumericUpDown />
+                <userControls:NumericUpDown Value="{Binding OffsetX, Mode=TwoWay}"/>
             </StackPanel>
             <StackPanel Margin="10">
                 <TextBlock Text="OffsetY"/>
-                <userControls:NumericUpDown />
+                <userControls:NumericUpDown Value="{Binding OffsetY, Mode=TwoWay}"/>
             </StackPanel>
             <StackPanel Margin="10">
                 <TextBlock Text="ScaleX"/>
-                <userControls:NumericUpDown />
+                <userControls:NumericUpDown Value="{Binding PointScaleX, Mode=TwoWay}"/>
             </StackPanel>
             <StackPanel Margin="10">
                 <TextBlock Text="ScaleY"/>
-                <userControls:NumericUpDown />
+                <userControls:NumericUpDown Value="{Binding PointScaleY, Mode=TwoWay}"/>
             </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Row="1">
             <Button Content="Load settings" 
-                    Command="{Binding Path=LoadSettingsCommand}"/>
+                    Command="{Binding Path=LoadSettingsCommand, Mode=OneWay}"/>
             <Button Content="Save settings" 
-                    Command="{Binding Path=SaveSettingsCommand}"/>
+                    Command="{Binding Path=SaveSettingsCommand, Mode=OneWay}"/>
         </StackPanel>
-        <!--<Button Content="Accept"  Background="LightGray" />-->
 
         <Button Grid.Row="2" 
                 VerticalAlignment="Bottom"

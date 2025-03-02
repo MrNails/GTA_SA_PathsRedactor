@@ -7,14 +7,21 @@ using System.Runtime.Loader;
 
 namespace GTA_SA_PathsRedactor.Services
 {
-    public sealed class ProxyController
+    public interface IProxyController
     {
-        private readonly List<Assembly> _assemblies;
+        IEnumerable<string> AssembliesFullNames { get; }
+        ReadOnlyCollection<Assembly> Assemblies { get; }
+        Assembly AddAssembly(string assemblyPath);
+        Type? GetTypeByName(string assemblyFullName, string typeFullName);
+        bool RemoveAssembly(string assemblyFullName);
+        bool ContainsAssembly(string assemblyFullName);
+        TResult? CreateInstanceFromAssembly<TResult>(string assemblyFullName, string typeName);
+        Type[] GetDerivedTypesFromAssembly(string assemblyFullName, Type baseType);
+    }
 
-        public ProxyController()
-        {
-            _assemblies = new List<Assembly>();
-        }
+    public sealed class ProxyController : IProxyController
+    {
+        private readonly List<Assembly> _assemblies = new();
 
         public IEnumerable<string> AssembliesFullNames => _assemblies.Select(assembly => assembly.FullName!);
 

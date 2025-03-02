@@ -6,7 +6,16 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace GTA_SA_PathsRedactor.Services;
 
-public sealed class PageContainerService<TPage> : ObservableObject
+public interface IPageContainerService<TPage>
+{
+    TPage? CurrentPage { get; }
+    ICommand NavigateToPageCommand { get; }
+    void AddPage(string name, TPage page);
+    bool RemovePage(string name);
+    void NavigateTo(string? name);
+}
+
+public sealed class PageContainerService<TPage> : ObservableObject, IPageContainerService<TPage>
 {
     private readonly Dictionary<string, TPage> _pages = new();
     private TPage? _currentPage;

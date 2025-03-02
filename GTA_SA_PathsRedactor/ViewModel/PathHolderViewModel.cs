@@ -5,6 +5,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GTA_SA_PathsRedactor.Services;
+using GTA_SA_PathsRedactor.Services.Wrappers;
 using Microsoft.Win32;
 using Serilog;
 
@@ -19,8 +20,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
         
         private static int _pathCounter;
 
-        private readonly DataToStorageService _dataToStorageService;
-        private readonly NotificationService _notificationService;
+        private readonly IDataToStorageService _dataToStorageService;
+        private readonly INotificationService _notificationService;
         private readonly ILogger _logger;
 
         private int _currentPathIndex;
@@ -36,9 +37,9 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private ICommand? _selectPath;
         private ICommand? _clearSelectedPathPointsCommand;
 
-        public PathHolderViewModel(DataToStorageService dataToStorageService, 
-                             NotificationService notificationService, 
-                             ILogger logger)
+        public PathHolderViewModel(IDataToStorageService dataToStorageService, 
+                                   INotificationService notificationService, 
+                                   ILogger logger)
         {
             _dataToStorageService = dataToStorageService;
             _notificationService = notificationService;

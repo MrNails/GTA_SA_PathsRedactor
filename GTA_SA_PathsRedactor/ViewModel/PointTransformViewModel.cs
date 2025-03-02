@@ -1,52 +1,52 @@
 ﻿using System;
 using System.IO;
 using GTA_SA_PathsRedactor.Services;
-using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Win32;
+using GTA_SA_PathsRedactor.Services.Wrappers;
+using System.Threading.Tasks;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
     public sealed partial class PointTransformViewModel : ObservableObject
     {
-        private readonly NotificationService _notificationService;
-        private readonly SettingsService _settingsService;
-        
+        private readonly INotificationService _notificationService;
+        private readonly ISettingsService _settingsService;
+        private readonly IFileManipulationService _fileManipulationService;
+
         private ICommand? _saveSetting;
         private ICommand? _loadSetting;
-        
+
         [ObservableProperty]
         private PointTransformationData _pointTransformationData;
 
-        public PointTransformViewModel(NotificationService notificationService, SettingsService settingsService
-            )
+        public PointTransformViewModel(INotificationService notificationService, ISettingsService settingsService, IFileManipulationService fileManipulationService)
         {
             _notificationService = notificationService;
             _settingsService = settingsService;
+            _fileManipulationService = fileManipulationService;
             _pointTransformationData = new PointTransformationData();
         }
-      
-        public ICommand SaveSettingsCommand => _saveSetting ??= new RelayCommand(SaveSettingCommandHandler);
-        public ICommand LoadSettingsCommand => _loadSetting ??= new RelayCommand(LoadSettingCommandHandler);
-        
-        private void SaveSettingCommandHandler()
+
+        public ICommand SaveSettingsCommand => _saveSetting ??= new AsyncRelayCommand(SaveSettingCommandHandler);
+        public ICommand LoadSettingsCommand => _loadSetting ??= new AsyncRelayCommand(LoadSettingCommandHandler);
+
+        private async Task SaveSettingCommandHandler()
         {
             try
             {
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "JSON files (*.json) |*.json";
+                _fileManipulationService.Filter = "JSON files (*.json) |*.json";
+                var fileName = _fileManipulationService.SaveFile();
 
-                // if (saveFileDialog.ShowDialog() == true)
-                // {
-                //     var transformSettingLoader = new TransformSettingSaverLoader(saveFileDialog.FileName, true);
-                //
-                //     transformSettingLoader.SaveSettings(CurrentPointTransformData);
-                //
-                //     MessageBox.Show("Settings saved succesfully", "Information",
-                //                     MessageBoxButton.OK, MessageBoxImage.Asterisk);
-                // }
+                if (fileName == string.Empty)
+                {
+                    return;
+                }
+
+                await _settingsService.SaveSettings(PointTransformationData, fileName);
+
+                _notificationService.NotifyInformation("Settings saved succesfully.");
             }
             catch (Exception ex)
             {
@@ -57,24 +57,31 @@ namespace GTA_SA_PathsRedactor.ViewModel
 #endif
             }
         }
-        private void LoadSettingCommandHandler()
+        private async Task LoadSettingCommandHandler()
         {
             try
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "JSON files (*.json) |*.json";
+                _fileManipulationService.Filter = "JSON files (*.json) |*.json";
+                var fileName = _fileManipulationService.OpenFile();
 
-                // if (openFileDialog.ShowDialog() == true)
-                // {
-                //     var transformSettingLoader = new TransformSettingSaverLoader(openFileDialog.FileName);
-                //
-                //     var setting = transformSettingLoader.LoadSettings();
-                //
-                //     AddNewPointTransformationData(setting);
-                //
-                //     MessageBox.Show("Settings loaded succesfully", "Information",
-                //                     MessageBoxButton.OK, MessageBoxImage.Asterisk);
-                // }
+                if (fileName == string.Empty)
+                {
+                    return;
+                }
+
+                var settings = await _settingsService.LoadSettings<PointTransformationData>(fileName);
+
+                if (settings is null)
+                {
+                    settings = new PointTransformationData();
+                    _notificationService.NotifyError($"Unable to load settings from file {fileName}.");
+                }
+                else
+                {
+                    _notificationService.NotifyInformation("Settings saved succesfully.");
+                }
+
+                PointTransformationData = settings;
             }
             catch (FileNotFoundException)
             {

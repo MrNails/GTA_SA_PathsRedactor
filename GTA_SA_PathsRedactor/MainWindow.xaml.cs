@@ -15,7 +15,7 @@ namespace GTA_SA_PathsRedactor
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly PageContainerService<UserControl> _pageContainer;
+        private readonly IPageContainerService<UserControl> _pageContainer;
         
         private PathHolderViewModel? _pathViewModel;
 

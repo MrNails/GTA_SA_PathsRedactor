@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ public enum SignType
 
 public partial class NumericUpDown : UserControl
 {
-    private record ChangeValueData(int Milliseconds, int Delta);
+    private sealed record ChangeValueData(int Milliseconds, int Delta);
     
     public static readonly DependencyProperty ValueProperty = 
         DependencyProperty.Register(nameof(Value), 
@@ -73,7 +72,7 @@ public partial class NumericUpDown : UserControl
             if (token.IsCancellationRequested)
                 return;
 
-            Dispatcher.BeginInvoke((object arg) => Value += sign * (int)arg, delta);
+            await Dispatcher.BeginInvoke((object arg) => Value += sign * (int)arg, delta);
             key++;
         }
     }
@@ -93,7 +92,12 @@ public partial class NumericUpDown : UserControl
 
     private void NumericButtonOnMouseUp(object sender, MouseButtonEventArgs e)
     {
-        _cancellationTokenSource?.Cancel();
+        if (_cancellationTokenSource is not null)
+        {
+            _cancellationTokenSource.Cancel();
+            _cancellationTokenSource.Dispose();
+        }
+
         _cancellationTokenSource = null;
     }
     
