@@ -1,49 +1,67 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GTA_SA_PathsRedactor.Models.EventArguments;
 using GTA_SA_PathsRedactor.Services;
+using GTA_SA_PathsRedactor.Services.Helpers;
+using GTA_SA_PathsRedactor.Services.Interfaces;
 using GTA_SA_PathsRedactor.Services.Wrappers;
+using GTA_SA_PathsRedactor.View.Windows;
 using Microsoft.Win32;
 using Serilog;
 
 namespace GTA_SA_PathsRedactor.ViewModel
 {
-    public class PathHolderViewModel : ObservableObject
+    public sealed class MainViewModel : ObservableObject
     {
         /// <summary>
         /// Time in milliseconds
         /// </summary>
         private const int MaxWaitingTimeForSavingLoadingPaths_ = 30000;
-        
+
         private static int _pathCounter;
 
+        private readonly ILogger _logger;
         private readonly IDataToStorageService _dataToStorageService;
         private readonly INotificationService _notificationService;
-        private readonly ILogger _logger;
+        private readonly INonDialogWindowHelper _nonDialogWindowHelper;
+        private readonly IFileManipulationService _fileManipulatorService;
 
         private int _currentPathIndex;
 
-        private ICommand? _savePath;
-        private ICommand? _savePathAs;
-        private ICommand? _loadPath;
+        private ICommand? _savePathCommand;
+        private ICommand? _savePathAsCommand;
+        private ICommand? _loadPathCommand;
 
-        private ICommand? _createNewPath;
-        private ICommand? _addNewPath;
-        private ICommand? _removePath;
+        private ICommand? _createNewPathCommand;
+        private ICommand? _addNewPathCommand;
+        private ICommand? _removePathCommand;
 
-        private ICommand? _selectPath;
+        private ICommand? _selectPathCommand;
         private ICommand? _clearSelectedPathPointsCommand;
 
-        public PathHolderViewModel(IDataToStorageService dataToStorageService, 
-                                   INotificationService notificationService, 
-                                   ILogger logger)
+        private ICommand? _openHelpWindowCommand;
+        private ICommand? _openAboutWindowCommand;
+
+#if DEBUG
+        public MainViewModel() { }
+#endif
+
+        public MainViewModel(ILogger logger,
+                             IDataToStorageService dataToStorageService,
+                             INotificationService notificationService,
+                             INonDialogWindowHelper nonDialogWindowHelper,
+                             IFileManipulationService fileManipulationService)
         {
+            _logger = logger;
             _dataToStorageService = dataToStorageService;
             _notificationService = notificationService;
-            _logger = logger;
+            _nonDialogWindowHelper = nonDialogWindowHelper;
+            _fileManipulatorService = fileManipulationService;
 
             Paths = new ObservableCollection<PathEditorViewModel>();
             _currentPathIndex = -1;
@@ -53,16 +71,16 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public PathEditorViewModel? CurrentPath => _currentPathIndex == -1 ? null : Paths[_currentPathIndex];
 
-        public ICommand SaveCurrentPath => _savePath ??= 
+        public ICommand SaveCurrentPathCommand => _savePathCommand ??=
             new AsyncRelayCommand(() => SavePathExecute(false), () => _currentPathIndex != -1);
-        public ICommand SaveCurrentPathAs => _savePathAs ??=
+        public ICommand SaveCurrentPathAsCommand => _savePathAsCommand ??=
             new AsyncRelayCommand(() => SavePathExecute(true), () => _currentPathIndex != -1);
-        public ICommand LoadPath => _loadPath ??= 
-            new AsyncRelayCommand<string>(LoadPathExecute);
+        public ICommand LoadPathCommand => _loadPathCommand ??=
+            new AsyncRelayCommand(LoadPathExecute);
 
-        public ICommand AddNewPathCommand => _addNewPath ??=
+        public ICommand AddNewPathCommand => _addNewPathCommand ??=
             new RelayCommand<PathEditorViewModel>(AddNewPathExecute, pathEditor => pathEditor is not null);
-        public ICommand CreateNewPathCommand => _createNewPath ??=
+        public ICommand CreateNewPathCommand => _createNewPathCommand ??=
             new RelayCommand<string>(pathName =>
             {
                 pathName ??= $"New path {++_pathCounter}";
@@ -70,16 +88,16 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 AddNewPathExecute(newPath);
             });
-        public ICommand RemovePathCommand => _removePath ??=
+        public ICommand RemovePathCommand => _removePathCommand ??=
             new RelayCommand<PathEditorViewModel>(pathEditorModel =>
             {
-                if (!Paths.Remove(pathEditorModel!)) 
+                if (!Paths.Remove(pathEditorModel!))
                     return;
-                
+
                 PathRemoved?.Invoke(this, pathEditorModel!);
             }, pathEditorModel => pathEditorModel is not null && Paths.Count != 0);
 
-        public ICommand SelectPathCommand => _selectPath ??=
+        public ICommand SelectPathCommand => _selectPathCommand ??=
             new RelayCommand<object>(obj =>
             {
                 var newIndex = -1;
@@ -95,9 +113,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 CurrentPathIndex = newIndex;
             }, obj => obj is int or PathEditorViewModel);
-        
         public ICommand ClearSelectedPathPointsCommand => _clearSelectedPathPointsCommand
             ??= new RelayCommand<PathEditorViewModel>(path => path?.Clear(), path => path is not null);
+
+        public ICommand OpenHelpWindowCommand => _openHelpWindowCommand ??= new RelayCommand(_nonDialogWindowHelper.Show<HelpWindow>);
+        public ICommand OpenAboutWindowCommand => _openAboutWindowCommand ??= new RelayCommand(_nonDialogWindowHelper.Show<AboutWindow>);
 
         public int CurrentPathIndex
         {
@@ -119,33 +139,20 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
-        public event Action<PathHolderViewModel, PathEditorViewModel>? PathAdded;
-        public event Action<PathHolderViewModel, PathEditorViewModel>? PathRemoved;
-        public event Action<PathHolderViewModel, PathSelectionArgs>? PathSelected;
+        public event Action<MainViewModel, PathEditorViewModel>? PathAdded;
+        public event Action<MainViewModel, PathEditorViewModel>? PathRemoved;
+        public event Action<MainViewModel, PathSelectionArgs>? PathSelected;
 
-        private async Task LoadPathExecute(string? path)
+        private async Task LoadPathExecute()
         {
-            if (path == null)
-            {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "All files (*.*)|*.*";
+            _fileManipulatorService.Filter = "All files (*.*)|*.*";
+            var path = _fileManipulatorService.OpenFile();
 
-                if (openFileDialog.ShowDialog() == true)
-                {
-                    path = openFileDialog.FileName;
-                }
-                else
-                {
-                    return;
-                }
-            }
+            if (path == string.Empty)
+                return;
 
             var pointLoader = _dataToStorageService.CurrentPointLoader;
-
-            var newPath = new PathEditorViewModel(path.Remove(0, path.LastIndexOf('\\') + 1));
-            newPath.PathFileName = path;
             pointLoader.FileName = path;
-
             try
             {
                 var loadPointTask = pointLoader.LoadAsync();
@@ -154,9 +161,10 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
                 if (loadPointTask.IsCompleted)
                 {
-                    var points = loadPointTask.Result;
+                    var pathEditor = new PathEditorViewModel(Path.GetFileNameWithoutExtension(path), loadPointTask.Result);
+                    pathEditor.PathFileName = path;
 
-                    AddNewPathExecute(newPath);
+                    AddNewPathExecute(pathEditor);
                 }
                 else
                 {
@@ -173,7 +181,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 _notificationService.NotifyError("You don't have permissions access to selected file.");
                 _logger.Error(ex, "{ErrorMessage}", ex.Message);
             }
-            catch (System.IO.FileNotFoundException ex)
+            catch (FileNotFoundException ex)
             {
                 _notificationService.NotifyError($"File by path {pointLoader.FileName} does not exist.");
                 _logger.Error(ex, "{ErrorMessage}", ex.Message);
@@ -185,7 +193,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
             catch (Exception ex)
             {
-                _notificationService.NotifyError("An error occurred while saving points.");
+                _notificationService.NotifyError("An error occurred while loading points.");
                 _logger.Error(ex, "{ErrorMessage}", ex.Message);
             }
         }
@@ -199,13 +207,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
             if (filePath == string.Empty || saveAs)
             {
-                var saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "DATA files (*.dat)|*.dat|All files (*.*)|*.*";
-                saveFileDialog.FileName = CurrentPath.PathName + ".dat";
+                _fileManipulatorService.Filter = "DATA files (*.dat)|*.dat|All files (*.*)|*.*";
+                _fileManipulatorService.FileName = CurrentPath.PathName + ".dat";
+                filePath = _fileManipulatorService.OpenFile();
 
-                if (saveFileDialog.ShowDialog() == true)
-                    filePath = saveFileDialog.FileName;
-                else
+                if (filePath == string.Empty)
                     return;
             }
 

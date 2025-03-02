@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.Numerics;
+using System.Windows.Media;
 using GTA_SA_PathsRedactor.Core;
 
 namespace GTA_SA_PathsRedactor.Services

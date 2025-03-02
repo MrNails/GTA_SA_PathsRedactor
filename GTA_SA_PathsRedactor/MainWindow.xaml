@@ -9,28 +9,19 @@
         mc:Ignorable="d"
         d:DesignWidth="600"
         d:DesignHeight="600"
-        d:DataContext="{viewModel:PathHolderViewModel}"
+        d:DataContext="{d:DesignInstance viewModel:MainViewModel}"
         MinWidth="800"
         MinHeight="600 "
         Title="Main window" 
         Loaded="MainWindow_OnLoaded">
-    <Window.CommandBindings>
-        <CommandBinding Command="services:DefaultCommands.Undo" />
-        <CommandBinding Command="services:DefaultCommands.Redo" />
-        <CommandBinding Command="services:DefaultCommands.DeleteSelectedPoints" />
-        <CommandBinding Command="services:DefaultCommands.SaveCurrentPath" Executed="SaveCurrentPath"/>
-        <CommandBinding Command="services:DefaultCommands.SaveCurrentPathAs" Executed="SaveCurrentPathAs"/>
-        <CommandBinding Command="services:DefaultCommands.Help" Executed="Help"/>
-        <CommandBinding Command="services:DefaultCommands.About" Executed="About"/>
-    </Window.CommandBindings>
     <Window.InputBindings>
-        <KeyBinding Key="Delete" Command="services:DefaultCommands.DeleteSelectedPoints"/>
-        <KeyBinding Modifiers="Control" Key="L" Command="{Binding Path=LoadPath}"/>
-        <KeyBinding Modifiers="Control" Key="S" Command="services:DefaultCommands.SaveCurrentPath"/>
-        <KeyBinding Gesture="Ctrl+Shift+S" Command="services:DefaultCommands.SaveCurrentPathAs" />
-        <KeyBinding Modifiers="Control" Key="Z" Command="services:DefaultCommands.Undo"/>
-        <KeyBinding Modifiers="Control" Key="Y" Command="services:DefaultCommands.Redo"/>
-        <KeyBinding Key="F1" Command="services:DefaultCommands.Help"/>
+        <!--<KeyBinding Key="Delete" Command="{Binding DefaultCommands.DeleteSelectedPoints, Mode=OneWay}"/>-->
+        <KeyBinding Modifiers="Control" Key="L" Command="{Binding LoadPathCommand, Mode=OneWay}"/>
+        <KeyBinding Modifiers="Control" Key="S" Command="{Binding SaveCurrentPathCommand, Mode=OneWay}"/>
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveCurrentPathAsCommand, Mode=OneWay}" />
+        <KeyBinding Modifiers="Control" Key="Z" Command="{Binding Path=HistoryController.UndoCommand, Source={StaticResource Locator}, Mode=OneWay}"/>
+        <KeyBinding Modifiers="Control" Key="Y" Command="{Binding Path=HistoryController.RedoCommand, Source={StaticResource Locator}, Mode=OneWay}"/>
+        <KeyBinding Key="F1" Command="{Binding OpenHelpWindowCommand, Mode=OneWay}"/>
     </Window.InputBindings>
     <DockPanel LastChildFill="True">
         <StatusBar DockPanel.Dock="Bottom" Panel.ZIndex="3">
@@ -43,13 +34,13 @@
               FontSize="15">
             <MenuItem Header="File">
                 <MenuItem Header="Load" 
-                          Command="{Binding Path=LoadPath}" 
+                          Command="{Binding Path=LoadPathCommand, Mode=OneWay}" 
                           InputGestureText="Ctrl + L"/>
                 <MenuItem Header="Save" 
-                          Command="services:DefaultCommands.SaveCurrentPath" 
+                          Command="{Binding Path=SaveCurrentPathCommand, Mode=OneWay}" 
                           InputGestureText="Ctrl + S"/>
                 <MenuItem Header="Save as"
-                          Command="services:DefaultCommands.SaveCurrentPathAs" 
+                          Command="{Binding Path=SaveCurrentPathAsCommand, Mode=OneWay}" 
                           InputGestureText="Ctrl + Shift + S"/>
             </MenuItem>
             <MenuItem Header="Settings">
@@ -59,22 +50,22 @@
                 <MenuItem Header="Loaders and savers information" />
             </MenuItem>
             <MenuItem Header="Commands">
-                <MenuItem Header="Delete selected points" 
+                <!--<MenuItem Header="Delete selected points" 
                           Command="services:DefaultCommands.DeleteSelectedPoints" 
-                          InputGestureText="Del"/>
+                          InputGestureText="Del"/>-->
                 <MenuItem Header="Undo" 
                           InputGestureText="Ctrl + Z" 
-                          Command="services:DefaultCommands.Undo"/>
+                          Command="{Binding Path=HistoryController.UndoCommand, Source={StaticResource Locator}, Mode=OneWay}"/>
                 <MenuItem Header="Redo" 
                           InputGestureText="Ctrl + Y" 
-                          Command="services:DefaultCommands.Redo"/>
+                          Command="{Binding Path=HistoryController.RedoCommand, Source={StaticResource Locator}, Mode=OneWay}"/>
             </MenuItem>
             <MenuItem Header="Windows">
                 <MenuItem Header="Help" 
-                          Command="services:DefaultCommands.Help" 
+                          Command="{Binding OpenHelpWindowCommand, Mode=OneWay}" 
                           InputGestureText="F1"/>
                 <MenuItem Header="About" 
-                          Command="services:DefaultCommands.About"/>
+                          Command="{Binding OpenAboutWindowCommand, Mode=OneWay}"/>
             </MenuItem>
         </Menu>
         <ScrollViewer DockPanel.Dock="Left" 

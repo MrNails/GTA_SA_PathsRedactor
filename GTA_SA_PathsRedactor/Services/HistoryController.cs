@@ -1,97 +1,104 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using GTA_SA_PathsRedactor.Services.Interfaces;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace GTA_SA_PathsRedactor.Services
 {
-    public class HistoryController : INotifyPropertyChanged
+    public sealed class HistoryController : ObservableObject, IHistoryController
     {
-        private static readonly int s_maxHistoryElems = 75;
-        
-        private List<IStorableValue> m_historyList;
-        private IStorableValue? m_newThresholdValue;
-        private int m_currentPos;
-        private bool m_isOverThreshold;
+        private static readonly int MaxHistoryElems_ = 75;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        private readonly List<IStorableValue> _historyList;
+
+        private IStorableValue? _newThresholdValue;
+        private int _currentPos;
+        private bool _isOverThreshold;
+
+        private ICommand? _undoCommand;
+        private ICommand? _redoCommand;
 
         public HistoryController()
         {
-            m_historyList = new List<IStorableValue>();
-            m_currentPos = -1;
+            _historyList = new List<IStorableValue>();
+            _currentPos = -1;
         }
 
-        public int HistoryCount => m_historyList.Count;
+        public int HistoryCount => _historyList.Count;
 
-        public bool IsPositionOnStart => m_currentPos == -1;
+        public bool IsPositionOnStart => _currentPos == -1;
 
-        public bool IsPositionOnEnd => m_currentPos == m_historyList.Count - 1;
+        public bool IsPositionOnEnd => _currentPos == _historyList.Count - 1;
 
-        public bool IsOverThreshold => m_isOverThreshold;
+        public bool IsOverThreshold => _isOverThreshold;
 
-        public bool HasChagned => m_isOverThreshold || CurrentElement != m_newThresholdValue;
+        public bool HasChagned => _isOverThreshold || CurrentElement != _newThresholdValue;
 
         public IStorableValue? CurrentElement
         {
             get
             {
-                if (m_currentPos == -1)
+                if (_currentPos == -1)
                     return default;
 
-                return m_historyList[m_currentPos];
+                return _historyList[_currentPos];
             }
         }
 
         public int CurrentPosition
         {
-            get => m_currentPos;
+            get => _currentPos;
         }
+
+        public ICommand UndoCommand => _undoCommand ??= new RelayCommand(() => Undo());
+        public ICommand RedoCommand => _redoCommand ??= new RelayCommand(() => Redo());
 
         public void AddNew(IStorableValue elem)
         {
-            if (m_currentPos != m_historyList.Count - 1)
+            if (_currentPos != _historyList.Count - 1)
             {
-                var tresholdValueIndex = m_historyList.IndexOf(m_newThresholdValue);
+                var tresholdValueIndex = _historyList.IndexOf(_newThresholdValue);
 
-                if (tresholdValueIndex > m_currentPos)
-                    m_newThresholdValue = null;
+                if (tresholdValueIndex > _currentPos)
+                    _newThresholdValue = null;
 
-                if (m_currentPos != -1)
-                    m_historyList.RemoveRange(m_currentPos + 1, m_historyList.Count - m_currentPos - 1);
+                if (_currentPos != -1)
+                    _historyList.RemoveRange(_currentPos + 1, _historyList.Count - _currentPos - 1);
                 else
-                    m_historyList.RemoveRange(0, m_historyList.Count);
+                    _historyList.RemoveRange(0, _historyList.Count);
             }
 
-            if (m_historyList.Count == s_maxHistoryElems)
+            if (_historyList.Count == MaxHistoryElems_)
             {
-                if (m_newThresholdValue == null)
+                if (_newThresholdValue == null)
                 {
-                    m_isOverThreshold = true;
+                    _isOverThreshold = true;
                 }
-                else if (m_historyList[0] == m_newThresholdValue)
+                else if (_historyList[0] == _newThresholdValue)
                 {
-                    m_newThresholdValue = null;
-                    m_isOverThreshold = true;
+                    _newThresholdValue = null;
+                    _isOverThreshold = true;
                 }
 
-                m_historyList.RemoveAt(0);
+                _historyList.RemoveAt(0);
             }
 
-            m_historyList.Add(elem);
-            m_currentPos = m_historyList.Count - 1;
+            _historyList.Add(elem);
+            _currentPos = _historyList.Count - 1;
 
             OnPropertyChanged("HistoryCount");
             OnPropertyChanged("CurrentElement");
             OnPropertyChanged("HasChagned");
         }
 
-        public bool MoveLeft()
+        public bool Undo()
         {
-            if (m_currentPos == -1)
+            if (_currentPos == -1)
                 return false;
 
-            m_currentPos--;
+            _currentPos--;
 
             OnPropertyChanged("CurrentPosition");
             OnPropertyChanged("CurrentElement");
@@ -102,12 +109,12 @@ namespace GTA_SA_PathsRedactor.Services
             return true;
         }
 
-        public bool MoveRight()
+        public bool Redo()
         {
-            if (m_currentPos == m_historyList.Count - 1 || m_historyList.Count == 0)
+            if (_currentPos == _historyList.Count - 1 || _historyList.Count == 0)
                 return false;
 
-            m_currentPos++;
+            _currentPos++;
 
             OnPropertyChanged("CurrentPosition");
             OnPropertyChanged("CurrentElement");
@@ -120,17 +127,17 @@ namespace GTA_SA_PathsRedactor.Services
 
         public bool RemoveLast()
         {
-            if (m_historyList.Count == 0)
+            if (_historyList.Count == 0)
                 return false;
 
-            if (m_newThresholdValue == m_historyList[m_historyList.Count - 1])
-                m_newThresholdValue = null;
+            if (_newThresholdValue == _historyList[_historyList.Count - 1])
+                _newThresholdValue = null;
 
-            m_historyList.RemoveAt(m_historyList.Count - 1);
+            _historyList.RemoveAt(_historyList.Count - 1);
 
-            if (m_currentPos == m_historyList.Count)
+            if (_currentPos == _historyList.Count)
             {
-                m_currentPos--;
+                _currentPos--;
                 OnPropertyChanged("CurrentPosition");
             }
 
@@ -145,9 +152,9 @@ namespace GTA_SA_PathsRedactor.Services
 
         public void ClearHistory()
         {
-            m_currentPos = -1;
-            m_historyList.Clear();
-            m_isOverThreshold = false;
+            _currentPos = -1;
+            _historyList.Clear();
+            _isOverThreshold = false;
 
             OnPropertyChanged("CurrentPosition");
             OnPropertyChanged("HistoryCount");
@@ -164,18 +171,13 @@ namespace GTA_SA_PathsRedactor.Services
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void SetNewOverloadThresholdElem(int index)
         {
-            if (index < 0 || index >= m_historyList.Count)
+            if (index < 0 || index >= _historyList.Count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
-            m_newThresholdValue = m_historyList[index];
-            m_isOverThreshold = false;
+            _newThresholdValue = _historyList[index];
+            _isOverThreshold = false;
 
             OnPropertyChanged("HasChagned");
-        }
-
-        protected void OnPropertyChanged([CallerMemberName]string prop = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
     }
 }

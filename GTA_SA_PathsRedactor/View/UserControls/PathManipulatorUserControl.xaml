@@ -9,7 +9,7 @@
              mc:Ignorable="d"
              d:DesignHeight="300" 
              d:DesignWidth="300"
-             d:DataContext="{viewModel:PathEditorViewModel}"
+             d:DataContext="{d:DesignInstance viewModel:PathEditorViewModel}"
              x:Name="Root"
              ClipToBounds="True"
              MouseWheel="PathManipulatorUserControl_OnMouseWheel"
@@ -22,7 +22,8 @@
              PreviewMouseUp="PathManipulatorUserControl_OnPreviewMouseUp"
              SizeChanged="PathManipulatorUserControl_OnSizeChanged">
     <UserControl.Resources>
-        <services:BindingProxy x:Key="RootProxy" Data="{Binding ElementName=Root, Mode=OneWay}"/>
+        <services:BindingProxy x:Key="RootProxy" 
+                               Data="{Binding ElementName=Root, Mode=OneWay}"/>
     </UserControl.Resources>
     <Grid x:Name="RenderGrid" 
           RenderTransformOrigin="0.5, 0.5">
@@ -35,7 +36,8 @@
         
         <Image x:Name="MapIcon" 
                Stretch="Fill"
-               Source="{Binding ElementName=Root, Path=ImagePath, Mode=OneWay}">
+               Source="{Binding ElementName=Root, Path=ImagePath, Mode=OneWay}"
+               d:Source="/Resource/MapImage.jpg">
             <Image.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Add point" 
@@ -47,7 +49,7 @@
                 </ContextMenu>
             </Image.ContextMenu>
         </Image>
-        
+
         <Rectangle x:Name="SelectionRectangle" 
                    StrokeThickness="2"
                    StrokeDashArray="3 2"
@@ -59,7 +61,7 @@
                 <TranslateTransform />
             </Rectangle.RenderTransform>
         </Rectangle>
-        
+
         <controls:PathManipulator x:Name="MapContainer" 
                                   PointsToDisplay="{Binding Points, Mode=OneWay}"
                                   PointsColor="{Binding Color, Mode=OneWay}"
@@ -76,7 +78,8 @@
                                                 Source={StaticResource RootProxy}}"
                               CommandParameter="{Binding Data.DataContext.SelectedPoint, 
                                                           Mode=OneWay,
-                                                          Source={StaticResource RootProxy}}"/>
+                                                          Source={StaticResource RootProxy}}"
+                              InputGestureText="Del"/>
                     <MenuItem Header="Clear selection" 
                               Command="{Binding Data.DataContext.ClearSelectionCommand, 
                                                 Mode=OneWay, 
@@ -85,5 +88,4 @@
             </controls:PathManipulator.ContextMenu>
         </controls:PathManipulator>
     </Grid>
-
 </UserControl>

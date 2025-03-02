@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GTA_SA_PathsRedactor.Core.Models;
 using GTA_SA_PathsRedactor.Core;
@@ -15,12 +14,12 @@ namespace GTA_SA_PathsRedactor.ViewModel
     public sealed partial class PathEditorViewModel : Entity
     {
         private readonly ObservableCollection<WorldPoint> _points;
-        
+
         private string _pathName;
         private string _pathFileName;
         private double _linesThickness;
         private Brush _pathColor;
-        
+
         private WorldPoint? _selectedPoint;
 
         private ICommand? _addPointCommand;
@@ -29,19 +28,24 @@ namespace GTA_SA_PathsRedactor.ViewModel
         private ICommand? _clearSelectionCommand;
         private ICommand? _selectPointsCommand;
 
-        public PathEditorViewModel(string pathName) : this(pathName, Brushes.Red) { }
+#if DEBUG
+        public PathEditorViewModel() { }
+#endif
 
-        public PathEditorViewModel(string pathName, SolidColorBrush linesColor)
+        public PathEditorViewModel(string pathName) : this(pathName, Brushes.Red, null) { }
+        public PathEditorViewModel(string pathName, IEnumerable<WorldPoint> points) : this(pathName, Brushes.Red, points) {}
+
+        public PathEditorViewModel(string pathName, SolidColorBrush linesColor, IEnumerable<WorldPoint>? points)
         {
-            _points = new ObservableCollection<WorldPoint>();
+            _points = points is not null ? new ObservableCollection<WorldPoint>(points) : new ObservableCollection<WorldPoint>();
 
             _pathName = pathName;
             _pathFileName = string.Empty;
             _pathColor = linesColor;
-            
+
             LinesThickness = 2;
         }
-        
+
         public IReadOnlyList<WorldPoint> Points => _points;
         public IEnumerable<WorldPoint> SelectedPoints => _points.Where(point => point.IsSelected);
 
@@ -78,8 +82,8 @@ namespace GTA_SA_PathsRedactor.ViewModel
                 {
                     _errors[nameof(LinesThickness)] = "Path's lines thickness can't be less than zero.";
                     _linesThickness = 0;
-                } 
-                
+                }
+
                 _errors[nameof(LinesThickness)] = string.Empty;
                 _linesThickness = value;
                 OnPropertyChanged();
@@ -110,15 +114,15 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
         }
 
-        public ICommand AddPointCommand => _addPointCommand 
+        public ICommand AddPointCommand => _addPointCommand
             ??= new RelayCommand<WorldPoint>(point => _points.Add(point!), point => point is not null);
-        public ICommand RemovePointCommand => _removePointCommand 
+        public ICommand RemovePointCommand => _removePointCommand
             ??= new RelayCommand<WorldPoint>(point => _points.Remove(point!), point => point is not null);
-        
-        public ICommand InsertPointCommand => _insertPointCommand 
-            ??= new RelayCommand<InsertPointDto>(dto => _points.Insert(dto!.IndexToInsert, dto.Point), 
-                                                 dto => dto is not null && 
-                                                                 dto.IndexToInsert >= 0 && 
+
+        public ICommand InsertPointCommand => _insertPointCommand
+            ??= new RelayCommand<InsertPointDto>(dto => _points.Insert(dto!.IndexToInsert, dto.Point),
+                                                 dto => dto is not null &&
+                                                                 dto.IndexToInsert >= 0 &&
                                                                  dto.IndexToInsert < _points.Count);
 
         public ICommand ClearSelectionCommand => _clearSelectionCommand
@@ -126,11 +130,11 @@ namespace GTA_SA_PathsRedactor.ViewModel
 
         public ICommand SelectPointsCommand => _selectPointsCommand
             ??= new RelayCommand<Rect>(SelectPointsExecute);
-        
+
         public void Clear()
         {
             _points.Clear();
-            
+
             OnPropertyChanged(nameof(Points));
             OnPropertyChanged(nameof(SelectedPoints));
         }
@@ -143,7 +147,7 @@ namespace GTA_SA_PathsRedactor.ViewModel
             }
 
             SelectedPoint = null;
-            
+
             OnPropertyChanged(nameof(SelectedPoints));
         }
 

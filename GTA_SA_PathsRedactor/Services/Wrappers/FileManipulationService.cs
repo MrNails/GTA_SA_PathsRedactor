@@ -6,6 +6,7 @@ namespace GTA_SA_PathsRedactor.Services.Wrappers;
 public interface IFileManipulationService
 {
     string Filter { get; set; }
+    string FileName { get; set; }
 
     /// <summary>
     /// Select existing file path for opening.
@@ -23,6 +24,8 @@ public sealed partial class FileManipulationService : ObservableObject, IFileMan
 {
     [ObservableProperty]
     private string _filter = string.Empty;
+    [ObservableProperty]
+    private string _fileName = string.Empty;
 
     /// <inheritdoc />
     public string OpenFile()
@@ -40,7 +43,8 @@ public sealed partial class FileManipulationService : ObservableObject, IFileMan
     {
         var saveDialog = new SaveFileDialog()
         {
-            Filter = Filter
+            Filter = Filter,
+            FileName = FileName
         };
 
         return saveDialog.ShowDialog() == true ? saveDialog.FileName : string.Empty;

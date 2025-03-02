@@ -17,7 +17,7 @@ namespace GTA_SA_PathsRedactor
     {
         private readonly IPageContainerService<UserControl> _pageContainer;
         
-        private PathHolderViewModel? _pathViewModel;
+        private MainViewModel? _pathViewModel;
 
         public MainWindow()
         {
@@ -34,18 +34,18 @@ namespace GTA_SA_PathsRedactor
 
         private void SaveCurrentPath(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!_pathViewModel.SaveCurrentPath.CanExecute(null))
+            if (!_pathViewModel!.SaveCurrentPathCommand.CanExecute(null))
                 return;
 
-            _pathViewModel.SaveCurrentPath.Execute(null);
+            _pathViewModel.SaveCurrentPathCommand.Execute(null);
             
         }
         private void SaveCurrentPathAs(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!_pathViewModel.SaveCurrentPath.CanExecute(null))
+            if (!_pathViewModel!.SaveCurrentPathCommand.CanExecute(null))
                 return;
 
-            _pathViewModel.SaveCurrentPathAs.Execute(null);
+            _pathViewModel.SaveCurrentPathAsCommand.Execute(null);
         }
 
         private void Help(object sender, ExecutedRoutedEventArgs e)
@@ -61,7 +61,7 @@ namespace GTA_SA_PathsRedactor
         {
             if (_pathViewModel is null)
             {
-                _pathViewModel = (PathHolderViewModel)DataContext;
+                _pathViewModel = (MainViewModel)DataContext;
                 InitializeAdditionalComponent();
             }
         }

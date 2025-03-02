@@ -48,7 +48,7 @@ public sealed class ProjectDataService
 
     private void ExtractLoaderAndSaver(JsonObject jObject)
     {
-        var dataToStorageService = _serviceProvider.GetService<DataToStorageService>()!;
+        var dataToStorageService = _serviceProvider.GetService<IDataToStorageService>()!;
         var pointLoaderType = dataToStorageService.CurrentPointLoader.GetType();
         var pointSaverType = dataToStorageService.CurrentPointSaver.GetType();
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Controls;
 using GTA_SA_PathsRedactor.Services;
+using GTA_SA_PathsRedactor.Services.Helpers;
+using GTA_SA_PathsRedactor.Services.Interfaces;
 using GTA_SA_PathsRedactor.Services.Wrappers;
 using GTA_SA_PathsRedactor.View.Windows;
 using GTA_SA_PathsRedactor.ViewModel;
@@ -27,12 +29,17 @@ public static class IoCConfig
         var loggerService = new LoggerService();
         Log.Logger = loggerService.CreateLogger();
         
-        serviceCollection.AddTransient<ILogger>(_ => loggerService.CreateLogger());
+        serviceCollection.AddTransient(_ => loggerService.CreateLogger());
+
+        serviceCollection.AddSingleton<INonDialogWindowHelper, NonDialogWindowHelper>();
+
+        serviceCollection.AddSingleton<IProxyController, ProxyController>();
+        serviceCollection.AddSingleton<IHistoryController, HistoryController>();
 
         serviceCollection.AddSingleton<ISettingsService, SettingsService>();
-        serviceCollection.AddSingleton<IProxyController, ProxyController>();
         serviceCollection.AddSingleton<IDataToStorageService, DataToStorageService>();
         serviceCollection.AddSingleton<INotificationService, NotificationService>();
+        serviceCollection.AddSingleton<IFileManipulationService, FileManipulationService>();
         serviceCollection.AddSingleton<IPageContainerService<UserControl>, PageContainerService<UserControl>>();
     }
     
@@ -40,16 +47,16 @@ public static class IoCConfig
     {
         serviceCollection.AddTransient<PointStoreSettingsViewModel>();
         
-        serviceCollection.AddSingleton<PathHolderViewModel>();
+        serviceCollection.AddSingleton<MainViewModel>();
         serviceCollection.AddSingleton<PointTransformViewModel>();
     }
     
     private static void ConfigureViews(ServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<MainWindow>(serviceProvider =>
-            new MainWindow { DataContext = serviceProvider.GetRequiredService<PathHolderViewModel>() });
+        serviceCollection.AddSingleton(serviceProvider =>
+            new MainWindow { DataContext = serviceProvider.GetRequiredService<MainViewModel>() });
         
-        serviceCollection.AddTransient<SaversAndLoadersSettingWindow>(serviceProvider =>
+        serviceCollection.AddTransient(serviceProvider =>
             new SaversAndLoadersSettingWindow { DataContext = serviceProvider.GetRequiredService<PointStoreSettingsViewModel>() });
     }
 }
